@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, isDevMode, signal } from "@angular/core";
+import { errorLimites, limitesDe } from "../core/limites-programa";
 import { map } from "rxjs/operators";
 import { RouterLink } from "@angular/router";
 import { ApiService } from "../core/api.service";
@@ -167,14 +168,14 @@ export class NivelesPage {
 /* ------------------------------------------------------------------ */
 /* Reglas de puntos                                                    */
 /* ------------------------------------------------------------------ */
-type Reglas = { porDolar: number; precio: number; min: number; max: number; mensual: number; paquetes: number[]; compraActiva: boolean; soloDinero: boolean; vigenciaMeses?: number; avisoVencimientoDias?: number; version?: number };
+type Reglas = { porDolar: number; precio: number; min: number; max: number; mensual: number; paquetes: number[]; compraActiva: boolean; soloDinero: boolean; vigenciaMeses?: number; avisoVencimientoDias?: number; maxPorLinea?: number; maxPasajeros?: number; cotizacionRespuestaHoras?: number; cotizacionValidezHoras?: number; version?: number };
 
 @Component({
   selector: "a-reglas-page",
   imports: [ErrorCargaComponent, PageHeaderComponent, PanelComponent, FieldComponent, ToggleComponent, BtnDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <a-header title="Reglas de puntos" desc="Aplica igual en web y app."><button aBtn (click)="guardar()">Guardar reglas</button></a-header>
+    <a-header title="Reglas de puntos" desc="Aplica igual en web y app."><button aBtn [disabled]="!!errorLimitesTexto()" (click)="guardar()">Guardar reglas</button></a-header>
     @if (errorCarga()) { <a-error-carga (reintentar)="cargar()" /> }
     @if (r(); as r) {
       <div class="grid gap-6 lg:grid-cols-2">
@@ -199,6 +200,16 @@ type Reglas = { porDolar: number; precio: number; min: number; max: number; mens
           </div>
           <p class="mt-3 text-sm text-muted-foreground">1 000 puntos cuestan <b class="text-foreground">{{ usd(r.precio * 1000) }}</b>.</p>
         </a-panel>
+        <a-panel title="Límites del canje y de las cotizaciones">
+          <p class="mb-3 text-sm text-muted-foreground">Valores que se aplican en la web y en la app. Si se dejan como están, rigen los de siempre.</p>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <a-field label="Máximo de unidades por producto en un canje"><input [class]="input" type="number" min="1" max="99" [value]="lim().maxPorLinea" (input)="set('maxPorLinea', +$any($event.target).value)" /></a-field>
+            <a-field label="Máximo de pasajeros por cotización de vuelo"><input [class]="input" type="number" min="1" max="20" [value]="lim().maxPasajeros" (input)="set('maxPasajeros', +$any($event.target).value)" /></a-field>
+            <a-field label="Responder una cotización en (horas)"><input [class]="input" type="number" min="1" max="720" [value]="lim().cotizacionRespuestaHoras" (input)="set('cotizacionRespuestaHoras', +$any($event.target).value)" /></a-field>
+            <a-field label="Validez de una cotización enviada (horas)"><input [class]="input" type="number" min="1" max="720" [value]="lim().cotizacionValidezHoras" (input)="set('cotizacionValidezHoras', +$any($event.target).value)" /></a-field>
+          </div>
+          @if (errorLimitesTexto(); as e) { <p role="alert" class="mt-3 rounded-xl bg-destructive/10 p-3 text-sm font-semibold text-destructive">{{ e }}</p> }
+        </a-panel>
         <a-panel title="Consideraciones de la compra de puntos">
           <textarea [class]="input + ' h-48 py-2'" [value]="cond()" (input)="cond.set($any($event.target).value)"></textarea>
           <p class="mt-2 text-xs text-muted-foreground">Una condición por línea. Se muestran como “Consideraciones” en la página de compra de puntos.</p>
@@ -214,6 +225,9 @@ export class ReglasPage {
   protected readonly usd = formatUSD;
   protected readonly r = signal<Reglas | null>(null);
   protected readonly cond = signal("");
+  /** Límites con sus valores por defecto para lo que aún no esté guardado. */
+  protected readonly lim = computed(() => limitesDe(this.r()));
+  protected readonly errorLimitesTexto = computed(() => errorLimites(this.r()));
 
   protected readonly errorCarga = signal(false);
   constructor() {

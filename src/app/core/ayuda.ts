@@ -152,7 +152,7 @@ Abre un pedido para ver su detalle y cambiar su **estado**. Al cambiarlo, el par
 
 ## Cotizaciones de vuelos
 
-Cada solicitud muestra los pasajeros y el seguimiento. Puedes asignar una **ejecutiva**, subir el **PDF** de la cotización y escribir mensajes. Hay un máximo de **48 horas** para responder.
+Cada solicitud muestra los pasajeros y el seguimiento. Puedes asignar una **ejecutiva**, subir el **PDF** de la cotización y escribir mensajes. Hay un plazo máximo para responder (**48 horas** por defecto; se cambia en *Reglas de puntos → Límites del canje y de las cotizaciones*, junto con la validez de la cotización, el máximo de pasajeros y el máximo de unidades por producto).
 
 ## Atención
 

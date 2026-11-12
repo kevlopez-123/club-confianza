@@ -51,7 +51,7 @@ type Modo = "puntos" | "mixto" | "dinero";
                       <div class="flex items-center gap-3 rounded-full border border-border px-3 py-1.5">
                         <button type="button" aria-label="Quitar uno" (click)="store.setCantidad(i.id, i.cantidad - 1)" class="grid h-11 w-11 place-items-center text-ink"><app-icon name="Minus" class="h-4 w-4" /></button>
                         <span class="w-6 text-center text-sm font-bold text-ink">{{ i.cantidad }}</span>
-                        <button type="button" aria-label="Agregar uno" (click)="store.setCantidad(i.id, i.cantidad + 1)" class="grid h-11 w-11 place-items-center text-ink"><app-icon name="Plus" class="h-4 w-4" /></button>
+                        <button type="button" aria-label="Agregar uno" (click)="store.setCantidad(i.id, i.cantidad + 1)" [disabled]="i.cantidad >= store.maxPorLinea()" class="grid h-11 w-11 place-items-center text-ink disabled:opacity-40"><app-icon name="Plus" class="h-4 w-4" /></button>
                       </div>
                       <button type="button" (click)="store.remove(i.id)" class="inline-flex items-center gap-1.5 text-xs font-semibold text-destructive hover:underline">
                         <app-icon name="Trash2" class="h-4 w-4" /> Eliminar

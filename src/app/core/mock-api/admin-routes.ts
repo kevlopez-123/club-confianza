@@ -10,6 +10,7 @@ import { contexto } from "./contexto";
 import { requisitosClave, validarNombrePersona } from "../validaciones";
 import { errorLargosFila } from "../limites";
 import { errorReglasBeneficio, estadoVigencia } from "../cupones";
+import { errorLimites } from "../limites-programa";
 import { provinciasDe } from "../../tenants/presets";
 import { errorPopup } from "../popups";
 import { exigirGuiaValida, guiasDeQuienPregunta } from "./ayuda";
@@ -659,6 +660,8 @@ export const adminRoutes: Route[] = [
   ["GET", "admin/meta", () => ({ roles: listarRoles(), provincias: db.admin.provincias, estadosPedido: db.admin.estadosPedido, hoy: db.admin.hoy })],
   ["GET", "admin/reglas", () => ({ reglas: db.admin.reglas, condiciones: db.config.condicionesCompra })],
   ["PUT", "admin/reglas", ({ body }) => {
+    const errorLim = errorLimites(body.reglas);
+    if (errorLim) throw new ApiError(422, errorLim, "limites_invalidos");
     db.admin.reglas = body.reglas;
     db.config.condicionesCompra = body.condiciones;
     return body;

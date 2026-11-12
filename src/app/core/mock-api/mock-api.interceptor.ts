@@ -18,6 +18,7 @@ import { registrarDesdeDb as registrarRolesDesdeDb } from "./roles";
 import { capturar, registrar, registrarAcceso } from "./auditoria";
 import { registrarEvento } from "./analitica";
 import { ciudadesDe, hayCiudadesFijas } from "../ubicaciones";
+import { limitesDe } from "../limites-programa";
 import { contexto } from "./contexto";
 import { aceptar, estadoParticipante, exigirLegalesAlDia, metaLegales, sincronizarContenido } from "./legales";
 import { cambiarNovedades, darDeBaja, estadoBaja, recibeNovedades, volverAlta } from "./novedades";
@@ -374,6 +375,8 @@ const customerRoutes: Route[] = [
     const detalle = Array.isArray(body.pasajerosDetalle) ? body.pasajerosDetalle : [];
     if (!body.origen || !body.destino || !body.salida) throw new ApiError(422, "Completa el origen, el destino y la fecha de salida.", "cotizacion_incompleta");
     if (detalle.length !== Number(body.pasajeros)) throw new ApiError(422, "Faltan los datos de algún pasajero.", "pasajeros_incompletos");
+    const maxPas = limitesDe(db.admin.reglas as any).maxPasajeros;
+    if (detalle.length > maxPas) throw new ApiError(422, `Una cotización admite hasta ${maxPas} pasajeros.`, "pasajeros_maximo");
     const ahora = new Date().toISOString().slice(0, 19);
     const nueva: Cotizacion = {
       ...body,
@@ -488,6 +491,11 @@ const customerRoutes: Route[] = [
     exigirCuentaActiva();
     exigirLegalesAlDia("p1");
     if (body.puntosUsados > db.usuario.puntos) throw new ApiError(422, "No tienes puntos suficientes para este canje.", "saldo_insuficiente");
+    // Máximo de unidades por producto (Reglas → Límites del canje y de las cotizaciones).
+    const maxLinea = limitesDe(db.admin.reglas as any).maxPorLinea;
+    if (!Array.isArray(body.items) || body.items.some((i: any) => !Number.isInteger(i.cantidad) || i.cantidad < 1 || i.cantidad > maxLinea)) {
+      throw new ApiError(422, `Revisa las cantidades: máximo ${maxLinea} ${maxLinea === 1 ? "unidad" : "unidades"} por producto.`, "cantidad");
+    }
     // No hay control de inventario: un producto activo siempre se puede canjear.
     const codigo = codigoAleatorio("BNB");
     const h = hoy();

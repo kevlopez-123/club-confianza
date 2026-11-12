@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal, effect } from "@angular/core";
+import { textoHoras } from "../core/limites-programa";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { RouterLink } from "@angular/router";
 import { ApiService } from "../core/api.service";
@@ -58,7 +59,7 @@ const edadA = (nac: string, ref: string) => {
         <header class="max-w-3xl">
           <h1 class="text-2xl font-extrabold text-ink lg:text-3xl">Cotiza tu ticket aéreo</h1>
           <p class="mt-2 text-base text-muted-foreground">
-            Completa los datos de tu viaje y de los pasajeros. Una ejecutiva de Motiva Soluciones te enviará la cotización dentro de las siguientes 48 horas.
+            Completa los datos de tu viaje y de los pasajeros. Una ejecutiva de Motiva Soluciones te enviará la cotización dentro de las siguientes {{ horasRespuesta() }}.
           </p>
         </header>
 
@@ -96,7 +97,7 @@ const edadA = (nac: string, ref: string) => {
                     <button type="button" aria-label="Quitar pasajero" (click)="setCant(cantidad() - 1)" [disabled]="cantidad() <= 1"
                       class="grid h-11 w-11 place-items-center rounded-full bg-muted text-ink disabled:opacity-40"><app-icon name="Minus" class="h-4 w-4" /></button>
                     <span class="flex items-center gap-2 text-base font-bold text-ink"><app-icon name="Users" class="h-4 w-4 text-primary" />{{ cantidad() }}</span>
-                    <button type="button" aria-label="Agregar pasajero" (click)="setCant(cantidad() + 1)" [disabled]="cantidad() >= 9"
+                    <button type="button" aria-label="Agregar pasajero" (click)="setCant(cantidad() + 1)" [disabled]="cantidad() >= maxPasajeros()"
                       class="grid h-11 w-11 place-items-center rounded-full bg-muted text-ink disabled:opacity-40"><app-icon name="Plus" class="h-4 w-4" /></button>
                   </div>
                 </div>
@@ -264,7 +265,7 @@ const edadA = (nac: string, ref: string) => {
         <span class="mx-auto grid h-16 w-16 place-items-center rounded-full bg-secondary"><app-icon name="Check" class="h-8 w-8 text-secondary-foreground" /></span>
         <p class="mt-4 text-base text-ink">Tu solicitud <strong>{{ codigoOk() }}</strong> fue enviada correctamente.</p>
         <p class="mt-2 text-base text-muted-foreground">
-          Una ejecutiva de Motiva Soluciones se comunicará contigo dentro de las siguientes 48 horas al correo <strong class="text-ink">{{ correo() }}</strong>.
+          Una ejecutiva de Motiva Soluciones se comunicará contigo dentro de las siguientes {{ horasRespuesta() }} al correo <strong class="text-ink">{{ correo() }}</strong>.
         </p>
         <div class="mt-6 flex flex-col gap-3 sm:flex-row">
           <button type="button" (click)="reiniciar()" class="inline-flex min-h-12 flex-1 items-center justify-center rounded-full border border-border text-base font-bold text-ink lg:min-h-14">Nueva cotización</button>
@@ -295,6 +296,10 @@ export class VuelosPage {
   protected readonly ida = signal("");
   protected readonly regreso = signal("");
   protected readonly cantidad = signal(1);
+  /** Máximo de pasajeros y plazos de las cotizaciones: los define el panel en Reglas. */
+  protected readonly maxPasajeros = computed(() => this.catalog.limites().maxPasajeros);
+  protected readonly horasRespuesta = computed(() => textoHoras(this.catalog.limites().cotizacionRespuestaHoras));
+  protected readonly horasValidez = computed(() => textoHoras(this.catalog.limites().cotizacionValidezHoras));
   protected readonly pasajeros = signal<Pasajero[]>([nuevoPasajero()]);
 
   protected readonly contactoOpen = signal(false);
@@ -428,7 +433,7 @@ export class VuelosPage {
   }
 
   protected setCant(n: number) {
-    const v = Math.max(1, Math.min(9, n));
+    const v = Math.max(1, Math.min(this.maxPasajeros(), n));
     this.cantidad.set(v);
     this.pasajeros.update((prev) => {
       const copia = [...prev];
@@ -558,7 +563,7 @@ export class VuelosPage {
                     @if (c.monto) {
                       <div class="rounded-xl bg-secondary p-4 text-ink">
                         <h3 class="font-extrabold">Cotización adjunta</h3>
-                        <p class="mt-1">Valor: <strong>{{ usd(c.monto) }}</strong> · validez de 72 horas</p>
+                        <p class="mt-1">Valor: <strong>{{ usd(c.monto) }}</strong> · validez de {{ horasValidez() }}</p>
                         <button type="button" (click)="descargarPdf(c)" class="mt-3 inline-flex min-h-11 max-w-full items-center gap-2 rounded-full bg-primary px-4 text-sm font-bold text-primary-foreground">
                           <app-icon name="Download" class="h-4 w-4 shrink-0" /> <span class="min-w-0 truncate">Descargar {{ c.pdf || ("cotizacion-" + c.codigo + ".pdf") }}</span>
                         </button>
@@ -609,6 +614,7 @@ export class CotizacionesPage {
   private readonly api = inject(ApiService);
   private readonly cotizaciones = signal<Cotizacion[]>([]);
   protected readonly usd = formatUSD;
+  protected readonly horasValidez = computed(() => textoHoras(this.catalog.limites().cotizacionValidezHoras));
   protected readonly abierta = signal<string | null>(null);
   protected readonly input = "h-12 w-full rounded-2xl border border-border bg-card px-4 text-base text-ink outline-none focus:ring-2 focus:ring-primary/50";
   protected hora(iso: string) {
@@ -647,7 +653,7 @@ export class CotizacionesPage {
         "",
         "## Cotizacion",
         c.monto ? `Valor total: ${formatUSD(c.monto)}` : "Valor: por confirmar",
-        "Validez: 72 horas desde su envio.",
+        `Validez: ${textoHoras(this.catalog.limites().cotizacionValidezHoras)} desde su envio.`,
         c.ejecutiva ? `Atendida por: ${c.ejecutiva}` : "",
         "",
         "Documento generado por la plataforma (demostracion).",

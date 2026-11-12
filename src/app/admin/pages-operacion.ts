@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { textoHoras } from '../core/limites-programa';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { map } from 'rxjs/operators';
@@ -494,7 +495,7 @@ const fechaHora = (iso: string) => (iso ? new Date(iso).toLocaleString('es', { d
     LimpiarFiltrosComponent,IconComponent, PageHeaderComponent, PillComponent, BtnDirective, FieldComponent, StatComponent, DrawerComponent, DrawerTitleComponent, PagerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <a-header vista="cotizaciones" title="Cotizaciones de vuelos" desc="Solicitudes recibidas desde web y app. Responder en un máximo de 48 horas.">
+    <a-header vista="cotizaciones" title="Cotizaciones de vuelos" desc="Solicitudes recibidas desde web y app. Responder en un máximo de {{ horasRespuesta() }}.">
       <button aBtn variant="outline" (click)="exportar()"><app-icon name="Download" class="h-4 w-4" /> Descargar</button>
     </a-header>
 
@@ -658,6 +659,8 @@ const fechaHora = (iso: string) => (iso ? new Date(iso).toLocaleString('es', { d
   `,
 })
 export class CotizacionesAdminPage {
+  /** Plazo de respuesta de una cotización (Reglas → Límites). */
+  protected readonly horasRespuesta = computed(() => textoHoras(this.catalog.limites().cotizacionRespuestaHoras));
   protected readonly toast = inject(ToastService);
   private readonly api = inject(ApiService);
   private readonly catalog = inject(CatalogService);
@@ -755,7 +758,7 @@ export class CotizacionesAdminPage {
     const nombre = (s.cliente ?? '').split(' ')[0] || 'Hola';
     const ruta = `${this.ciudad(s.origen)} → ${this.ciudad(s.destino)}`;
     return s.estado === 'Cotizada' && s.monto
-      ? `Hola ${nombre}, te escribo por tu cotización ${s.codigo} (${ruta}). El valor es ${formatUSD(s.monto)} y tiene validez de 72 horas. También la encuentras en Mis cotizaciones. ¿La confirmamos?`
+      ? `Hola ${nombre}, te escribo por tu cotización ${s.codigo} (${ruta}). El valor es ${formatUSD(s.monto)} y tiene validez de ${textoHoras(this.catalog.limites().cotizacionValidezHoras)}. También la encuentras en Mis cotizaciones. ¿La confirmamos?`
       : `Hola ${nombre}, te escribo por tu solicitud de cotización ${s.codigo} (${ruta}).`;
   }
   protected waUrl(s: CotizacionFila) {

@@ -41,6 +41,20 @@ describe("API simulada (de punta a punta, sin navegador)", () => {
     expect(e.error.codigo).toBe("no_autenticado");
   });
 
+  it("un canje con más unidades de las permitidas por producto se rechaza con su código", async () => {
+    const e: any = await firstValueFrom(http().post("/api/ordenes", { items: [{ nombre: "X", marca: "M", imagen: "", cantidad: 6, puntos: 1, digital: true }], puntosUsados: 0, montoUSD: 0, entrega: "x" }, { headers: SESION })).catch((x) => x);
+    expect(e.status).toBe(422);
+    expect(e.error.codigo).toBe("cantidad");
+    expect(e.error.mensaje).toContain("máximo 5 unidades");
+  });
+
+  it("una cotización con más pasajeros de los permitidos se rechaza", async () => {
+    const pas = Array.from({ length: 10 }, (_, i) => ({ nombres: "A", apellidos: "B", tipoDoc: "cedula", numDoc: `17000000${i}0`, nacimiento: "1990-01-01", asistencia: false }));
+    const e: any = await firstValueFrom(http().post("/api/me/cotizaciones", { origen: "UIO", destino: "MIA", salida: "2027-03-01", pasajeros: 10, pasajerosDetalle: pas }, { headers: SESION })).catch((x) => x);
+    expect(e.status).toBe(422);
+    expect(e.error.codigo).toBe("pasajeros_maximo");
+  });
+
   it("GET onboarding es público y trae solo las pantallas activas, sin campos internos", async () => {
     const lista: any[] = await firstValueFrom(http().get<any[]>("/api/onboarding"));
     expect(lista.length).toBeGreaterThan(0);

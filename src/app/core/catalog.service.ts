@@ -1,4 +1,5 @@
 import { Injectable, computed, inject, signal } from "@angular/core";
+import { limitesDe } from "./limites-programa";
 import { ApiService } from "./api.service";
 import { BrandService } from "./brand.service";
 import { PUNTOS_POR_DOLAR, PRECIO_POR_PUNTO } from "./format";
@@ -163,6 +164,8 @@ export class CatalogService {
 
   /** Reglas de puntos vigentes (con valores por defecto mientras carga). */
   readonly reglas = computed<Reglas>(() => this.configRaw()?.reglas ?? REGLAS_POR_DEFECTO);
+  /** Máximo de unidades por producto, de pasajeros y plazos de las cotizaciones (los administra el panel en Reglas). */
+  readonly limites = computed(() => limitesDe(this.reglas()));
   /** Textos de la portada: lo que el administrador dejó vacío usa el texto original. */
   readonly textosHome = computed<TextosHome>(() => {
     const g = this.configRaw()?.sitio?.textosHome ?? {};

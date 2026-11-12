@@ -203,6 +203,11 @@ export const adminSeed = () => {
       /** Los puntos vencen a los N meses de acumulados; se avisa N días antes. */
       vigenciaMeses: 24,
       avisoVencimientoDias: 30,
+      /** Límites que antes estaban fijos: unidades por producto, pasajeros por cotización y plazos de las cotizaciones (ver core/limites-programa.ts). */
+      maxPorLinea: 5,
+      maxPasajeros: 9,
+      cotizacionRespuestaHoras: 48,
+      cotizacionValidezHoras: 72,
       paquetes: [2500, 5000, 10000, 25000],
       compraActiva: true,
       soloDinero: true,

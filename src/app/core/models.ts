@@ -33,7 +33,7 @@ export type Producto = ProductoSeed & { destacado?: boolean };
 
 export type MenuItem = { id?: string; label: string; to?: string; activo: boolean; children?: { label: string; to: string; activo: boolean }[] };
 export type SeccionHome = { id: string; s: string; on: boolean };
-export type Reglas = { porDolar: number; precio: number; min: number; max: number; mensual: number; paquetes: number[]; compraActiva: boolean; soloDinero: boolean; vigenciaMeses?: number; avisoVencimientoDias?: number; version?: number };
+export type Reglas = { porDolar: number; precio: number; min: number; max: number; mensual: number; paquetes: number[]; compraActiva: boolean; soloDinero: boolean; vigenciaMeses?: number; avisoVencimientoDias?: number; maxPorLinea?: number; maxPasajeros?: number; cotizacionRespuestaHoras?: number; cotizacionValidezHoras?: number; version?: number };
 export type ContenidoSeccion = { t: string; p: string[] };
 export type ContenidoFaq = { q: string; a: string };
 

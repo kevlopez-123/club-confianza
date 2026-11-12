@@ -3,6 +3,7 @@ import type { Observable } from "rxjs";
 import { map, tap } from "rxjs/operators";
 import { ToastService } from "../shared/toast";
 import { ApiService } from "./api.service";
+import { CatalogService } from "./catalog.service";
 import { AnaliticaService } from "./analitica.service";
 import { SesionService } from "./sesion.service";
 import { Router } from "@angular/router";
@@ -45,6 +46,9 @@ export class StoreService {
   private readonly sesion = inject(SesionService);
   private readonly router = inject(Router);
   private readonly analitica = inject(AnaliticaService);
+  private readonly catalog = inject(CatalogService);
+  /** Máximo de unidades por producto en un canje (Reglas → Límites). */
+  readonly maxPorLinea = computed(() => this.catalog.limites().maxPorLinea);
 
   /** Acciones de cuenta (favoritos, cupones…): sin sesión se pide ingresar y se vuelve a la página actual. */
   exigirSesion(): boolean {
@@ -110,12 +114,12 @@ export class StoreService {
     const found = prev.find((i) => i.id === item.id);
     this.setItems(
       found
-        ? prev.map((i) => (i.id === item.id ? { ...i, cantidad: i.cantidad + cantidad } : i))
-        : [...prev, { ...item, cantidad }],
+        ? prev.map((i) => (i.id === item.id ? { ...i, cantidad: Math.min(i.cantidad + cantidad, this.maxPorLinea()) } : i))
+        : [...prev, { ...item, cantidad: Math.min(cantidad, this.maxPorLinea()) }],
     );
   }
   setCantidad(id: string, cantidad: number) {
-    this.setItems(this.items().map((i) => (i.id === id ? { ...i, cantidad: Math.max(1, cantidad) } : i)));
+    this.setItems(this.items().map((i) => (i.id === id ? { ...i, cantidad: Math.min(Math.max(1, cantidad), this.maxPorLinea()) } : i)));
   }
   remove(id: string) {
     this.setItems(this.items().filter((i) => i.id !== id));

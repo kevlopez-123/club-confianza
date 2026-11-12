@@ -252,7 +252,7 @@ export class CanjeaPage {
                   <div class="flex items-center gap-4 rounded-full border border-border px-3 py-2">
                     <button type="button" aria-label="Quitar uno" (click)="cantidad.set(max1(cantidad() - 1))" class="grid h-11 w-11 place-items-center text-ink"><app-icon name="Minus" class="h-4 w-4" /></button>
                     <span class="w-8 text-center text-sm font-bold text-ink">{{ cantidad() }}</span>
-                    <button type="button" aria-label="Agregar uno" (click)="cantidad.set(cantidad() + 1)" class="grid h-11 w-11 place-items-center text-ink"><app-icon name="Plus" class="h-4 w-4" /></button>
+                    <button type="button" aria-label="Agregar uno" (click)="cantidad.set(min(cantidad() + 1))" [disabled]="cantidad() >= store.maxPorLinea()" class="grid h-11 w-11 place-items-center text-ink disabled:opacity-40"><app-icon name="Plus" class="h-4 w-4" /></button>
                   </div>
                   <div class="min-w-0 text-right sm:text-left">
                     <p class="text-lg font-extrabold text-ink">{{ puntos(producto.puntos * cantidad()) }} puntos@if (producto.puntosOriginal) { <s class="ml-2 text-sm font-medium text-muted-foreground">{{ puntos(producto.puntosOriginal * cantidad()) }}</s> }</p>
@@ -333,6 +333,8 @@ export class ProductoDetallePage {
 
   protected readonly foto = signal(0);
   protected readonly cantidad = signal(1);
+  /** La cantidad no pasa del máximo por producto que define el panel (Reglas). */
+  protected min(n: number) { return Math.min(n, this.store.maxPorLinea()); }
   protected readonly agregado = signal<Producto | null>(null);
 
   protected readonly producto = computed(() => this.catalog.productoPorId(this.id()));
