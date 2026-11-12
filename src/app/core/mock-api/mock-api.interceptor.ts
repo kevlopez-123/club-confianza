@@ -17,6 +17,7 @@ import { nombreAccion, puedeApi, requisitoApi, rolExiste } from "../permisos";
 import { registrarDesdeDb as registrarRolesDesdeDb } from "./roles";
 import { capturar, registrar, registrarAcceso } from "./auditoria";
 import { registrarEvento } from "./analitica";
+import { ciudadesDe, hayCiudadesFijas } from "../ubicaciones";
 import { contexto } from "./contexto";
 import { aceptar, estadoParticipante, exigirLegalesAlDia, metaLegales, sincronizarContenido } from "./legales";
 import { cambiarNovedades, darDeBaja, estadoBaja, recibeNovedades, volverAlta } from "./novedades";
@@ -233,6 +234,8 @@ const customerRoutes: Route[] = [
   /** Marcas aliadas publicadas (nombre, logo y sitio web). */
   ["GET", "catalogo/marcas", () => db.admin.marcas.filter((m: any) => m.activo).map(({ nombre, logo, web, descripcion }: any) => ({ nombre, logo, web, descripcion }))],
   ["GET", "catalogo/banners/:seccion", ({ params }) => db.catalogo.banners[params["seccion"]!] ?? []],
+  /** Pantallas de bienvenida de la app (Contenido → Onboarding app): solo las activas, en el orden del panel. */
+  ["GET", "onboarding", () => (db.admin.onboarding as any[]).filter((o) => o.activo !== false).map(({ id, titulo, texto }) => ({ id, titulo, texto }))],
   ["GET", "niveles", () => ({ niveles: db.niveles, ...db.nivelesTexto })],
 
   /* ---------- Vuelos y configuración ---------- */
@@ -245,9 +248,14 @@ const customerRoutes: Route[] = [
     ...db.config,
     reglas: db.admin.reglas,
     // El campo de provincia ofrece solo las provincias con envío (editables en Marca y localización).
-    formulario: db.admin.campos.map((c: any) =>
-      c.mapeo === "provincia" ? { ...c, opciones: provinciasDe((db.config.tenant as any).pais.codigo, (db.config.tenant as any).pais.provincias).filter((p) => p.envio).map((p) => p.nombre) } : c,
-    ),
+    // La ciudad depende de la provincia: en países con lista fija se entrega también `opcionesPorProvincia` (la web las trae de sus propios datos; la app no).
+    formulario: db.admin.campos.map((c: any) => {
+      const pais = (db.config.tenant as any).pais;
+      const conEnvio = provinciasDe(pais.codigo, pais.provincias).filter((p) => p.envio).map((p) => p.nombre);
+      if (c.mapeo === "provincia") return { ...c, opciones: conEnvio };
+      if (c.mapeo === "ciudad" && hayCiudadesFijas(pais.codigo)) return { ...c, opcionesPorProvincia: Object.fromEntries(conEnvio.map((prov) => [prov, ciudadesDe(pais.codigo, prov)])) };
+      return c;
+    }),
     seccionesHome: db.admin.seccionesHome,
     // Los textos legales son un solo bloque markdown; las copias guardadas con secciones (formato antiguo) se convierten.
     contenido: { ...(sincronizarContenido(), db.config.contenido), terminos: legalAMarkdown(db.config.contenido.terminos), privacidad: legalAMarkdown(db.config.contenido.privacidad), legales: metaLegales() },

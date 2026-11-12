@@ -41,6 +41,12 @@ describe("API simulada (de punta a punta, sin navegador)", () => {
     expect(e.error.codigo).toBe("no_autenticado");
   });
 
+  it("GET onboarding es público y trae solo las pantallas activas, sin campos internos", async () => {
+    const lista: any[] = await firstValueFrom(http().get<any[]>("/api/onboarding"));
+    expect(lista.length).toBeGreaterThan(0);
+    for (const o of lista) expect(Object.keys(o).sort()).toEqual(["id", "texto", "titulo"]);
+  });
+
   it("una ruta inexistente responde ruta_no_encontrada", async () => {
     const e: any = await firstValueFrom(http().get("/api/no-existe")).catch((x) => x);
     expect(e.status).toBe(404);
