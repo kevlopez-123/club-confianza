@@ -311,6 +311,23 @@ const customerRoutes: Route[] = [
     db.favoritos = db.favoritos.includes(id) ? db.favoritos.filter((f) => f !== id) : [...db.favoritos, id];
     return db.favoritos;
   }],
+  /**
+   * Dispositivos de la participante para los avisos push (token de Firebase). Se guarda uno por token; el backend real usa esta lista
+   * para enviar los avisos por FCM. La app lo registra al ingresar y lo quita al cerrar sesión.
+   */
+  ["POST", "me/dispositivos", ({ body }) => {
+    const token = String(body?.token ?? "").trim();
+    if (token.length < 20 || token.length > 4096) throw new ApiError(422, "El token del dispositivo no es válido.", "token_invalido");
+    const lista = ((db as any).dispositivos ??= []) as { token: string; plataforma: string; registrado: string }[];
+    const i = lista.findIndex((d) => d.token === token);
+    const fila = { token, plataforma: body?.plataforma === "ios" ? "ios" : "android", registrado: new Date().toISOString() };
+    if (i >= 0) lista[i] = fila; else lista.push(fila);
+    return { ok: true };
+  }],
+  ["DELETE", "me/dispositivos/:token", ({ params }) => {
+    (db as any).dispositivos = (((db as any).dispositivos ?? []) as { token: string }[]).filter((d) => d.token !== params["token"]);
+    return { ok: true };
+  }],
   ["GET", "me/cupones", () => db.cupones],
   /** Si este participante puede generar el cupón ahora y, si no, por qué (vigencia, provincia, límite y espera). */
   ["GET", "me/cupones/estado/:id", ({ params }) => estadoCanje(params["id"]!)],
