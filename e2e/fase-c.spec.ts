@@ -173,6 +173,7 @@ test.describe("Fase C: reglas de los beneficios", () => {
     await page.goto("/admin/beneficios");
     await esperarCarga(page);
     await expect(page.getByText("Regla general del cupón")).toHaveCount(0);
+    await expect(page.locator("tbody td[data-label='Cupón']").first()).toHaveText(/^\d+ h · /); // la lista muestra la regla de cada beneficio
     await page.getByRole("button", { name: "Editar" }).first().click();
     const d = page.getByRole("dialog");
     await expect(d.getByText("Regla del cupón de este beneficio")).toBeVisible();

@@ -137,7 +137,6 @@ const semilla = () => {
       { id: "contacto", label: "Contáctanos", to: "/contacto", activo: true },
     ] as any[],
     contenido: { faq: clone(faqs), terminos: seccionesAMarkdown(terminos), privacidad: seccionesAMarkdown(privacidad) },
-    cupon: { horas: 3, limite: 0, meses: 3 },
     contacto: clone(contacto),
     condicionesCompra: clone(condicionesCompra),
     tarjetas: clone(tarjetasBanbif),

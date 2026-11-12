@@ -18,6 +18,7 @@ import { aAvisar as aAvisarLegales, descartarBorrador as descartarBorradorLegal,
 import { dashboard } from "./dashboard";
 import { audienciaDe, enviarCampana } from "./campanas";
 import { conservarVersiones } from "./versiones";
+import { estadoParaParticipante } from "../estados-pedido";
 
 const LISTAS = [
   "participantes", "pedidos", "mensajes", "usuarios", "auditoria", "productos", "beneficios", "destinos", "ciudades",
@@ -30,6 +31,31 @@ type Lista = (typeof LISTAS)[number];
 const usuarioActual = () => (db.admin.usuarios as any[]).find((u) => u.id === contexto.usuarioPanelId) ?? (() => { throw new ApiError(401, "Inicia sesión para continuar."); })();
 const hoy = () => new Date().toISOString().slice(0, 10);
 const vigente = (b: any) => b.activo && b.inicio <= hoy() && b.fin >= hoy();
+
+/**
+ * Un pedido cancelado devuelve los puntos usados, una sola vez. La participante demo (p1) recupera su saldo real y lo ve en su
+ * historial; a cualquier otra persona se le suma a su ficha como ajuste del sistema.
+ */
+function devolverPuntos(pedido: any, ficha: any, esDemo: boolean) {
+  const puntos = Number(pedido.puntosUsados) || 0;
+  if (puntos <= 0 || pedido.puntosDevueltos) return;
+  pedido.puntosDevueltos = true;
+  const detalle = `Devolución por pedido cancelado ${pedido.codigo}`;
+  const d = new Date();
+  const fechaISO = d.toISOString().slice(0, 10);
+  const fecha = d.toLocaleDateString("es-EC", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const hora = d.toTimeString().slice(0, 5);
+  if (esDemo) {
+    db.usuario.puntos += puntos;
+    const mia = db.admin.participantes.find((p: any) => p.id === "p1");
+    if (mia) mia.puntos = db.usuario.puntos;
+    db.movimientos.unshift({ id: `m${Date.now()}`, fechaISO, fecha, hora, detalle, tipo: "ajuste", puntos } as any);
+    db.admin.movimientos.unshift({ id: `m${Date.now()}a`, fechaISO, fecha, hora, detalle, tipo: "ajuste", puntos, cliente: mia?.nombre ?? pedido.cliente } as any);
+  } else if (ficha) {
+    ficha.puntos = (Number(ficha.puntos) || 0) + puntos;
+    ficha.ajustes = [{ fecha, puntos, motivo: detalle, usuario: "Sistema" }, ...(ficha.ajustes ?? [])];
+  }
+}
 
 /** Al guardar una colección del admin se refleja lo publicado en el sitio del participante. */
 const sincronizar: Partial<Record<Lista, (anterior: any[]) => void>> = {
@@ -45,12 +71,17 @@ const sincronizar: Partial<Record<Lista, (anterior: any[]) => void>> = {
       });
   },
   pedidos: (anterior) => {
-    // Un pedido que cambia de estado avisa al participante.
+    // Un pedido que cambia de estado se refleja en lo que ve el participante (Mis compras) y le avisa por correo.
     for (const a of anterior) {
       const ahora = db.admin.pedidos.find((x: any) => x.codigo === a.codigo);
-      if (ahora && ahora.estado !== a.estado) {
+      if (ahora && ahora.estadoAdmin !== a.estadoAdmin) {
+        const visible = estadoParaParticipante(ahora.estadoAdmin);
+        ahora.estado = visible;
+        const suyo = db.compras.find((c: any) => c.codigo === ahora.codigo);
+        if (suyo) suyo.estado = visible;
         const p = db.admin.participantes.find((x: any) => x.id === ahora.participanteId) ?? db.admin.participantes.find((x: any) => x.nombre === ahora.cliente);
-        enviarCorreo("pedido-estado", ahora.email ?? p?.email, { codigo: ahora.codigo, estado: ahora.estado }, { destinatario: ahora.cliente, participanteId: p?.id, referencia: ahora.codigo });
+        if (ahora.estadoAdmin === "Cancelado") devolverPuntos(ahora, p, !!suyo);
+        enviarCorreo("pedido-estado", ahora.email ?? p?.email, { codigo: ahora.codigo, estado: ahora.estadoAdmin }, { destinatario: ahora.cliente, participanteId: p?.id, referencia: ahora.codigo });
       }
     }
   },
@@ -397,10 +428,6 @@ export const adminRoutes: Route[] = [
   }],
   /** Mezcla claves de configuración pública (sitio, contenido, menú, cupón, promociones…). */
   ["PUT", "admin/config", ({ body }) => {
-    if (body?.cupon) {
-      const e = errorReglasBeneficio({ cupon: body.cupon });
-      if (e) throw new ApiError(422, e);
-    }
     Object.assign(db.config, body);
     // Los textos legales solo cambian publicando una versión: lo que llegue aquí no los pisa.
     sincronizarContenidoLegal();

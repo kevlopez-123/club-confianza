@@ -90,7 +90,7 @@ export type Compra = {
   fechaISO: string;
   /** Hora de la compra (HH:MM). */
   hora?: string;
-  estado: "Entregado" | "En camino" | "Procesando";
+  estado: "Entregado" | "En camino" | "Procesando" | "Cancelado";
   entrega: string;
   puntosUsados: number;
   montoUSD: number;

@@ -109,7 +109,7 @@ export type EstadoCanjeApi = {
  */
 const estadoCanje = (beneficioId: string): EstadoCanjeApi => {
   const b = (db.admin.beneficios as any[]).find((x) => x.id === beneficioId);
-  const regla = reglaDe(b?.cupon, db.config.cupon as any);
+  const regla = reglaDe(b?.cupon, undefined);
   if (!b) return { estado: "disponible", mensaje: "", regla };
   const base = { regla, ...(b.desde ? { desde: b.desde } : {}), ...(b.hasta ? { hasta: b.hasta } : {}) };
   const vig = estadoVigencia(b, hoy().iso);
@@ -129,7 +129,7 @@ const estadoCanje = (beneficioId: string): EstadoCanjeApi => {
 /** Beneficio como lo ve el participante: sin el código compartido ni los contadores internos, con la regla efectiva del cupón y su vigencia. */
 const beneficioPublico = (b: any) => {
   const { codigoCompartido: _c, usos: _u, usosMaximos: _m, cupon: _r, modoCodigo: _mc, ...resto } = conPromo(b) as any;
-  return { ...resto, vigencia: estadoVigencia(b, hoy().iso), reglaCupon: reglaDe(b.cupon, db.config.cupon as any) };
+  return { ...resto, vigencia: estadoVigencia(b, hoy().iso), reglaCupon: reglaDe(b.cupon, undefined) };
 };
 
 /** Compras mensuales aprobadas + la nueva no pueden superar el tope mensual de las reglas. */

@@ -1186,7 +1186,8 @@ export class BeneficiosAdminPage {
   protected textoCupon(b: BeneficioRow): string {
     if (b.tipo === 'compra') return '—';
     const r = reglaDe(b.cupon, undefined);
-    return r.limite <= 0 ? ` h · sin límite` : ` h ·  , espera  `;
+    if (r.limite <= 0) return `${r.horas} h · sin límite`;
+    return `${r.horas} h · ${r.limite} ${r.limite === 1 ? 'vez' : 'veces'}, espera ${r.meses} ${r.meses === 1 ? 'mes' : 'meses'}`;
   }
 
   /** "El cupón dura 24 horas. Se puede canjear 1 vez; para volver a hacerlo hay que esperar 3 meses desde el último canje." */
