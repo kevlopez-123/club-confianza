@@ -61,7 +61,7 @@ export function aceptar(id: string, body: any, canal = "Web"): EstadoLegalesPart
   for (const a of lista) {
     const t = tipoDe(a.tipo);
     const v = versionEnVigor(legales()[t], hoy);
-    if (!v || v.version !== Number(a.version)) throw new ApiError(409, `La versión de ${NOMBRE_LEGAL[t]} cambió: recarga para leer la vigente.`);
+    if (!v || v.version !== Number(a.version)) throw new ApiError(409, `La versión de ${NOMBRE_LEGAL[t]} cambió: recarga para leer la vigente.`, "version_legal_cambio");
     (aceptaciones()[id] ??= {})[t] = { version: v.version, fecha: new Date().toISOString(), canal };
   }
   return estadoParticipante(id);
@@ -70,7 +70,7 @@ export function aceptar(id: string, body: any, canal = "Web"): EstadoLegalesPart
 /** Acciones que exigen tener al día los textos legales (canje y compra de puntos). */
 export function exigirLegalesAlDia(id: string) {
   const p = estadoParticipante(id).pendientes;
-  if (p.length) throw new ApiError(403, `Antes de continuar debes aceptar ${p.map((x) => `${x.nombre} (versión ${x.version})`).join(" y ")}.`);
+  if (p.length) throw new ApiError(403, `Antes de continuar debes aceptar ${p.map((x) => `${x.nombre} (versión ${x.version})`).join(" y ")}.`, "legales_pendientes");
 }
 
 /* ---------------- Panel ---------------- */

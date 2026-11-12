@@ -3,7 +3,7 @@ import { Observable, of, throwError, timer } from "rxjs";
 import { mergeMap } from "rxjs/operators";
 import { db, persistDb } from "./db";
 import { adminRoutes } from "./admin-routes";
-import { ApiError, type Route } from "./types";
+import { ApiError, cuerpoDeError, type Route } from "./types";
 import { codigoAleatorio } from "../format";
 import { provinciasDe } from "../../tenants/presets";
 import { erroresPerfil } from "../validar-perfil";
@@ -72,7 +72,7 @@ const fichaDemo = () => (db.admin.participantes as any[]).find((p) => p.id === "
 /** Una cuenta bloqueada desde el admin no puede ingresar ni canjear. */
 const exigirCuentaActiva = () => {
   if (db.admin.participantes.find((p: any) => p.id === "p1")?.estado === "Bloqueado") {
-    throw new ApiError(403, "Tu cuenta está bloqueada. Comunícate con atención al cliente.");
+    throw new ApiError(403, "Tu cuenta está bloqueada. Comunícate con atención al cliente.", "cuenta_bloqueada");
   }
 };
 
@@ -137,7 +137,7 @@ const verificarTopeMensual = (cantidad: number) => {
   const r = db.admin.reglas;
   const mes = hoy().iso.slice(0, 7);
   const yaComprado = (db.admin.comprasPuntos as any[]).filter((c) => c.participanteId === "p1" && c.fechaISO.startsWith(mes) && c.estado === "Aprobada").reduce((s, c) => s + c.cantidad, 0);
-  if (yaComprado + cantidad > r.mensual) throw new ApiError(422, `Superas el máximo mensual de compra (${r.mensual.toLocaleString("es")} puntos). Te quedan ${Math.max(0, r.mensual - yaComprado).toLocaleString("es")}.`);
+  if (yaComprado + cantidad > r.mensual) throw new ApiError(422, `Superas el máximo mensual de compra (${r.mensual.toLocaleString("es")} puntos). Te quedan ${Math.max(0, r.mensual - yaComprado).toLocaleString("es")}.`, "tope_mensual");
 };
 
 /** Cierra una compra de puntos: aprobada (acredita, deja movimiento y avisa) o fallida (motivo y aviso para reintentar). */
@@ -163,7 +163,7 @@ const customerRoutes: Route[] = [
   /* ---------- Auth ---------- */
   ["POST", "auth/otp", ({ body }) => {
     if (!body?.documento || String(body.documento).trim().length < 6) {
-      throw new ApiError(422, "Ingresa un número de documento válido.");
+      throw new ApiError(422, "Ingresa un número de documento válido.", "documento_invalido");
     }
     exigirCuentaActiva();
     enviarCorreo("otp", db.perfil.correo, { codigo: String(Math.floor(100000 + Math.random() * 900000)), minutos: 10 }, { destinatario: nombreParticipante(), participanteId: "p1" });
@@ -176,7 +176,7 @@ const customerRoutes: Route[] = [
     const usuario = db.admin.usuarios.find((u: any) => u.email.toLowerCase() === email);
     if (!cred || cred.clave !== body?.clave || !usuario || usuario.estado === "Inactivo") {
       registrarAcceso(false, email);
-      throw new ApiError(401, "Correo o contraseña incorrectos.");
+      throw new ApiError(401, "Correo o contraseña incorrectos.", "credenciales_invalidas");
     }
     registrarAcceso(true, email, usuario.nombre, usuario.rol, usuario.id);
     usuario.ultimo = new Date().toLocaleString("es-EC", { dateStyle: "short", timeStyle: "short" });
@@ -187,7 +187,7 @@ const customerRoutes: Route[] = [
   ["POST", "auth/admin/recuperar", () => ({ enviado: true })],
   ["POST", "auth/verificar", ({ body }) => {
     if (!Array.isArray(body?.codigo) || body.codigo.some((c: string) => !c)) {
-      throw new ApiError(422, "Ingresa los 6 dígitos del código.");
+      throw new ApiError(422, "Ingresa los 6 dígitos del código.", "codigo_invalido");
     }
     // Token simulado de la participante (un backend real emite un JWT con su id).
     return { token: "mock.participante.p1", usuario: db.usuario };
@@ -308,7 +308,7 @@ const customerRoutes: Route[] = [
   ["POST", "me/cupones", ({ body }) => {
     exigirCuentaActiva();
     const est = estadoCanje(body.beneficioId);
-    if (est.estado !== "disponible") throw new ApiError(est.estado === "falta_provincia" ? 422 : 409, est.mensaje);
+    if (est.estado !== "disponible") throw new ApiError(est.estado === "falta_provincia" ? 422 : 409, est.mensaje, est.estado === "bloqueado" ? "limite_de_canjes" : est.estado);
     const benef = (db.admin.beneficios as any[]).find((b) => b.id === body.beneficioId);
     // Si el beneficio tiene un lote de códigos cargado, el cupón usa el siguiente código disponible.
     // Un beneficio puede tener varios lotes (uno por entrega del comercio) y se usan en orden de carga, FIFO:
@@ -329,9 +329,9 @@ const customerRoutes: Route[] = [
       lote.usados += 1;
       alertaLote(lote);
     } else if (vigentes.length) {
-      throw new ApiError(409, "Los cupones de este beneficio se agotaron. Intenta más tarde.");
+      throw new ApiError(409, "Los cupones de este beneficio se agotaron. Intenta más tarde.", "codigos_agotados");
     } else if (lotes.length) {
-      throw new ApiError(409, "Los códigos de este beneficio vencieron. Intenta más tarde.");
+      throw new ApiError(409, "Los códigos de este beneficio vencieron. Intenta más tarde.", "codigos_vencidos");
     }
     const cupon = { codigo, expira: Date.now() + est.regla.horas * 60 * 60 * 1000 };
     db.cupones[body.beneficioId] = cupon;
@@ -351,6 +351,12 @@ const customerRoutes: Route[] = [
     return cupon;
   }],
   ["GET", "me/movimientos", () => db.movimientos],
+  /** Historial de compras de puntos de la participante (las más recientes primero), con su estado y, si falló, el motivo. */
+  ["GET", "me/compras-puntos", () =>
+    (db.admin.comprasPuntos as any[])
+      .filter((c) => c.participanteId === "p1")
+      .map((c) => ({ codigo: c.codigo, fecha: c.fecha, fechaISO: c.fechaISO, hora: c.hora ?? "", cantidad: c.cantidad, monto: c.monto, estado: c.estado, motivo: c.motivo ?? "", intentos: c.intentos ?? 0 }))
+      .sort((a, b) => `${b.fechaISO} ${b.hora}`.localeCompare(`${a.fechaISO} ${a.hora}`))],
   ["GET", "me/compras", () => db.compras],
   ["GET", "me/compras/:codigo", ({ params }) =>
     db.compras.find((c) => c.codigo === params["codigo"]) ?? (() => { throw notFound("Compra"); })()],
@@ -358,8 +364,8 @@ const customerRoutes: Route[] = [
   ["GET", "me/cotizaciones", () => db.cotizaciones],
   ["POST", "me/cotizaciones", ({ body }) => {
     const detalle = Array.isArray(body.pasajerosDetalle) ? body.pasajerosDetalle : [];
-    if (!body.origen || !body.destino || !body.salida) throw new ApiError(422, "Completa el origen, el destino y la fecha de salida.");
-    if (detalle.length !== Number(body.pasajeros)) throw new ApiError(422, "Faltan los datos de algún pasajero.");
+    if (!body.origen || !body.destino || !body.salida) throw new ApiError(422, "Completa el origen, el destino y la fecha de salida.", "cotizacion_incompleta");
+    if (detalle.length !== Number(body.pasajeros)) throw new ApiError(422, "Faltan los datos de algún pasajero.", "pasajeros_incompletos");
     const ahora = new Date().toISOString().slice(0, 19);
     const nueva: Cotizacion = {
       ...body,
@@ -424,9 +430,9 @@ const customerRoutes: Route[] = [
     exigirCuentaActiva();
     exigirLegalesAlDia("p1");
     const r = db.admin.reglas;
-    if (!r.compraActiva) throw new ApiError(403, "La compra de puntos no está disponible por ahora.");
-    if (body.cantidad < r.min) throw new ApiError(422, `El mínimo de compra es ${r.min} puntos.`);
-    if (body.cantidad > r.max) throw new ApiError(422, `El máximo por compra es ${r.max} puntos.`);
+    if (!r.compraActiva) throw new ApiError(403, "La compra de puntos no está disponible por ahora.", "compra_inactiva");
+    if (body.cantidad < r.min) throw new ApiError(422, `El mínimo de compra es ${r.min} puntos.`, "min");
+    if (body.cantidad > r.max) throw new ApiError(422, `El máximo por compra es ${r.max} puntos.`, "max");
     const monto = Math.round(body.cantidad * r.precio * 100) / 100;
     verificarTopeMensual(body.cantidad);
     const codigo = codigoAleatorio("PTS");
@@ -441,9 +447,9 @@ const customerRoutes: Route[] = [
   ["POST", "me/puntos/compra/:codigo/pago", ({ params, body }) => {
     exigirCuentaActiva();
     const compra = (db.admin.comprasPuntos as any[]).find((c) => c.codigo === params["codigo"] && c.participanteId === "p1") ?? (() => { throw notFound("Compra"); })();
-    if (compra.estado === "Aprobada") throw new ApiError(409, "Esta compra ya está pagada.");
+    if (compra.estado === "Aprobada") throw new ApiError(409, "Esta compra ya está pagada.", "compra_ya_pagada");
     const resultado = String(body?.resultado ?? "");
-    if (!["aprobado", "rechazado", "pendiente"].includes(resultado)) throw new ApiError(422, "Resultado de pago no válido.");
+    if (!["aprobado", "rechazado", "pendiente"].includes(resultado)) throw new ApiError(422, "Resultado de pago no válido.", "resultado_invalido");
     compra.intentos = (compra.intentos ?? 0) + 1;
     compra.referencia = String(body?.referencia ?? "");
     if (resultado === "aprobado") return resolverCompra(compra, true);
@@ -455,7 +461,7 @@ const customerRoutes: Route[] = [
   /** Panel: simula la confirmación (o el rechazo) que enviaría la pasarela para un pago que quedó pendiente. */
   ["POST", "admin/compras-puntos/:codigo/resolver", ({ params, body }) => {
     const compra = (db.admin.comprasPuntos as any[]).find((c) => c.codigo === params["codigo"]) ?? (() => { throw notFound("Compra"); })();
-    if (compra.estado !== "Pendiente") throw new ApiError(409, "Solo se pueden resolver las compras pendientes.");
+    if (compra.estado !== "Pendiente") throw new ApiError(409, "Solo se pueden resolver las compras pendientes.", "compra_no_pendiente");
     return resolverCompra(compra, body?.resultado === "aprobado", "El pago fue rechazado tras la verificación.");
   }],  /* ---------- Novedades por correo (consentimiento de comunicaciones) ---------- */
   /* ---------- Textos legales: qué debe aceptar la persona y su aceptación ---------- */
@@ -473,7 +479,7 @@ const customerRoutes: Route[] = [
   ["POST", "ordenes", ({ body }) => {
     exigirCuentaActiva();
     exigirLegalesAlDia("p1");
-    if (body.puntosUsados > db.usuario.puntos) throw new ApiError(422, "No tienes puntos suficientes para este canje.");
+    if (body.puntosUsados > db.usuario.puntos) throw new ApiError(422, "No tienes puntos suficientes para este canje.", "saldo_insuficiente");
     // No hay control de inventario: un producto activo siempre se puede canjear.
     const codigo = codigoAleatorio("BNB");
     const h = hoy();
@@ -545,14 +551,14 @@ const respond = (req: HttpRequest<unknown>): Observable<HttpResponse<unknown>> =
   // Las rutas de cuenta del participante (me/*, canje y consulta) exigen su sesión; el catálogo y los textos son públicos.
   if (path.startsWith("me/") || path === "me" || path === "ordenes" || path === "contacto") {
     if (!/^Bearer mock\.participante\./.test(req.headers.get("Authorization") ?? "")) {
-      return throwError(() => new HttpErrorResponse({ status: 401, statusText: "Inicia sesión", error: { message: "Inicia sesión para continuar." }, url: req.url }));
+      return throwError(() => new HttpErrorResponse({ status: 401, statusText: "Inicia sesión", error: cuerpoDeError(new ApiError(401, "Inicia sesión para continuar.")), url: req.url }));
     }
   }
   // Las rutas del panel exigen sesión y permiso por sección y acción (lo mismo que hará el backend real).
   if (path.startsWith("admin/")) {
     const rol = rolDelToken(req);
     const negar = (status: number, mensaje: string) =>
-      throwError(() => new HttpErrorResponse({ status, statusText: mensaje, error: { message: mensaje }, url: req.url }));
+      throwError(() => new HttpErrorResponse({ status, statusText: mensaje, error: cuerpoDeError(new ApiError(status, mensaje, status === 403 ? "sin_permiso" : undefined)), url: req.url }));
     if (!rol) return negar(401, "Inicia sesión para continuar.");
     if (!puedeApi(rol, req.method, path, req.body)) {
       const r = requisitoApi(req.method, path, req.body)!;
@@ -586,12 +592,12 @@ const respond = (req: HttpRequest<unknown>): Observable<HttpResponse<unknown>> =
       if (req.method !== "GET") persistDb();
       const err = e instanceof ApiError ? e : new ApiError(500, String(e));
       return throwError(
-        () => new HttpErrorResponse({ status: err.status, statusText: err.message, error: { message: err.message }, url: req.url }),
+        () => new HttpErrorResponse({ status: err.status, statusText: err.message, error: cuerpoDeError(err), url: req.url }),
       );
     }
   }
   return throwError(
-    () => new HttpErrorResponse({ status: 404, statusText: "Not Found", error: { message: "Ruta no encontrada" }, url: req.url }),
+    () => new HttpErrorResponse({ status: 404, statusText: "Not Found", error: { codigo: "ruta_no_encontrada", mensaje: "Ruta no encontrada", message: "Ruta no encontrada" }, url: req.url }),
   );
 };
 
