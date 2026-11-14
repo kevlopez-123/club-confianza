@@ -142,7 +142,7 @@ test.describe("Vigencia de puntos editable en Reglas", () => {
     await expect(page.getByText("Cambios guardados")).toBeVisible();
     // un acumulado de hace 12 meses menos 40 días vence dentro de 40 días: entra con 45 de aviso (y con 24 meses no vencería)
     await page.evaluate(() => {
-      const k = "bancosolidario_mockdb_v11";
+      const k = "confianza_mockdb_v1";
       const d = JSON.parse(localStorage.getItem(k)!);
       const f = new Date(); f.setMonth(f.getMonth() - 12); f.setDate(f.getDate() + 40);
       d.admin.movimientos.unshift({ id: "mv-vig", fechaISO: f.toISOString().slice(0, 10), fecha: "", detalle: "Acumulación", tipo: "ajuste", puntos: 900, cliente: "Ana Torres" });

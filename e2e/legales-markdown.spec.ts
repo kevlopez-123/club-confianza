@@ -37,7 +37,7 @@ test.describe("Textos legales en markdown", () => {
 
   test("el subtítulo de Preguntas frecuentes se edita en el panel", async ({ page }) => {
     await page.goto("/preguntas-frecuentes");
-    await expect(page.getByText("Todo lo que necesitas saber sobre cómo funciona Banco Solidario Puntos.")).toBeVisible();
+    await expect(page.getByText("Todo lo que necesitas saber sobre cómo funciona Club Confianza.")).toBeVisible();
     await entrarAdmin(page);
     await page.goto("/admin/contenido");
     await page.getByRole("button", { name: "FAQ y legales" }).click();

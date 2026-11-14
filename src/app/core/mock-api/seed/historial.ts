@@ -13,22 +13,29 @@ export type BeneficioUsuario = {
   vence: string;
 };
 
+/** Fecha «dd/mm/aaaa» y «dd/mm/aaaa hh:mm» a partir de ahora (los cupones activos del ejemplo siempre están vigentes). */
+const pad = (n: number) => String(n).padStart(2, "0");
+const dmy = (d: Date) => `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+const hm = (d: Date) => `${dmy(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const enHoras = (h: number) => new Date(Date.now() + h * 36e5);
+const haceHoras = (h: number) => new Date(Date.now() - h * 36e5);
+
 export const misBeneficios: BeneficioUsuario[] = [
   {
     id: "mb1",
     beneficioId: "b1",
     codigo: "MOT-8H2K9QAZ",
     estado: "activo",
-    fecha: "02/08/2026",
-    vence: "02/08/2026 21:30",
+    fecha: dmy(haceHoras(12)),
+    vence: hm(enHoras(6)),
   },
   {
     id: "mb2",
     beneficioId: "b9",
     codigo: "MOT-2LP4WQ11",
     estado: "activo",
-    fecha: "04/08/2026",
-    vence: "04/08/2026 23:00",
+    fecha: dmy(haceHoras(60)),
+    vence: hm(enHoras(30)),
   },
   {
     id: "mb3",
@@ -67,8 +74,8 @@ export const misBeneficios: BeneficioUsuario[] = [
     beneficioId: "b11",
     codigo: "MOT-5KJ3HG20",
     estado: "activo",
-    fecha: "03/08/2026",
-    vence: "03/08/2026 22:10",
+    fecha: dmy(haceHoras(144)),
+    vence: hm(enHoras(72)),
   },
 ];
 
@@ -108,7 +115,7 @@ export const compras: Compra[] = [
     fecha: "28/07/2026",
     fechaISO: "2026-07-28",
     estado: "Entregado",
-    entrega: "Av. Amazonas N39-123 y Gaspar de Villarroel, Dpto. 501 — Quito",
+    entrega: "Av. Javier Prado Este 1234, Dpto. 501 — Lima",
     puntosUsados: 26000,
     montoUSD: 0,
     items: [it("p4")],
@@ -118,7 +125,7 @@ export const compras: Compra[] = [
     fecha: "14/07/2026",
     fechaISO: "2026-07-14",
     estado: "En camino",
-    entrega: "Av. Francisco de Orellana 236, Piso 8 — Guayaquil",
+    entrega: "Av. Francisco de Av. Ejército 236, Piso 8 — Arequipa",
     puntosUsados: 48000,
     montoUSD: 120,
     items: [it("p2"), it("p6")],
@@ -138,7 +145,7 @@ export const compras: Compra[] = [
     fecha: "19/05/2026",
     fechaISO: "2026-05-19",
     estado: "Procesando",
-    entrega: "Entrega digital a atorres@empresa.com.ec",
+    entrega: "Entrega digital a atorres@empresa.com.pe",
     puntosUsados: 7000,
     montoUSD: 35,
     items: [it("p11", 2)],
@@ -171,7 +178,7 @@ export const movimientos: Movimiento[] = [
     id: "m1",
     fechaISO: "2026-08-01",
     fecha: "01/08/2026",
-    detalle: "Compra en Banco Solidario Quito Norte — factura 001-045-9821",
+    detalle: "Compra en Financiera Confianza Lima Norte — factura 001-045-9821",
     tipo: "acumulacion",
     puntos: 12400,
   },
@@ -203,7 +210,7 @@ export const movimientos: Movimiento[] = [
     id: "m5",
     fechaISO: "2026-07-05",
     fecha: "05/07/2026",
-    detalle: "Compra en Banco Solidario Cumbayá — factura 002-011-3345",
+    detalle: "Compra en Financiera Confianza Miraflores — factura 002-011-3345",
     tipo: "acumulacion",
     puntos: 9600,
   },
@@ -211,7 +218,7 @@ export const movimientos: Movimiento[] = [
     id: "m6",
     fechaISO: "2026-07-01",
     fecha: "01/07/2026",
-    detalle: "Compra en Banco Solidario Guayaquil Sur — factura 003-020-7714",
+    detalle: "Compra en Financiera Confianza Arequipa Sur — factura 003-020-7714",
     tipo: "acumulacion",
     puntos: 18750,
   },
@@ -227,7 +234,7 @@ export const movimientos: Movimiento[] = [
     id: "m8",
     fechaISO: "2026-06-02",
     fecha: "02/06/2026",
-    detalle: "Canje Gift Card Supermaxi $150",
+    detalle: "Canje Gift Card Plaza Vea S/ 150",
     tipo: "canje",
     puntos: -11000,
   },
@@ -235,7 +242,7 @@ export const movimientos: Movimiento[] = [
     id: "m9",
     fechaISO: "2026-06-01",
     fecha: "01/06/2026",
-    detalle: "Compra en Banco Solidario Quito Norte — factura 001-045-8890",
+    detalle: "Compra en Financiera Confianza Lima Norte — factura 001-045-8890",
     tipo: "acumulacion",
     puntos: 15980,
   },
@@ -243,7 +250,7 @@ export const movimientos: Movimiento[] = [
     id: "m10",
     fechaISO: "2026-05-19",
     fecha: "19/05/2026",
-    detalle: "Canje Gift Card Cinemark x2",
+    detalle: "Canje Gift Card Cineplanet x2",
     tipo: "canje",
     puntos: -7000,
   },
@@ -251,7 +258,7 @@ export const movimientos: Movimiento[] = [
     id: "m11",
     fechaISO: "2026-05-04",
     fecha: "04/05/2026",
-    detalle: "Compra en Banco Solidario Ambato Centro — factura 004-008-1122",
+    detalle: "Compra en Financiera Confianza Cusco Centro — factura 004-008-1122",
     tipo: "acumulacion",
     puntos: 8000,
   },
@@ -259,7 +266,7 @@ export const movimientos: Movimiento[] = [
     id: "m12",
     fechaISO: "2026-05-01",
     fecha: "01/05/2026",
-    detalle: "Compra en Banco Solidario Quito Norte — factura 001-045-8012",
+    detalle: "Compra en Financiera Confianza Lima Norte — factura 001-045-8012",
     tipo: "acumulacion",
     puntos: 14320,
   },
@@ -276,10 +283,10 @@ export const condicionesCompra = [
 /* ---------------- Perfil ---------------- */
 
 export const perfil = {
-  tipoDocumento: "Cédula de Identidad",
+  tipoDocumento: "DNI",
   codigoParticipante: "1712345678",
   correo: "ana.torres@dominio.com",
   nombres: "Ana Lucía",
   apellidos: "Torres Ramírez",
-  telefono: "+593 99 654 3210",
+  telefono: "+51 999 654 321",
 };

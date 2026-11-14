@@ -29,7 +29,7 @@ import {
 } from "./seed/juegos";
 import { adminSeed, altaAISO, horaEjemplo } from "./admin-seed";
 import { aceptacionesIniciales, legalesIniciales } from "./legales-seed";
-import { AJUSTES_BASE } from "../correos";
+import { AJUSTES_BASE, PLANTILLAS_BASE } from "../correos";
 import { analiticaSemilla, type EventoGuardado } from "./analitica-seed";
 import { credencialesIniciales } from "./seed/admin";
 import { faqs, privacidad, terminos } from "./seed/contenido";
@@ -40,7 +40,7 @@ import { presetPorId, TENANT_POR_DEFECTO } from "../../tenants/presets";
 const clone = <T>(v: T): T => structuredClone(v);
 
 /** Clave de localStorage donde se guarda la base simulada. Subir la versión invalida datos viejos. */
-export const DB_KEY = "bancosolidario_mockdb_v11";
+export const DB_KEY = "confianza_mockdb_v1";
 
 /**
  * "Base de datos" del backend simulado. Cada petición a /api/* se resuelve contra este estado,
@@ -51,7 +51,6 @@ function notificacionesIniciales() {
   const hace = (min: number) => new Date(Date.now() - min * 60_000).toISOString();
   return [
     { id: "n-seed-3", participanteId: "p1", tipo: "pedido", titulo: "Tu pedido BNB-4F82KDL1 está en camino", texto: "Revisa el detalle y el seguimiento de tu pedido.", enlace: "/mis-compras/BNB-4F82KDL1", fecha: hace(45), leida: false },
-    { id: "n-seed-2", participanteId: "p1", tipo: "vuelo", titulo: "Tu cotización COT-100501 fue cotizada", texto: "UIO → MIA. Ya puedes revisar la propuesta.", enlace: "/vuelos/cotizaciones", fecha: hace(60 * 5), leida: false },
     { id: "n-seed-1", participanteId: "p1", tipo: "puntos", titulo: "Acreditamos 2 500 puntos", texto: "Tu compra de puntos fue aprobada.", enlace: "/mis-puntos/historial", fecha: hace(60 * 30), leida: true },
   ];
 }
@@ -107,13 +106,13 @@ const semilla = () => {
     tenant: presetPorId(TENANT_POR_DEFECTO),
     /** Datos de marca y contacto que se muestran en cabecera/pie/WhatsApp (editables en Admin → Configuración). */
     sitio: {
-      nombre: "Banco Solidario Puntos",
-      correoSoporte: "servicioalcliente@banco-solidario.com",
-      telefonoPie: "1800 SOLIDARIO (285 2684)",
-      whatsapp: "+593 99 123 4567",
-      agenciasUrl: "https://www.banco-solidario.com",
-      ciudadesPie: "Quito · Guayaquil · Cuenca",
-      agenciasTexto: "Encuentra tu agencia Banco Solidario",
+      nombre: "Club Confianza",
+      correoSoporte: "atencion@confianza.pe",
+      telefonoPie: "(01) 619 2000",
+      whatsapp: "+51 999 123 456",
+      agenciasUrl: "https://confianza.pe",
+      ciudadesPie: "Lima · Arequipa · Cusco",
+      agenciasTexto: "Encuentra tu agencia Financiera Confianza",
       redes: { facebook: "", x: "", linkedin: "", instagram: "", tiktok: "", youtube: "" } as Record<string, string>,
     },
     /** Menú principal. Los ítems con `activo: false` quedan ocultos hasta que el admin los habilite. */
@@ -130,10 +129,6 @@ const semilla = () => {
         { label: "Mi nivel", to: "/mi-nivel", activo: true },
       ] },
       { id: "compras", label: "Mis compras", to: "/mis-compras", activo: true },
-      { id: "vuelos", label: "Vuelos", activo: true, children: [
-        { label: "Cotizar vuelo", to: "/vuelos", activo: true },
-        { label: "Mis cotizaciones", to: "/vuelos/cotizaciones", activo: true },
-      ] },
       { id: "contacto", label: "Contáctanos", to: "/contacto", activo: true },
     ] as any[],
     contenido: { faq: clone(faqs), terminos: seccionesAMarkdown(terminos), privacidad: seccionesAMarkdown(privacidad) },
@@ -160,6 +155,9 @@ const cargar = (): Db => {
       base.admin = { ...base.admin, ahora };
       // Datos guardados antes de existir el módulo de correos.
       base.admin.plantillasCorreo ??= plantillasCorreo;
+      // Plantillas de fábrica que se agregaron después de guardar la base (p. ej. la de eliminación de cuenta).
+      for (const pb of PLANTILLAS_BASE) if (!(base.admin.plantillasCorreo as any[]).some((x) => x.id === pb.id)) (base.admin.plantillasCorreo as any[]).push(structuredClone(pb));
+      (base.admin as any).solicitudesEliminacion ??= [];
       base.admin.correosEnviados ??= correosEnviados;
       base.admin.disenoCorreo ??= disenoCorreo;
       (base.admin as any).ajustesCorreo ??= structuredClone(AJUSTES_BASE);
@@ -193,6 +191,7 @@ const cargar = (): Db => {
   }
   (base.admin as any).popups ??= structuredClone(POPUPS_INICIALES);
   (base.admin as any).guias ??= structuredClone(GUIAS_INICIALES);
+  (base.admin as any).solicitudesEliminacion ??= [];
   // El formulario de datos ya no pide aceptar Términos: la aceptación se registra con versión al ingresar (Textos legales).
   base.admin.campos = (base.admin.campos as any[]).filter((c) => c.mapeo !== "acepta_terminos");
   // Género queda conectado al dato del participante (antes no tenía conexión).

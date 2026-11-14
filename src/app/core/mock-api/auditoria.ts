@@ -174,7 +174,7 @@ export function capturar(metodo: string, ruta: string, body: any): Captura | nul
   }
 }
 
-const fmt = (d: Date) => d.toLocaleString("es-EC", { dateStyle: "short", timeStyle: "short" });
+const fmt = (d: Date) => d.toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" });
 
 /** Escribe el registro con quién lo hizo. Une el aviso automático con el texto que haya enviado la pantalla en los últimos segundos. */
 export function registrar(cap: Captura, usuarioId: string | null, rol: string | null) {

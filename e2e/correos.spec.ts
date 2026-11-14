@@ -62,7 +62,7 @@ test.describe("Correos: diseño, plantillas y enviados", () => {
     await expect(marco.getByRole("link", { name: /Ingresar a/ })).toHaveCSS("background-color", "rgb(124, 58, 237)");
     await page.getByRole("button", { name: "Guardar diseño" }).click();
     await expect(page.getByText("Diseño de correos guardado")).toBeVisible();
-    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11") ?? "{}").admin?.disenoCorreo?.colorBoton)).toBe("#7c3aed");
+    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("confianza_mockdb_v1") ?? "{}").admin?.disenoCorreo?.colorBoton)).toBe("#7c3aed");
     await page.getByRole("tab", { name: "Plantillas" }).click();
     await page.getByRole("button", { name: "Editar Cupón generado" }).click();
     await expect(page.getByRole("dialog").frameLocator("iframe[title='Correo renderizado']").getByRole("link", { name: "Ver mis beneficios" })).toHaveCSS("background-color", "rgb(124, 58, 237)");
@@ -71,7 +71,7 @@ test.describe("Correos: diseño, plantillas y enviados", () => {
   test("los envíos del sistema quedan en Enviados con su diseño y se pueden ver y reenviar", async ({ page }) => {
     await entrarAdmin(page);
     await page.goto("/admin/participantes");
-    await page.getByPlaceholder("Buscar por nombre o cédula").fill("Ana Torres");
+    await page.getByPlaceholder("Buscar por nombre o DNI").fill("Ana Torres");
     await expect(page.locator("tbody tr")).toHaveCount(1);
     await page.getByRole("link", { name: "Ver ficha" }).click();
     await page.locator("main").getByRole("button", { name: "Reenviar código de acceso" }).click();
@@ -98,7 +98,7 @@ test.describe("Correos: diseño, plantillas y enviados", () => {
         await expect(page.getByText("Cuenta bloqueada: desactivado")).toBeVisible();
       }
       await page.goto("/admin/participantes");
-      await page.getByPlaceholder("Buscar por nombre o cédula").fill("Ana Torres");
+      await page.getByPlaceholder("Buscar por nombre o DNI").fill("Ana Torres");
       await expect(page.locator("tbody tr")).toHaveCount(1);
       await page.getByRole("link", { name: "Ver ficha" }).click();
       const d = page.locator("main");

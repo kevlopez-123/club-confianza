@@ -13,7 +13,6 @@ test.describe("Reportes: datos reales, comparativo y exportación", () => {
     await expect(kpi(page, "Puntos canjeados")).toBeVisible();
     await expect(kpi(page, "Tasa de canje")).toContainText("%");
     await expect(kpi(page, "Pedidos")).toBeVisible();
-    await expect(kpi(page, "Cotizaciones de vuelos")).toBeVisible();
   });
 
   test("compara con el período anterior de igual duración y se puede apagar", async ({ page }) => {

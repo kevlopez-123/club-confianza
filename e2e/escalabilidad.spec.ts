@@ -54,11 +54,11 @@ test.describe(`Panel con ${FORMATO(N)} participantes`, () => {
     await medirCarga(page, "/admin/participantes");
 
     const t0 = Date.now();
-    await page.getByPlaceholder("Buscar por nombre o cédula").fill(`usuario${N - 1}@correo.com`);
+    await page.getByPlaceholder("Buscar por nombre o DNI").fill(`usuario${N - 1}@correo.com`);
     await expect(page.locator("tbody tr")).toHaveCount(1);
     info.annotations.push({ type: "búsqueda entre todos (ms)", description: String(Date.now() - t0) });
     expect(Date.now() - t0).toBeLessThan(8_000);
-    await page.getByPlaceholder("Buscar por nombre o cédula").fill("");
+    await page.getByPlaceholder("Buscar por nombre o DNI").fill("");
     await expect(page.locator("tbody tr")).toHaveCount(25);
 
     await page.getByRole("button", { name: "Página siguiente" }).click();
@@ -76,7 +76,7 @@ test.describe(`Panel con ${FORMATO(N)} participantes`, () => {
     await conStress(page);
     await entrarAdmin(page);
     await medirCarga(page, "/admin/participantes");
-    const caja = page.getByPlaceholder("Buscar por nombre o cédula");
+    const caja = page.getByPlaceholder("Buscar por nombre o DNI");
     await caja.pressSequentially("usuario5", { delay: 15 });
     await caja.pressSequentially("0000@correo.com", { delay: 15 });
     await expect(page.locator("tbody tr")).toHaveCount(1);
@@ -87,7 +87,7 @@ test.describe(`Panel con ${FORMATO(N)} participantes`, () => {
     await conStress(page);
     await entrarAdmin(page);
     await medirCarga(page, "/admin/participantes");
-    await page.getByPlaceholder("Buscar por nombre o cédula").fill("usuario777@correo.com");
+    await page.getByPlaceholder("Buscar por nombre o DNI").fill("usuario777@correo.com");
     await expect(page.locator("tbody tr")).toHaveCount(1);
     await page.getByRole("link", { name: "Ver ficha" }).click();
     await page.getByRole("tab", { name: /^Ajustes/ }).click();

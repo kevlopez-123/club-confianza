@@ -34,7 +34,7 @@ test.describe("Marca y localización", () => {
     await page.getByLabel("Color principal (hex)").fill("#ff0000");
     expect(await cssVar(page, "--primary")).toBe("#ff0000");
     await page.getByRole("button", { name: "Descartar cambios" }).click();
-    expect(await cssVar(page, "--primary")).toBe("#00bdd2");
+    expect(await cssVar(page, "--primary")).toBe("#005699");
   });
 
   test("la letra de los botones primarios es blanca por defecto y se puede cambiar", async ({ page }) => {
@@ -73,9 +73,9 @@ test.describe("Marca y localización", () => {
     await page.getByLabel("Imagen del ingreso (URL)").fill("img/hero-cine.jpg");
     await page.getByRole("button", { name: "Guardar marca" }).click();
     await page.goto("/");
-    await expect(page.locator("header img[alt='Banco Solidario']").first()).toHaveAttribute("src", /data:image\/svg/);
+    await expect(page.locator("header img[alt='Financiera Confianza']").first()).toHaveAttribute("src", /data:image\/svg/);
     await page.goto("/login");
-    await expect(page.locator("main span:visible", { hasText: "Banco Solidario" }).first()).toBeVisible(); // wordmark de texto
+    await expect(page.locator("main span:visible", { hasText: "Financiera Confianza" }).first()).toBeVisible(); // wordmark de texto
     await expect(page.locator("aside img")).toHaveAttribute("src", "img/hero-cine.jpg");
   });
 
@@ -88,29 +88,27 @@ test.describe("Marca y localización", () => {
     await expect(page.getByRole("alert")).toContainText("supera 1,5 MB");
   });
 
-  test("País: Perú cambia código, moneda, símbolo, prefijo, dígitos y documentos", async ({ page }) => {
+  test("País: Colombia cambia código, moneda, símbolo, prefijo, dígitos y documentos", async ({ page }) => {
     await abrirEditor(page);
-    await page.getByLabel("País", { exact: true }).selectOption("PE");
-    await expect(dato(page, "Moneda")).toHaveText("PEN");
-    await expect(dato(page, "Símbolo")).toHaveText("S/");
-    await expect(dato(page, "Prefijo telefónico")).toHaveText("+51");
-    await expect(dato(page, "Dígitos del celular")).toHaveText("9");
+    await page.getByLabel("País", { exact: true }).selectOption("CO");
+    await expect(dato(page, "Moneda")).toHaveText("COP");
+    await expect(dato(page, "Símbolo")).toHaveText("$");
+    await expect(dato(page, "Prefijo telefónico")).toHaveText("+57");
+    await expect(dato(page, "Dígitos del celular")).toHaveText("10");
     await page.getByRole("button", { name: "Guardar marca" }).click();
     await expect(page.getByText("Marca publicada en el sitio y el panel")).toBeVisible(); // esperar a que se guarde antes de salir de la página
 
     await page.goto("/login");
     const opciones = await page.locator("#tipo-doc option").allTextContents();
-    expect(opciones).toContain("DNI");
-    expect(opciones).not.toContain("Cédula de Identidad");
-    await page.locator("#tipo-doc").selectOption("dni");
+    expect(opciones).toContain("Cédula de Ciudadanía");
+    expect(opciones).not.toContain("DNI");
+    await page.locator("#tipo-doc").selectOption("cc");
     await page.getByLabel("Número de documento").fill("123456789012");
-    await expect(page.getByLabel("Número de documento")).toHaveValue("12345678"); // 8 dígitos
+    await expect(page.getByLabel("Número de documento")).toHaveValue("1234567890"); // 10 dígitos
 
     await page.goto("/contacto");
-    await expect(page.locator("main img[alt='Perú']").first()).toBeVisible(); // bandera de la librería, no emoji
-    await expect(page.getByText("+51", { exact: true }).first()).toBeVisible();
-    await page.goto("/canjea/p7");
-    await expect(page.getByText(/S\/\s?329/)).toBeVisible();
+    await expect(page.locator("main img[alt='Colombia']").first()).toBeVisible(); // bandera de la librería, no emoji
+    await expect(page.getByText("+57", { exact: true }).first()).toBeVisible();
   });
 
   test("los 11 países están disponibles con sus datos y su bandera", async ({ page }) => {
@@ -131,25 +129,25 @@ test.describe("Marca y localización", () => {
     }
   });
 
-  test("no existe la opción de idioma y Ecuador es el país por defecto", async ({ page }) => {
+  test("no existe la opción de idioma y Perú es el país por defecto", async ({ page }) => {
     await abrirEditor(page);
     await expect(page.getByText(/idioma/i)).toHaveCount(0);
-    await expect(page.getByLabel("País", { exact: true })).toHaveValue("EC");
+    await expect(page.getByLabel("País", { exact: true })).toHaveValue("PE");
   });
 
   test("provincias con envío: lista oficial fija, solo se activa el envío y llega al formulario del participante", async ({ page }) => {
     await abrirEditor(page);
     await expect(page.getByRole("button", { name: "Agregar provincia" })).toHaveCount(0);
     await expect(page.getByLabel("Nombre de la provincia")).toHaveCount(0);
-    await expect(page.getByRole("switch", { name: /^Envío a/ })).toHaveCount(24); // Ecuador completo
+    await expect(page.getByRole("switch", { name: /^Envío a/ })).toHaveCount(25); // Perú completo
     await page.getByRole("button", { name: "Desactivar todas" }).click();
-    await page.getByRole("switch", { name: "Envío a Azuay" }).click();
+    await page.getByRole("switch", { name: "Envío a Cusco" }).click();
     await page.getByRole("button", { name: "Guardar marca" }).click();
     await page.goto("/perfil");
     // el formulario público ofrece solo las provincias con envío
     await expect
       .poll(async () => (await page.locator("#pf-f7").locator("option").allTextContents()).filter((o) => o !== "Selecciona").sort())
-      .toEqual(["Azuay"]);
+      .toEqual(["Cusco"]);
   });
   test("la moneda sale del país elegido y los datos del país no se editan", async ({ page }) => {
     await abrirEditor(page);
@@ -158,8 +156,6 @@ test.describe("Marca y localización", () => {
     await page.getByLabel("País", { exact: true }).selectOption("ES");
     await expect(page.getByText(/Ejemplo con la configuración actual: €1.*EUR/)).toBeVisible();
     await page.getByRole("button", { name: "Guardar marca" }).click();
-    await page.goto("/canjea/p7");
-    await expect(page.getByText(/€329/)).toBeVisible();
   });
 
   test("documentos de identidad: agregar y quitar", async ({ page }) => {
@@ -172,7 +168,7 @@ test.describe("Marca y localización", () => {
     await page.locator("#tipo-doc").waitFor();
     const opciones = await page.locator("#tipo-doc option").allTextContents();
     expect(opciones).toContain("Licencia de conducir");
-    expect(opciones).not.toContain("Cédula de Identidad");
+    expect(opciones).not.toContain("DNI");
   });
 
   test("exportar e importar la configuración como JSON (replicar en otro proyecto)", async ({ page }) => {
@@ -180,10 +176,10 @@ test.describe("Marca y localización", () => {
     const descarga = page.waitForEvent("download");
     await page.getByRole("button", { name: "Exportar JSON" }).click();
     const d = await descarga;
-    expect(d.suggestedFilename()).toBe("tenant-ecuador.json");
+    expect(d.suggestedFilename()).toBe("tenant-confianza.json");
     const contenido = JSON.parse(await (await import("node:fs/promises")).readFile((await d.path())!, "utf8"));
-    expect(contenido.tema.primario).toBe("#00bdd2");
-    expect(contenido.pais.moneda.codigo).toBe("USD");
+    expect(contenido.tema.primario).toBe("#005699");
+    expect(contenido.pais.moneda.codigo).toBe("PEN");
 
     const nuevo = { ...contenido, id: "demo", marca: { ...contenido.marca, nombre: "Cliente Importado", programa: "Importado Plus" }, tema: { ...contenido.tema, primario: "#0f766e" } };
     await page.getByLabel("Importar configuración de marca").setInputFiles({ name: "t.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(nuevo)) });

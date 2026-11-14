@@ -11,7 +11,7 @@ async function dosUsuarios(context: import("@playwright/test").BrowserContext) {
 }
 const reglas = async (p: Page) => {
   await p.goto("/admin/reglas");
-  await expect(p.getByLabel("Precio por punto (US$)")).toBeVisible();
+  await expect(p.getByLabel("Precio por punto (S/)")).toBeVisible();
 };
 
 test.describe("Concurrencia: otro usuario modificó esto", () => {
@@ -19,7 +19,7 @@ test.describe("Concurrencia: otro usuario modificó esto", () => {
     const { a, b } = await dosUsuarios(context);
     await reglas(a);
     await reglas(b);
-    await b.getByLabel("Precio por punto (US$)").fill("0.07");
+    await b.getByLabel("Precio por punto (S/)").fill("0.09");
     await b.getByRole("button", { name: "Guardar reglas" }).click();
     await expect(b.getByText(/guardad/i).first()).toBeVisible();
     // A sigue con la versión vieja y guarda otro valor
@@ -30,7 +30,7 @@ test.describe("Concurrencia: otro usuario modificó esto", () => {
     await expect(aviso).toContainText("Tu cambio no se guardó");
     // el cambio de B sigue ahí (A no lo pisó)
     await aviso.getByRole("button", { name: "Recargar" }).click();
-    await expect(a.getByLabel("Precio por punto (US$)")).toHaveValue("0.07");
+    await expect(a.getByLabel("Precio por punto (S/)")).toHaveValue("0.09");
     await expect(a.getByLabel("Mínimo por compra")).not.toHaveValue("900");
   });
 
@@ -38,7 +38,7 @@ test.describe("Concurrencia: otro usuario modificó esto", () => {
     const { a, b } = await dosUsuarios(context);
     await reglas(a);
     await reglas(b);
-    await b.getByLabel("Precio por punto (US$)").fill("0.07");
+    await b.getByLabel("Precio por punto (S/)").fill("0.09");
     await b.getByRole("button", { name: "Guardar reglas" }).click();
     await expect(b.getByText(/guardad/i).first()).toBeVisible();
     await a.getByLabel("Mínimo por compra").fill("900");
@@ -55,7 +55,7 @@ test.describe("Concurrencia: otro usuario modificó esto", () => {
     await entrarAdmin(page);
     await reglas(page);
     for (const v of ["0.03", "0.04", "0.05"]) {
-      await page.getByLabel("Precio por punto (US$)").fill(v);
+      await page.getByLabel("Precio por punto (S/)").fill(v);
       await page.getByRole("button", { name: "Guardar reglas" }).click();
       await expect(page.getByText(/guardad/i).first()).toBeVisible();
     }
@@ -66,7 +66,7 @@ test.describe("Concurrencia: otro usuario modificó esto", () => {
     const { a, b } = await dosUsuarios(context);
     const abrir = async (p: Page) => {
       await p.goto("/admin/participantes");
-      await p.getByPlaceholder("Buscar por nombre o cédula").fill("Ana Torres");
+      await p.getByPlaceholder("Buscar por nombre o DNI").fill("Ana Torres");
       await expect(p.locator("tbody tr")).toHaveCount(1);
       await p.getByRole("link", { name: "Ver ficha" }).click();
       await expect(p.locator("main").getByRole("button", { name: "Bloquear cuenta" })).toBeVisible();
@@ -76,7 +76,7 @@ test.describe("Concurrencia: otro usuario modificó esto", () => {
     await b.locator("main").getByRole("button", { name: "Bloquear cuenta" }).click();
     await b.getByRole("button", { name: "Bloquear", exact: true }).click();
     await expect(b.getByText("Cuenta bloqueada")).toBeVisible();
-    await expect.poll(() => b.evaluate(() => JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11") ?? "{}").admin?.participantes?.find((p: any) => p.nombre === "Ana Torres")?.estado)).toBe("Bloqueado");
+    await expect.poll(() => b.evaluate(() => JSON.parse(localStorage.getItem("confianza_mockdb_v1") ?? "{}").admin?.participantes?.find((p: any) => p.nombre === "Ana Torres")?.estado)).toBe("Bloqueado");
     // A todavía ve la cuenta activa y también intenta bloquearla
     await a.locator("main").getByRole("button", { name: "Bloquear cuenta" }).click();
     await a.getByRole("button", { name: "Bloquear", exact: true }).click();

@@ -19,7 +19,7 @@ export const niveles: Nivel[] = [
     color: "#8A93A6",
     beneficios: [
       "Acceso al catálogo base de productos",
-      "Envío gratis en canjes desde $50 en agencias Banco Solidario",
+      "Envío gratis en canjes desde S/ 200 en agencias de Financiera Confianza",
     ],
   },
   {

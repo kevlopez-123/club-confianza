@@ -198,4 +198,4 @@ export const labelCiudad = (codigo: string) => {
 };
 
 export const formatFecha = (iso: string) =>
-  new Date(`${iso}T12:00:00`).toLocaleDateString("es-EC", { day: "2-digit", month: "short", year: "numeric" });
+  new Date(`${iso}T12:00:00`).toLocaleDateString("es-PE", { day: "2-digit", month: "short", year: "numeric" });

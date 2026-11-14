@@ -1,6 +1,9 @@
-# Banco Solidario Puntos — Angular 22
+# Club Confianza (Financiera Confianza, Perú) — Angular 22
 
-> **Novedades:** Angular 22.2 (TypeScript 6, Node 24 local: usa siempre `npm start` / `npm run build` / `npm run e2e`), panel con interfaz SaaS (workspace, Ctrl+K, migas, tema oscuro), plataforma **white-label** (colores, logos, país, moneda y documentos desde Admin → Configuración → Marca) y pruebas de escalabilidad (`STRESS_N=500000 npm run e2e -- escalabilidad`). Para reutilizarla en otro cliente ver [docs/REPLICAR.md](docs/REPLICAR.md). Suite e2e: ~290 pruebas.
+Plataforma de puntos para la web del participante y su panel de administración. Parte del código de Banco Solidario Puntos y se personalizó para Perú: soles (S/), DNI, departamentos y ciudades peruanas, colores y tipografía de Financiera Confianza. Solo web (sin app móvil) y todo se canjea únicamente con puntos; no incluye Viajes (vuelos ni cotizaciones).
+
+
+> **Novedades:** Angular 22.2 (TypeScript 6, Node 24 local: usa siempre `npm start` / `npm run build` / `npm run e2e`), panel con interfaz SaaS (workspace, Ctrl+K, migas, tema oscuro), plataforma **white-label** (colores, logos, país, moneda y documentos desde Admin → Configuración → Marca) y pruebas de escalabilidad (`STRESS_N=500000 npm run e2e -- escalabilidad`). Para reutilizarla en otro cliente ver [docs/REPLICAR.md](docs/REPLICAR.md). Suite e2e: ~510 pruebas (`npm run e2e`) y ~217 unitarias (`npm test`).
 
 Reescritura en **Angular** (componentes standalone, signals, control flow `@if/@for`, rutas con lazy loading) del proyecto original hecho con Lovable (React + TanStack + Vite). El diseño se conserva: se mantiene **Tailwind CSS 4** con los mismos tokens y clases del original.
 
@@ -48,9 +51,9 @@ En los reportes la API describe esto por columna (`ancho`, `sinEtiqueta`, `orden
 
 ## Reportes por tipo y Dashboard
 
-- **Reportes** (Admin → Reportes): la API declara qué tipos existen (`GET /admin/reportes/tipos`: Resumen, Puntos, Ventas de puntos, Pedidos y canjes, Participantes, Catálogo e inventario, Vuelos, Correos, Embudo) y devuelve para cada uno indicadores con comparación contra el período anterior, gráficos y la definición de su tabla (`GET /admin/reportes/t/:id?desde&hasta`). La pantalla solo los dibuja: agregar un reporte no exige tocarla. Los de "estado actual" (participantes, inventario) no se comparan.
+- **Reportes** (Admin → Reportes): la API declara qué tipos existen (`GET /admin/reportes/tipos`: Resumen, Puntos, Ventas de puntos, Pedidos y canjes, Participantes, Catálogo, Correos, Embudo) y devuelve para cada uno indicadores con comparación contra el período anterior, gráficos y la definición de su tabla (`GET /admin/reportes/t/:id?desde&hasta`). La pantalla solo los dibuja: agregar un reporte no exige tocarla. Los de "estado actual" (participantes, inventario) no se comparan.
 - **Tablas**: pagina, busca, filtra y ordena en el servidor (`GET /admin/reportes/q/:coleccion`, bajo el permiso de Reportes). Cada fila abre un detalle con enlace a su módulo. "Exportar tabla" baja hasta 2 000 filas con los filtros aplicados; "Exportar Excel" lleva indicadores, un hoja por gráfico y el detalle.
-- **Dashboard** (`GET /admin/dashboard?desde&hasta`): indicadores que salen de los mismos reportes (un número del Dashboard siempre coincide con el del reporte y lleva a él), alertas de lo pendiente (pedidos, mensajes, pagos, stock, correos, lotes) y widgets que cada persona puede ocultar o mostrar (se recuerda en el navegador).
+- **Dashboard** (`GET /admin/dashboard?desde&hasta`): indicadores que salen de los mismos reportes (un número del Dashboard siempre coincide con el del reporte y lleva a él), alertas de lo pendiente (pedidos, mensajes, pagos, correos, lotes) y widgets que cada persona puede ocultar o mostrar (se recuerda en el navegador).
 - Un reporte nuevo en el backend real debe respetar el mismo contrato; los widgets se declaran en `pages-dashboard.ts` (`WIDGETS`).
 - **Formulario de datos**: lo completa el participante en Mi perfil; las respuestas se ven en la ficha (Datos y direcciones → Datos del formulario).
 
@@ -76,11 +79,11 @@ En los reportes la API describe esto por columna (`ancho`, `sinEtiqueta`, `orden
 
 ## Sesión del participante
 
-Ingreso por documento + código OTP (`auth/otp` → `auth/verificar`). El servidor emite un token (`TokenService`, ámbito *participante*, guardado en localStorage) que `authInterceptor` envía a las rutas de cuenta; sin él la API responde **401** y el sitio manda a `/login?volver=<ruta>`. `participanteGuard` protege las rutas privadas (carrito, perfil, mis-*, notificaciones, favoritos, contacto, cotizaciones); el catálogo, los vuelos y los textos legales son públicos. Cerrar sesión borra el token y recarga en `/login`. En las e2e la sesión parte iniciada (`playwright.config.ts`); `e2e/sesion-participante.spec.ts` prueba el flujo como visitante. Con el backend real: emitir un JWT en `auth/verificar` y validarlo en cada ruta `me/*`.
+Ingreso por documento + código OTP (`auth/otp` → `auth/verificar`). El servidor emite un token (`TokenService`, ámbito *participante*, guardado en localStorage) que `authInterceptor` envía a las rutas de cuenta; sin él la API responde **401** y el sitio manda a `/login?volver=<ruta>`. `participanteGuard` protege las rutas privadas (carrito, perfil, mis-*, notificaciones, favoritos, contacto); el catálogo y los textos legales son públicos. Cerrar sesión borra el token y recarga en `/login`. En las e2e la sesión parte iniciada (`playwright.config.ts`); `e2e/sesion-participante.spec.ts` prueba el flujo como visitante. Con el backend real: emitir un JWT en `auth/verificar` y validarlo en cada ruta `me/*`.
 
 ## Notificaciones dentro del sitio
 
-Campanita en el encabezado (contador, lista y página `/notificaciones`). Cada plantilla de Admin → Correos puede crear, además del correo, un aviso en el sitio (título, texto y enlace con variables); funciona aunque el correo esté desactivado. API: `GET me/notificaciones` y `POST me/notificaciones/leer` (`{ ids? }`; sin ids marca todas). La app móvil usa los mismos endpoints; el *push* nativo queda para el backend.
+Campanita en el encabezado (contador, lista y página `/notificaciones`). Cada plantilla de Admin → Correos puede crear, además del correo, un aviso en el sitio (título, texto y enlace con variables); funciona aunque el correo esté desactivado. API: `GET me/notificaciones` y `POST me/notificaciones/leer` (`{ ids? }`; sin ids marca todas).
 
 ## Permisos del panel
 
@@ -89,7 +92,7 @@ La matriz rol → sección → acción (ver, crear/editar, eliminar, exportar) e
 ## SEO y cookies
 
 - **SEO:** `SeoService` aplica en cada navegación descripción, URL canónica, Open Graph/Twitter, `robots` (cuenta, carrito, panel e ingreso van `noindex`) y, en producto, JSON-LD `schema.org/Product`. Las descripciones por página están en `core/seo.service.ts`.
-- **robots.txt y sitemap.xml:** `SITE_URL=https://tu-dominio.com npm run seo:archivos` (por defecto localhost). El sitemap trae las páginas fijas; las fichas (productos, beneficios, destinos) las debe listar el backend.
+- **robots.txt y sitemap.xml:** `SITE_URL=https://tu-dominio.com npm run seo:archivos` (por defecto localhost). El sitemap trae las páginas fijas; las fichas (productos y beneficios) las debe listar el backend.
 - **Límite:** es una SPA; Google ejecuta JavaScript, pero las vistas previas de redes sociales no. Para ellas hace falta SSR/prerender (`ng add @angular/ssr`).
 - **Cookies:** `ConsentimientoService` guarda la elección (esenciales siempre; analítica y marketing opcionales) y el pie tiene "Preferencias de cookies". Cualquier herramienta de analítica que se agregue debe iniciarse solo si `analitica()` es true.
 
@@ -104,7 +107,7 @@ Los archivos `*.spec.ts` junto al código. Las e2e (abajo) cubren los flujos com
 ## Pruebas e2e (Playwright)
 
 ```bash
-npm run e2e        # corre las ~114 pruebas (levanta o reutiliza `npm start`)
+npm run e2e        # corre las ~510 pruebas (levanta o reutiliza `npm start`)
 npm run e2e:ui     # modo interactivo
 ```
 
@@ -112,11 +115,11 @@ Usan el Microsoft Edge instalado (`channel: "msedge"` en `playwright.config.ts`;
 
 | Archivo | Qué cubre |
 | --- | --- |
-| `routes-links.spec.ts` | Las 28 rutas del sitio y las 16 del admin cargan sin errores de consola; 404 y detalles inexistentes; todo enlace interno resuelve; no hay enlaces muertos (`#`); menú |
+| `routes-links.spec.ts` | Las 28 rutas del sitio y las 16 del admin cargan sin errores de consola; 404 y detalles inexistentes de productos y beneficios; todo enlace interno resuelve; no hay enlaces muertos (`#`); menú |
 | `responsive.spec.ts` | Sin scroll horizontal a 375 / 768 / 1024 px (sitio y admin); menú móvil; cabecera sin solapes; barra lateral del admin |
-| `participante.spec.ts` | Login OTP, catálogo/filtros/orden, búsqueda, favoritos, carrito y checkout (puntos, mixto, insuficiente, digital/físico), cupones, compra/transferencia/cashback de puntos, historial CSV, vuelos, perfil, contacto, juegos |
+| `participante.spec.ts` | Login OTP, catálogo/filtros/orden, búsqueda, favoritos, carrito y checkout (solo puntos, insuficiente, digital/físico), cupones, compra/transferencia/cashback de puntos, historial CSV, QR y PDF del cupón, detalle del pedido, perfil, contacto, juegos |
 | `conexiones.spec.ts` | Cada pantalla del admin tiene efecto en el sitio: reglas de puntos, secciones del Home, FAQ/legales, menú, formulario de datos, stock, ajustes/bloqueo de cuentas, promociones, lotes de cupones |
-| `admin.spec.ts` | Login y roles, recuperación de contraseña, y que lo administrado **se refleje en el sitio** (productos, niveles, configuración, banners, destinos), pedidos, participantes, carga masiva, atención, cotizaciones, usuarios, formulario, persistencia |
+| `admin.spec.ts` | Login y roles, recuperación de contraseña, y que lo administrado **se refleje en el sitio** (productos, niveles, configuración, banners), pedidos, participantes, carga masiva, atención, usuarios, formulario, persistencia |
 
 ## Estructura
 
@@ -129,7 +132,7 @@ src/app/
 │  ├─ format.ts / labels.ts / nav.ts / models.ts
 │  └─ mock-api/               ← MockAPI (ver abajo)
 ├─ shared/                    Header, footer, modal, tarjetas, slider, buscador, selector de ciudad, niveles…
-├─ pages/                     Páginas del participante (catálogo, carrito, puntos, vuelos, perfil…)
+├─ pages/                     Páginas del participante (catálogo, carrito, puntos, perfil…)
 ├─ admin/                     Panel de administración (layout, kit de UI, 16 páginas)
 └─ app.routes.ts              Rutas (lazy) y títulos de página
 ```
@@ -138,18 +141,18 @@ src/app/
 
 No hay backend: un **interceptor HTTP** (`core/mock-api/mock-api.interceptor.ts`) atiende todo lo que va a `/api/*` con una base de datos en memoria (`db.ts`) sembrada con los datos del proyecto original (`seed/`). Responde con una latencia artificial de ~120 ms y devuelve errores HTTP reales (404, 422).
 
-- **Persistencia**: tras cada escritura el estado se guarda en `localStorage` (`bancosolidario_mockdb_v1`). Para volver a los datos de ejemplo: Admin → Configuración → *Restablecer datos de ejemplo*, o borra esa clave.
-- **Admin ↔ sitio**: lo que se guarda en el admin (productos, beneficios, destinos, ciudades, banners, niveles, categorías) se refleja en el sitio del participante. Los pedidos del checkout aparecen en Admin → Pedidos.
+- **Persistencia**: tras cada escritura el estado se guarda en `localStorage` (`confianza_mockdb_v1`). Para volver a los datos de ejemplo: Admin → Configuración → *Restablecer datos de ejemplo*, o borra esa clave.
+- **Admin ↔ sitio**: lo que se guarda en el admin (productos, beneficios, banners, niveles, categorías) se refleja en el sitio del participante. Los pedidos del checkout aparecen en Admin → Pedidos.
 - **Endpoints** (resumen):
 
 | Área | Rutas |
 | --- | --- |
 | Auth | `POST auth/otp`, `POST auth/verificar` |
 | Catálogo | `GET catalogo/productos[/:id]`, `catalogo/productos/tabs`, `catalogo/beneficios[/:id]`, `catalogo/categorias-*`, `catalogo/banners/:seccion`, `niveles` |
-| Vuelos / config | `GET vuelos/ciudades`, `vuelos/destinos[/:slug]`, `config`, `destinatarios/:dni` |
-| Participante | `me`, `me/perfil`, `me/direcciones`, `me/correos`, `me/favoritos/:id`, `me/cupones`, `me/movimientos`, `me/compras[/:codigo]`, `me/beneficios`, `me/cotizaciones`, `POST contacto` |
+| Config | `config`, `destinatarios/:dni` |
+| Participante | `me`, `me/perfil`, `me/direcciones`, `me/correos`, `me/favoritos/:id`, `me/cupones`, `me/movimientos`, `me/compras[/:codigo]`, `me/beneficios`, `POST contacto` |
 | Puntos y pedidos | `POST me/puntos/{sumar,compra,transferencia,cashback}`, `POST ordenes` |
-| Admin | `GET/PUT admin/c/:coleccion` (participantes, pedidos, mensajes, usuarios, productos, beneficios, destinos, ciudades, banners, campos, lotes…), `admin/resumen`, `admin/reportes`, `admin/movimientos`, `admin/reglas`, `PUT admin/niveles` |
+| Admin | `GET/PUT admin/c/:coleccion` (participantes, pedidos, mensajes, usuarios, productos, beneficios, banners, campos, lotes…), `admin/resumen`, `admin/reportes`, `admin/movimientos`, `admin/reglas`, `PUT admin/niveles` |
 
 ### Pasar a un backend real
 
@@ -167,12 +170,11 @@ No hay backend: un **interceptor HTTP** (`core/mock-api/mock-api.interceptor.ts`
 | `lucide-react` | `lucide-angular` con registro de íconos (`shared/icon.component.ts`, tree-shaking) |
 | `recharts` | `chart.js` (carga diferida, solo en el admin) |
 | `sonner` | `ToastService` + `<a-toaster>` |
-| `useSyncExternalStore` (cotizaciones) | API + signals |
 
 ## Pendientes conocidos
 
 - La imagen `asesora-contacto.png` de la página *Contáctanos* era un recurso alojado en Lovable que no está en el repositorio; la sección se muestra sin esa ilustración (colócala en `public/img/` y vuelve a agregarla en `profile-pages.ts`).
-- No se agregaron pruebas automáticas (el proyecto original tampoco las tenía).
+- Quedan sin uso, aunque fuera de la interfaz, los datos y las rutas simuladas de vuelos y cotizaciones (`core/mock-api/seed/vuelos.ts`, `vuelos/*`, `me/cotizaciones`, `admin/cotizaciones`): Club Confianza no incluye Viajes y conviene quitarlos del servidor simulado y del contrato.
 - Los componentes de `components/ui` de shadcn (no utilizados por las rutas) no se portaron.
 
 
@@ -182,7 +184,7 @@ No hay backend: un **interceptor HTTP** (`core/mock-api/mock-api.interceptor.ts`
 
 **Roles personalizados (Admin → Roles).** Los cinco roles del sistema son fijos (se pueden duplicar). El administrador crea roles con una matriz Sección × Acción (ver / crear y editar / eliminar / exportar; quien puede lo demás necesariamente puede ver), los edita (el nombre no cambia), y solo puede eliminar uno que nadie use. Siempre debe quedar un Administrador activo. El panel recibe las matrices con `admin/meta`; el servidor vuelve a comprobar cada petición. Los cambios quedan en el Registro de cambios.
 
-**Vista de tabla.** Los módulos con lista (Pedidos, Cotizaciones, Compras de puntos, Movimientos, Participantes, Correos, Registro de cambios, Importaciones, Reportes) tienen el selector *Tarjetas / Tabla* en el encabezado (`<a-header vista="…">`). La elección se recuerda por módulo en el navegador; por defecto son tarjetas.
+**Vista de tabla.** Los módulos con lista (Pedidos, Compras de puntos, Movimientos, Participantes, Correos, Registro de cambios, Importaciones, Reportes) tienen el selector *Tarjetas / Tabla* en el encabezado (`<a-header vista="…">`). La elección se recuerda por módulo en el navegador; por defecto son tarjetas.
 
 **CCO por plantilla.** Además de los Ajustes generales, cada plantilla a participantes (Correos → Plantillas → Editar) elige quién recibe copia: *Según los Ajustes*, *Solo estas direcciones* (reemplaza la general, incluso apagada) o *Sin copia*. Las campañas siguen usando solo los Ajustes.
 
@@ -190,7 +192,7 @@ No hay backend: un **interceptor HTTP** (`core/mock-api/mock-api.interceptor.ts`
 
 **Ficha de la marca.** Cada marca aliada tiene su ficha (`/admin/marcas/:id`, ícono de ojo o su nombre en la lista) con productos, beneficios, canjes con artículos suyos e historial de cambios; se enlazan por el nombre de la marca. Las listas con tarjetas compactas (Marcas, Ciudades de Destinos) llevan el interruptor a la izquierda y las acciones como íconos a la derecha.
 
-**Módulos entrelazados.** Las listas de las fichas (participante y marca) llevan al detalle de cada registro: pedidos, compras de puntos, cotizaciones, productos, beneficios y la ficha del participante. Funciona con `?ver=ID` en la dirección del módulo (`abrirDesdeUrl` en `admin/kit.ts`). En Roles, la matriz de permisos y los usuarios de cada rol se ven en ventanas (enlaces de texto) y las acciones destructivas (eliminar, cancelar pedido, desactivar, bloquear) son rojas (variantes `danger`, `peligro` y `peligro-ghost` del botón).
+**Módulos entrelazados.** Las listas de las fichas (participante y marca) llevan al detalle de cada registro: pedidos, compras de puntos, productos, beneficios y la ficha del participante. Funciona con `?ver=ID` en la dirección del módulo (`abrirDesdeUrl` en `admin/kit.ts`). En Roles, la matriz de permisos y los usuarios de cada rol se ven en ventanas (enlaces de texto) y las acciones destructivas (eliminar, cancelar pedido, desactivar, bloquear) son rojas (variantes `danger`, `peligro` y `peligro-ghost` del botón).
 
 **Mi perfil del panel** (`/admin/perfil`, desde el menú de usuario): nombre editable, correo y rol de solo lectura, último ingreso y cambio de contraseña con requisitos visibles (10+ caracteres, mayúsculas y minúsculas, número y símbolo) y botón para mostrar u ocultar. Disponible para cualquier rol; los cambios quedan en el Registro de cambios sin guardar la contraseña.
 
@@ -223,8 +225,8 @@ Las reglas viven en `core/cupones.ts` (funciones puras, con pruebas) y las compa
 
 ## Pop-ups y centro de ayuda
 
-- **Pop-ups** (Admin → Pop-ups, sección propia en Roles): mensajes por encima del contenido, con **contenido distinto para web y app** (título, mensaje, imagen y botón con enlace por canal; se puede copiar de uno a otro), **vigencia** (inicio y fin), **frecuencia** (una vez por sesión, una sola vez, cada N días o siempre), dónde sale (solo el inicio o cualquier página) y **prioridad** (si hay varios vigentes sale primero el de mayor prioridad, uno a la vez). Hay vista previa, pausa sin borrar, duplicar y estadísticas de vistas y clics por canal. Lógica pura en `core/popups.ts`; el sitio los muestra con `shared/popup-host.ts` (diálogo accesible: foco atrapado, Escape cierra, nunca tapa el aviso de textos legales; si falla la carga, simplemente no se muestra). El de ejemplo viene pausado.
-- **API de pop-ups** (la usa también la app): `GET popups?canal=web|app&pagina=inicio|otra` devuelve solo lo vigente y solo el contenido de ese canal (sin estadísticas ni datos internos); `POST popups/:id/evento { canal, tipo: vista|clic|cierre }`. La frecuencia la aplica quien los muestra, con `debeMostrar`.
+- **Pop-ups** (Admin → Pop-ups, sección propia en Roles): mensajes por encima del contenido, con **contenido para la web** (título, mensaje, imagen y botón con enlace por canal; se puede copiar de uno a otro), **vigencia** (inicio y fin), **frecuencia** (una vez por sesión, una sola vez, cada N días o siempre), dónde sale (solo el inicio o cualquier página) y **prioridad** (si hay varios vigentes sale primero el de mayor prioridad, uno a la vez). Hay vista previa, pausa sin borrar, duplicar y estadísticas de vistas y clics por canal. Lógica pura en `core/popups.ts`; el sitio los muestra con `shared/popup-host.ts` (diálogo accesible: foco atrapado, Escape cierra, nunca tapa el aviso de textos legales; si falla la carga, simplemente no se muestra). El de ejemplo viene pausado.
+- **API de pop-ups** (la usa la web): `GET popups?canal=web|app&pagina=inicio|otra` devuelve solo lo vigente y solo el contenido de ese canal (sin estadísticas ni datos internos); `POST popups/:id/evento { canal, tipo: vista|clic|cierre }`. La frecuencia la aplica quien los muestra, con `debeMostrar`.
 - **Centro de ayuda** (Admin → Ayuda): guías para quienes operan el panel, **dirigidas a uno o varios roles** (vacío = todos; incluye roles personalizados). Cada persona ve solo las suyas, con buscador (sin tildes ni mayúsculas, todas las palabras), categorías y enlace directo (`/admin/ayuda?ver=id`). Quien tiene permiso de editar sobre «Ayuda» ve la pestaña **Administrar**: crear, editar con vista previa del texto (markdown simple), ordenar, elegir roles y publicar o despublicar. La ayuda se puede **ver siempre** (cualquier rol); administrarla es un permiso. Vienen 11 guías iniciales (`core/ayuda.ts`).
 - **API de ayuda:** `GET admin/ayuda` (publicadas y dirigidas al rol de quien pregunta) y la colección `admin/c/guias` (solo con permiso de editar Ayuda; el servidor valida cada guía).
 
@@ -232,4 +234,4 @@ Las reglas viven en `core/cupones.ts` (funciones puras, con pruebas) y las compa
 
 - **Un solo recorrido para las seis cargas.** Participantes (Participantes → Carga masiva) y códigos de beneficio (Beneficios → Cupones y códigos → Cargar códigos) usan ahora `admin/carga-masiva.ts`, igual que productos, beneficios, marcas y ajuste de puntos: plantilla de Excel, revisión fila por fila, reporte de errores en Excel y registro en Importaciones. Participantes **solo crea**: el servidor rechaza al que ya existe (mismo documento o correo) y lo avisa; sigue enviando el correo de bienvenida. En códigos se elige el beneficio y el vencimiento antes de subir el archivo; los repetidos dentro del archivo o ya cargados en otro lote del beneficio se marcan como error en la revisión y el resto forma un lote nuevo (`POST admin/lotes/cargar`, con permiso de Beneficios y registro en el Registro de cambios).
 - **Exportar lo que hay.** En las cargas de productos, beneficios y marcas, el botón **Descargar lo que hay para editarlo** baja el catálogo actual en el mismo formato de la carga (`plantillaConDatos`, `filaDeEntidad`): se edita en Excel y se vuelve a subir; cada fila con su código se actualiza y las que se agreguen al final se crean. Las imágenes subidas desde el panel no caben en una celda, así que se exportan vacías (una celda vacía no cambia la imagen); las que son direcciones https:// sí se exportan.
-- **Pop-ups: formato por canal.** Cada canal (web y app) elige **Imagen, texto y botón** o **Solo imagen**: en este formato la imagen es todo el pop-up (obligatoria, vertical o cuadrada), es clicable si tiene enlace y el título hace de texto alternativo para lectores de pantalla. La API pública incluye `formato` (`mixto` por defecto).
+- **Pop-ups: formato.** Cada pop-up elige **Imagen, texto y botón** o **Solo imagen**: en este formato la imagen es todo el pop-up (obligatoria, vertical o cuadrada), es clicable si tiene enlace y el título hace de texto alternativo para lectores de pantalla. La API pública incluye `formato` (`mixto` por defecto).

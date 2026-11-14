@@ -33,12 +33,18 @@ export type TenantConfig = {
     primario: string;
     /** Color de la letra sobre el color principal (botones primarios, cabecera). Por defecto blanco. */
     textoPrimario: string;
+    /** Color de acento secundario (detalles, gráficos). Opcional. */
+    acento?: string;
+    /** Color de títulos y encabezados. Opcional; por defecto el color del texto. */
+    titulos?: string;
     /** Color del texto. */
     texto: string;
     /** Fondo de la página. */
     fondo: string;
     /** Fondo de secciones y tarjetas secundarias. */
     superficie: string;
+    /** Segundo fondo de apoyo (bordes suaves, franjas). Opcional. */
+    superficieAlt?: string;
     /** Radio base de las esquinas, en rem. */
     radio: number;
     /** Familia tipográfica (Google Fonts u otra). */
@@ -50,7 +56,7 @@ export type TenantConfig = {
     /** Código ISO 3166-1 alfa-2 (EC, PE, CO…). También nombra la bandera (`public/flags/ec.svg`). */
     codigo: string;
     nombre: string;
-    /** Formato regional de números y fechas (es-EC, es-PE…). Se deriva del país. */
+    /** Formato regional de números y fechas (es-PE, es-PE…). Se deriva del país. */
     locale: string;
     telefonoPrefijo: string;
     /** Dígitos del teléfono móvil sin prefijo. */

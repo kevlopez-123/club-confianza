@@ -275,7 +275,7 @@ const AVISO_SUCIO = `
   template: `
     @if (open()) {
       <div class="fixed inset-0 z-[60] grid place-items-center p-4" role="dialog" aria-modal="true" [attr.aria-label]="title()">
-        <button aria-label="Cerrar" class="absolute inset-0 bg-foreground/50" (click)="solicitarCierre()"></button>
+        <button aria-label="Cerrar" class="absolute inset-0 bg-black/50" (click)="solicitarCierre()"></button>
         <!-- Marco común de todos los modales: encabezado con su cierre, cuerpo que se desplaza y acciones al pie. -->
         <div #caja tabindex="-1" [class]="'relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl bg-card shadow-2xl outline-none ' + (xl() ? 'max-w-6xl' : wide() ? 'max-w-3xl' : 'max-w-md')">
           <div class="flex shrink-0 items-start justify-between gap-4 border-b border-border px-6 py-4">
@@ -362,7 +362,7 @@ export class ConfirmComponent {
   template: `
     @if (open()) {
       <div class="fixed inset-0 z-50 flex justify-end">
-        <button aria-label="Cerrar" class="absolute inset-0 bg-foreground/40" (click)="solicitarCierre()"></button>
+        <button aria-label="Cerrar" class="absolute inset-0 bg-black/40" (click)="solicitarCierre()"></button>
         <aside #caja tabindex="-1" role="dialog" aria-modal="true" [class]="'relative h-full w-full overflow-y-auto bg-card p-6 shadow-xl outline-none ' + maxW()">
           <ng-content />
           ${AVISO_SUCIO}

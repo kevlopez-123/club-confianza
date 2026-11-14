@@ -33,12 +33,12 @@ test.describe("Conexión y errores de red", () => {
     await page.goto("/admin/participantes");
     await expect(page.getByRole("button", { name: "Menú de usuario" })).toBeVisible();
     await page.evaluate(() => sessionStorage.setItem("bs_fallo", "401"));
-    await page.getByPlaceholder("Buscar por nombre o cédula").fill("ana"); // dispara una petición al API
+    await page.getByPlaceholder("Buscar por nombre o DNI").fill("ana"); // dispara una petición al API
     await expect(page.getByRole("heading", { name: "Panel de administración" })).toBeVisible({ timeout: 10_000 });
   });
 
   test("con la MockAPI normal no hay avisos en las pantallas principales", async ({ page }) => {
-    for (const ruta of ["/", "/canjea", "/beneficios", "/vuelos"]) {
+    for (const ruta of ["/", "/canjea", "/beneficios"]) {
       await page.goto(ruta);
       await expect(aviso(page, /Sin conexión|problema con el servidor/)).toHaveCount(0);
     }

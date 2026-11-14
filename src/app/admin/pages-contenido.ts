@@ -64,7 +64,7 @@ type SeccionHome = { s: string; on: boolean };
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <a-header title="Contenido" desc="Banners del Home, onboarding de la app, secciones del Home, textos legales y menú. Los cambios se publican al guardarlos." />
+    <a-header title="Contenido" desc="Banners del Home, secciones del Home, textos legales y menú. Los cambios se publican al guardarlos." />
     @if (errorCarga()) { <a-error-carga (reintentar)="cargar()" /> }
     <div class="mb-4 flex flex-wrap gap-2">
       @for (t of tabs; track t.k) {
@@ -76,7 +76,7 @@ type SeccionHome = { s: string; on: boolean };
 
     @switch (tab()) {
       @case ('banners') {
-        <p class="mb-4 text-sm text-muted-foreground">Banners del Home. Los de Productos, Beneficios y Vuelos están en su módulo, en la pestaña Banners.</p>
+        <p class="mb-4 text-sm text-muted-foreground">Banners del Home. Los de Productos y Beneficios están en su módulo, en la pestaña Banners.</p>
         <a-banners-editor [ubicaciones]="['Home']" />
       }
       @case ('onboarding') {
@@ -290,7 +290,6 @@ export class ContenidoPage {
   protected readonly textoTab = signal<'faq' | 'terminos' | 'privacidad'>('faq');
   protected readonly tabs = [
     { k: 'banners', l: 'Banners del Home' },
-    { k: 'onboarding', l: 'Onboarding app' },
     { k: 'home', l: 'Secciones del Home' },
     { k: 'textos', l: 'FAQ y legales' },
     { k: 'menu', l: 'Menú del sitio' },
@@ -451,9 +450,9 @@ const MAPEO = [
   template: `
     <a-header
       title="Formulario de datos"
-      desc="Campos de “Mis datos” del participante, en web y app. “Nombres” siempre está; los apellidos y el teléfono se piden con “Apellido paterno / materno” y “N.º de celular” si los tienes configurados (si no, se piden como campos fijos). Provincia y ciudad son listas fijas en cascada."
+      desc="Campos de “Mis datos” del participante, en la web. “Nombres” siempre está; los apellidos y el teléfono se piden con “Apellido paterno / materno” y “N.º de celular” si los tienes configurados (si no, se piden como campos fijos). Provincia y ciudad son listas fijas en cascada."
     >
-      <button aBtn (click)="toast.show('Formulario publicado en web y app (simulado)')">
+      <button aBtn (click)="toast.show('Formulario publicado en la web (simulado)')">
         Publicar cambios
       </button>
     </a-header>

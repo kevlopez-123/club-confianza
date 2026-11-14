@@ -7,10 +7,9 @@ const lista = (page: Page) => page.getByRole("region", { name: "Lista de notific
 test.describe("Notificaciones dentro del sitio", () => {
   test("la campanita muestra el contador de avisos sin leer y la lista", async ({ page }) => {
     await page.goto("/");
-    await expect(campanita(page)).toHaveAccessibleName("Notificaciones, 2 sin leer");
+    await expect(campanita(page)).toHaveAccessibleName("Notificaciones, 1 sin leer");
     await campanita(page).click();
     await expect(lista(page).getByText("Tu pedido BNB-4F82KDL1 está en camino")).toBeVisible();
-    await expect(lista(page).getByText("Tu cotización COT-100501 fue cotizada")).toBeVisible();
     await expect(lista(page).getByText(/hace 4[5-7] min/)).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(lista(page)).toHaveCount(0);
@@ -21,9 +20,9 @@ test.describe("Notificaciones dentro del sitio", () => {
     await campanita(page).click();
     await lista(page).getByRole("link", { name: /Tu pedido BNB-4F82KDL1/ }).click();
     await expect(page).toHaveURL(/\/mis-compras\/BNB-4F82KDL1$/);
-    await expect(campanita(page)).toHaveAccessibleName("Notificaciones, 1 sin leer");
+    await expect(campanita(page)).toHaveAccessibleName("Notificaciones");
     await page.reload(); // el estado queda guardado en el servidor
-    await expect(campanita(page)).toHaveAccessibleName("Notificaciones, 1 sin leer");
+    await expect(campanita(page)).toHaveAccessibleName("Notificaciones");
   });
 
   test("Marcar todas como leídas quita el contador", async ({ page }) => {

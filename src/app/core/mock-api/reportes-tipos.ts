@@ -59,7 +59,6 @@ const ETIQUETA_MOV = { acumulacion: "Acumulación", canje: "Canje", compra: "Com
 const movs = (d: string, h: string) => A(db.admin.movimientos).filter((m) => enRango(m.fechaISO, d, h));
 const compras = (d: string, h: string) => A(db.admin.comprasPuntos).filter((m) => enRango(m.fechaISO, d, h));
 const pedidos = (d: string, h: string) => A(db.admin.pedidos).filter((m) => enRango(m.fechaISO, d, h));
-const cotizaciones = (d: string, h: string) => [...A(db.cotizaciones), ...A((db as any).cotizacionesExtra)].filter((m) => enRango(m.fecha, d, h));
 const correos = (d: string, h: string) => A(db.admin.correosEnviados).filter((m) => enRango(m.fechaISO, d, h));
 const unidadesDe = (p: any) => suma(A(p.items).map((i) => i.cantidad ?? 1));
 
@@ -73,14 +72,13 @@ export const altaISO = (alta: unknown): string => {
 
 const DEFS: Def[] = [
   {
-    id: "resumen", titulo: "Resumen", icono: "LayoutDashboard", descripcion: "Visión general del programa: puntos, ventas, pedidos y vuelos.",
+    id: "resumen", titulo: "Resumen", icono: "LayoutDashboard", descripcion: "Visión general del programa: puntos, ventas y pedidos.",
     kpis: [
       { id: "emitidos", etiqueta: "Puntos emitidos", icono: "Coins", formato: "n" },
       { id: "canjeados", etiqueta: "Puntos canjeados", icono: "Gift", formato: "n" },
       { id: "tasaCanje", etiqueta: "Tasa de canje", icono: "BarChart3", formato: "pct" },
       { id: "comprasPuntosUSD", etiqueta: "Ventas de puntos", icono: "DollarSign", formato: "usd" },
       { id: "pedidos", etiqueta: "Pedidos", icono: "ShoppingBag", formato: "n" },
-      { id: "cotizaciones", etiqueta: "Cotizaciones de vuelos", icono: "PlaneTakeoff", formato: "n" },
     ],
     metricas: (d, h) => ({ ...metricasGenerales(d, h) }),
     graficos: (c) => {
@@ -151,7 +149,7 @@ const DEFS: Def[] = [
       const cs = compras(c.desde, c.hasta);
       const estados = contar(cs, (x) => x.estado);
       return [
-        { id: "serie", titulo: "Ventas aprobadas (US$)", tipo: "bar", etiquetas: tramos(c).map((t) => t.x), series: [{ label: "US$", color: "--primary", data: serie(c, cs.filter((x) => x.estado === "Aprobada"), (f) => f.fechaISO, (fs) => redondear(suma(fs.map((x) => x.monto ?? 0)))) }] },
+        { id: "serie", titulo: "Ventas aprobadas (S/)", tipo: "bar", etiquetas: tramos(c).map((t) => t.x), series: [{ label: "US$", color: "--primary", data: serie(c, cs.filter((x) => x.estado === "Aprobada"), (f) => f.fechaISO, (fs) => redondear(suma(fs.map((x) => x.monto ?? 0)))) }] },
         { id: "estado", titulo: "Compras por estado", tipo: "doughnut", etiquetas: estados.map(([k]) => k), series: [{ label: "Compras", data: estados.map(([, v]) => v) }] },
       ];
     },
@@ -246,7 +244,7 @@ const DEFS: Def[] = [
     ],
     filtros: () => [
       { k: "estado", l: "Estado", opciones: [{ v: "Activo", l: "Activo" }, { v: "Bloqueado", l: "Bloqueado" }] },
-      { k: "canal", l: "Canal", opciones: opciones(["Web", "App", "Web + App"]) },
+      { k: "canal", l: "Canal", opciones: opciones(["Web"]) },
       { k: "recibeNovedades", l: "Novedades", opciones: [{ v: "true", l: "Aceptan" }, { v: "false", l: "No aceptan" }] },
     ],
     gestion: { ruta: "/admin/participantes", etiqueta: "Abrir la ficha", directo: true },
@@ -286,45 +284,6 @@ const DEFS: Def[] = [
       { k: "activo", l: "Estado", opciones: [{ v: "true", l: "Activo" }, { v: "false", l: "Oculto" }] },
     ],
     gestion: { ruta: "/admin/productos", etiqueta: "Editar en Productos" },  },
-  {
-    id: "vuelos", titulo: "Vuelos", icono: "PlaneTakeoff", descripcion: "Cotizaciones de vuelos: respuesta del equipo, destinos y montos.",
-    kpis: [
-      { id: "cotizaciones", etiqueta: "Cotizaciones", icono: "PlaneTakeoff", formato: "n" },
-      { id: "cotizadas", etiqueta: "Ya cotizadas", icono: "CheckCircle2", formato: "n" },
-      { id: "respuesta", etiqueta: "Tasa de respuesta", icono: "Percent", formato: "pct" },
-      { id: "pasajeros", etiqueta: "Pasajeros", icono: "Users", formato: "n" },
-      { id: "monto", etiqueta: "Monto cotizado", icono: "DollarSign", formato: "usd" },
-    ],
-    metricas: (d, h) => {
-      const c = cotizaciones(d, h);
-      const ok = c.filter((x) => x.estado === "Cotizada");
-      return { cotizaciones: c.length, cotizadas: ok.length, respuesta: pct(ok.length, c.length), pasajeros: suma(c.map((x) => x.pasajeros ?? 0)), monto: redondear(suma(c.map((x) => x.monto ?? 0))) };
-    },
-    graficos: (c) => {
-      const cs = cotizaciones(c.desde, c.hasta);
-      const estado = contar(cs, (x) => x.estado);
-      const destino = contar(cs, (x) => x.destino).slice(0, 8);
-      return [
-        { id: "serie", titulo: "Cotizaciones en el tiempo", tipo: "bar", etiquetas: tramos(c).map((t) => t.x), series: [{ label: "Cotizaciones", color: "--primary", data: serie(c, cs, (f) => f.fecha, (fs) => fs.length) }] },
-        { id: "estado", titulo: "Por estado", tipo: "doughnut", etiquetas: estado.map(([k]) => k), series: [{ label: "Cotizaciones", data: estado.map(([, v]) => v) }] },
-        { id: "destino", titulo: "Destinos más cotizados", tipo: "bar", horizontal: true, etiquetas: destino.map(([k]) => k), series: [{ label: "Cotizaciones", color: "--primary", data: destino.map(([, v]) => v) }] },
-      ];
-    },
-    coleccion: "cotizaciones", tablaTitulo: "Cotizaciones", tablaPorRango: true, orden: { k: "fecha", dir: "desc" },
-    columnas: [
-      { k: "codigo", l: "Código" }, { k: "fecha", l: "Fecha" }, { k: "cliente", l: "Participante" }, { k: "origen", l: "Origen" }, { k: "destino", l: "Destino" },
-      { k: "clase", l: "Clase" }, { k: "pasajeros", l: "Pasajeros", tipo: "n" }, { k: "estado", l: "Estado", tipo: "estado" }, { k: "ejecutiva", l: "Ejecutiva" }, { k: "monto", l: "Monto", tipo: "usd" },
-    ],
-    filtros: () => {
-      const todas = [...A(db.cotizaciones), ...A((db as any).cotizacionesExtra)];
-      return [
-        { k: "estado", l: "Estado", opciones: opciones(todas.map((x) => x.estado)) },
-        { k: "clase", l: "Clase", opciones: opciones(todas.map((x) => x.clase)) },
-        { k: "ejecutiva", l: "Ejecutiva", opciones: opciones(todas.map((x) => x.ejecutiva)) },
-      ];
-    },
-    gestion: { ruta: "/admin/cotizaciones", etiqueta: "Gestionar en Cotizaciones" },
-  },
   {
     id: "correos", titulo: "Correos", icono: "Mail", descripcion: "Entregabilidad: enviados, rebotados y fallidos, por plantilla.",
     kpis: [

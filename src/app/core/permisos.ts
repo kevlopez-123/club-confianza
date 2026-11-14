@@ -28,19 +28,17 @@ export const SECCIONES: { id: Seccion; etiqueta: string; ruta: string; grupo: st
   { id: "productos", etiqueta: "Productos", ruta: "/admin/productos", grupo: "Catálogos" },
   { id: "beneficios", etiqueta: "Beneficios", ruta: "/admin/beneficios", grupo: "Catálogos" },
   { id: "marcas", etiqueta: "Marcas", ruta: "/admin/marcas", grupo: "Catálogos" },
-  { id: "destinos", etiqueta: "Destinos", ruta: "/admin/destinos", grupo: "Catálogos" },
   { id: "pedidos", etiqueta: "Pedidos", ruta: "/admin/pedidos", grupo: "Operación" },
-  { id: "cotizaciones", etiqueta: "Cotizaciones de vuelos", ruta: "/admin/cotizaciones", grupo: "Operación" },
   { id: "atencion", etiqueta: "Atención", ruta: "/admin/atencion", grupo: "Operación" },
-  { id: "contenido", etiqueta: "Contenido", ruta: "/admin/contenido", grupo: "Sitio y app" },
-  { id: "popups", etiqueta: "Pop-ups", ruta: "/admin/popups", grupo: "Sitio y app" },
-  { id: "legales", etiqueta: "Textos legales", ruta: "/admin/legales", grupo: "Sitio y app" },
-  { id: "configuracion", etiqueta: "Configuración", ruta: "/admin/configuracion", grupo: "Sitio y app" },
-  { id: "correos", etiqueta: "Correos", ruta: "/admin/correos", grupo: "Sitio y app" },
-  { id: "usuarios", etiqueta: "Usuarios", ruta: "/admin/usuarios", grupo: "Sitio y app" },
-  { id: "roles", etiqueta: "Roles", ruta: "/admin/roles", grupo: "Sitio y app" },
-  { id: "auditoria", etiqueta: "Registro de cambios", ruta: "/admin/auditoria", grupo: "Sitio y app" },
-  { id: "ayuda", etiqueta: "Ayuda", ruta: "/admin/ayuda", grupo: "Sitio y app" },
+  { id: "contenido", etiqueta: "Contenido", ruta: "/admin/contenido", grupo: "Sitio" },
+  { id: "popups", etiqueta: "Pop-ups", ruta: "/admin/popups", grupo: "Sitio" },
+  { id: "legales", etiqueta: "Textos legales", ruta: "/admin/legales", grupo: "Sitio" },
+  { id: "configuracion", etiqueta: "Configuración", ruta: "/admin/configuracion", grupo: "Sitio" },
+  { id: "correos", etiqueta: "Correos", ruta: "/admin/correos", grupo: "Sitio" },
+  { id: "usuarios", etiqueta: "Usuarios", ruta: "/admin/usuarios", grupo: "Sitio" },
+  { id: "roles", etiqueta: "Roles", ruta: "/admin/roles", grupo: "Sitio" },
+  { id: "auditoria", etiqueta: "Registro de cambios", ruta: "/admin/auditoria", grupo: "Sitio" },
+  { id: "ayuda", etiqueta: "Ayuda", ruta: "/admin/ayuda", grupo: "Sitio" },
 ];
 
 const TODAS: Accion[] = ["ver", "editar", "eliminar", "exportar"];
@@ -127,7 +125,7 @@ const COLECCION_A_SECCION: Record<string, Seccion> = {
   productos: "productos", categoriasProducto: "productos", beneficios: "beneficios", categoriasBeneficio: "beneficios", lotes: "beneficios",
   destinos: "destinos", ciudades: "destinos", bannersVuelos: "destinos", banners: "contenido", onboarding: "contenido", seccionesHome: "contenido",
   campos: "formulario", marcas: "marcas", comprasPuntos: "compras-puntos", plantillasCorreo: "correos", correosEnviados: "correos", campanas: "correos", importaciones: "importaciones",
-  cotizaciones: "cotizaciones", movimientos: "movimientos", popups: "popups", guias: "ayuda",
+  cotizaciones: "cotizaciones", movimientos: "movimientos", popups: "popups", guias: "ayuda", solicitudesEliminacion: "participantes",
 };
 
 /**

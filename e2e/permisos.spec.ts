@@ -50,7 +50,7 @@ test.describe("Permisos por rol, sección y acción", () => {
     await page.goto("/admin/participantes");
     await expect(page.locator("tbody tr").first()).toBeVisible();
     await page.evaluate(() => sessionStorage.removeItem("bs-token"));
-    await page.getByPlaceholder("Buscar por nombre o cédula").fill("ana");
+    await page.getByPlaceholder("Buscar por nombre o DNI").fill("ana");
     await expect(page.getByRole("heading", { name: "Panel de administración" })).toBeVisible({ timeout: 10_000 });
   });
 

@@ -6,7 +6,7 @@ import {
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
 import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
-import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withInMemoryScrolling, withViewTransitions } from '@angular/router';
 import { routes } from './app.routes';
 import { mockApiInterceptor } from './core/mock-api/mock-api.interceptor';
 import { authInterceptor, erroresInterceptor, versionesInterceptor } from './core/http.interceptors';
@@ -28,6 +28,8 @@ export const appConfig: ApplicationConfig = {
       routes,
       withComponentInputBinding(),
       withInMemoryScrolling({ scrollPositionRestoration: 'top', anchorScrolling: 'enabled' }),
+      // Fundido corto entre pantallas (como las transiciones de la app); los navegadores sin soporte navegan sin animación.
+      withViewTransitions({ skipInitialTransition: true }),
     ),
     // Orden: token, errores/reintentos y (solo si `environment.usarMock`) la MockAPI. Backend real: ver src/environments/environment.ts.
     provideHttpClient(withXhr(), withInterceptors([authInterceptor, versionesInterceptor, erroresInterceptor, ...(environment.usarMock ? [mockApiInterceptor] : [])])),

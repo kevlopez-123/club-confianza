@@ -12,16 +12,16 @@ test.describe("Reglas de puntos", () => {
   test("precio por punto, mínimos y máximos gobiernan la compra de puntos", async ({ page }) => {
     await entrarAdmin(page);
     await page.goto("/admin/reglas");
-    await page.getByLabel("Precio por punto (US$)").fill("0.05");
+    await page.getByLabel("Precio por punto (S/)").fill("0.05");
     await page.getByLabel("Mínimo por compra").fill("1000");
     await page.getByLabel("Máximo por compra").fill("6000");
     await page.getByRole("button", { name: "Guardar reglas" }).click();
     await page.goto("/mis-puntos/compra");
-    await expect(page.getByText(/Cada punto cuesta \$0,05/)).toBeVisible();
-    await page.getByRole("button", { name: /^5\.000/ }).click(); // 5.000 × 0,05
-    await expect(page.getByText("$250,00").first()).toBeVisible();
+    await expect(page.getByText(/Cada punto cuesta S\/ 0\.05/)).toBeVisible();
+    await page.getByRole("button", { name: /^5 000/ }).click(); // 5 000 × 0.05
+    await expect(page.getByText("S/ 250.00").first()).toBeVisible();
     await page.locator('input[type="number"]').fill("7000");
-    await expect(page.getByRole("alert")).toContainText("entre 1.000 y 6.000");
+    await expect(page.getByRole("alert")).toContainText("entre 1 000 y 6 000");
     await expect(page.getByRole("button", { name: "Comprar puntos" })).toBeDisabled();
   });
 
@@ -34,19 +34,6 @@ test.describe("Reglas de puntos", () => {
     await expect(page.getByText("La compra de puntos no está disponible por ahora")).toBeVisible();
   });
 
-  test("la equivalencia puntos↔dólares cambia el pago mixto y 'solo dinero' se puede ocultar", async ({ page }) => {
-    await entrarAdmin(page);
-    await page.goto("/admin/reglas");
-    await page.getByLabel(/Equivalencia: puntos por cada US\$ 1/).fill("100");
-    await page.getByRole("switch", { name: "Solo dinero" }).click();
-    await page.getByRole("button", { name: "Guardar reglas" }).click();
-    await page.goto("/canjea/p4"); // Parlante: 4.130 pts
-    await page.getByRole("button", { name: "Agregar al carrito" }).first().click();
-    await page.getByRole("dialog").getByRole("link", { name: "Ver carrito" }).click();
-    await page.getByRole("button", { name: "Pagar con puntos + tarjeta" }).click();
-    await expect(page.getByText("Equivalencia: 100 puntos = $1.00")).toBeVisible();
-    await expect(page.getByRole("button", { name: /Pagar solo con dinero/ })).toHaveCount(0);
-  });
 });
 
 test.describe("Portada, textos y menú", () => {
@@ -149,12 +136,12 @@ test.describe("Sin control de stock", () => {
     await expect(page.getByText(/Agotado|Últimas/)).toHaveCount(0);
     await page.goto("/canjea/p14"); // producto digital económico: alcanza el saldo para varias unidades
     await expect(page.getByText(/Producto agotado|Últimas \d+ unidades/)).toHaveCount(0);
-    for (let i = 0; i < 4; i++) await page.getByRole("button", { name: "Agregar uno" }).click();
+    for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Agregar uno" }).click(); // el tope por producto es 5 (Reglas → Límites)
     await expect(page.getByRole("button", { name: "Agregar uno" })).toBeEnabled();
     await page.getByRole("button", { name: "Agregar al carrito" }).first().click();
     await page.getByRole("dialog").getByRole("link", { name: "Ver carrito" }).click();
-    await page.getByRole("button", { name: "Finalizar compra" }).click();
-    await expect(page).toHaveURL(/gracias$/); // 5 unidades: el canje no valida inventario
+    await page.getByRole("button", { name: "Finalizar canje" }).click();
+    await expect(page).toHaveURL(/gracias$/); // 4 unidades: el canje no valida inventario
   });
 
   test("el Dashboard no tiene el bloque de poco stock y sí uno de productos más vistos", async ({ page }) => {
@@ -168,7 +155,7 @@ test.describe("Participantes", () => {
   async function ficha(page: Page) {
     await entrarAdmin(page);
     await page.goto("/admin/participantes");
-    await page.getByPlaceholder("Buscar por nombre o cédula").fill("Ana Torres");
+    await page.getByPlaceholder("Buscar por nombre o DNI").fill("Ana Torres");
     await expect(page.locator("tbody tr")).toHaveCount(1); // la búsqueda se resuelve en la API
     await page.getByRole("link", { name: "Ver ficha" }).click();
     await expect(page).toHaveURL(/\/admin\/participantes\/p1/);
@@ -176,14 +163,14 @@ test.describe("Participantes", () => {
 
   test("un ajuste de puntos cambia el saldo real y queda en el historial", async ({ page }) => {
     await ficha(page);
-    await expect(page.locator("header").getByText("260.000").first()).toBeVisible();
+    await expect(page.locator("header").getByText("260 000").first()).toBeVisible();
     await page.getByRole("tab", { name: /^Ajustes/ }).click();
     await page.getByLabel("Puntos (+/−)").fill("1000");
     await page.getByLabel("Motivo").fill("Compensación E2E");
     await page.getByRole("button", { name: "Aplicar ajuste" }).click();
     await page.getByRole("button", { name: "Aplicar", exact: true }).click();
     await page.goto("/mis-puntos/historial");
-    await expect(page.locator("header").getByText(/Tienes 261\.000/).first()).toBeVisible();
+    await expect(page.locator("header").getByText(/Tienes 261 000/).first()).toBeVisible();
     await expect(page.locator("tbody").getByText("Ajuste manual: Compensación E2E")).toBeVisible();
   });
 
@@ -194,7 +181,7 @@ test.describe("Participantes", () => {
     await page.getByRole("button", { name: "Bloquear cuenta" }).click();
     await page.getByRole("button", { name: "Bloquear", exact: true }).click();
     await page.goto("/carrito");
-    await page.getByRole("button", { name: "Finalizar compra" }).click();
+    await page.getByRole("button", { name: "Finalizar canje" }).click();
     await expect(page.getByRole("alert")).toContainText("Tu cuenta está bloqueada");
     await page.goto("/login");
     await page.getByLabel("Número de documento").fill("1712345678");
@@ -207,7 +194,7 @@ test.describe("Beneficios: cupones", () => {
   test("los códigos cargados se asignan a los cupones y se agotan", async ({ page }) => {
     await entrarAdmin(page);
     await page.goto("/admin/beneficios");
-    await page.getByRole("button", { name: "Editar" }).first().click(); // la regla es del beneficio (Pollo Gus)
+    await page.getByRole("button", { name: "Editar" }).first().click(); // la regla es del beneficio (Norky's)
     await page.getByRole("dialog").getByLabel("Dura (horas)").fill("5");
     await page.getByRole("dialog").getByRole("button", { name: "Guardar beneficio" }).click();
     await expect(page.getByText("Beneficio guardado")).toBeVisible();
@@ -217,7 +204,7 @@ test.describe("Beneficios: cupones", () => {
     await page.getByRole("dialog").locator('input[type="file"]').setInputFiles({ name: "codigos.csv", mimeType: "text/csv", buffer: Buffer.from(csv) });
     await page.getByRole("button", { name: /Cargar 250 códigos/ }).click();
 
-    await page.goto("/beneficios/b1"); // el lote se vinculó al primer beneficio (Pollo Gus)
+    await page.goto("/beneficios/b1"); // el lote se vinculó al primer beneficio (Norky's)
     await page.getByRole("button", { name: "Generar cupón" }).click();
     await page.getByRole("dialog").getByRole("button", { name: "Generar cupón" }).click();
     await expect(page.getByAltText(/Código QR BSP-/)).toBeVisible();
@@ -225,13 +212,13 @@ test.describe("Beneficios: cupones", () => {
   });
 
   test("un beneficio con lote agotado informa al participante", async ({ page }) => {
-    await page.goto("/beneficios/b8"); // Supermaxi: lote de 100 con 88 usados → quedan 12
+    await page.goto("/beneficios/b8"); // Plaza Vea: lote de 100 con 88 usados → quedan 12
     await expect(page.getByRole("button", { name: "Generar cupón" })).toBeVisible();
     await entrarAdmin(page);
     await page.goto("/admin/beneficios");
     await page.getByRole("button", { name: "Cupones y códigos" }).click();
     await page.getByRole("button", { name: "Desactivar" }).nth(2).click(); // pide confirmar
-    await page.getByRole("dialog").getByRole("button", { name: "Desactivar" }).click(); // quita el lote de Supermaxi
+    await page.getByRole("dialog").getByRole("button", { name: "Desactivar" }).click(); // quita el lote de Plaza Vea
     await expect(page.getByText("Lote desactivado")).toBeVisible();
     await page.goto("/beneficios/b8");
     await page.getByRole("button", { name: "Generar cupón" }).click();

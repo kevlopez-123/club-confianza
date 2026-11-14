@@ -175,22 +175,21 @@ type Reglas = { porDolar: number; precio: number; min: number; max: number; mens
   imports: [ErrorCargaComponent, PageHeaderComponent, PanelComponent, FieldComponent, ToggleComponent, BtnDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <a-header title="Reglas de puntos" desc="Aplica igual en web y app."><button aBtn [disabled]="!!errorLimitesTexto()" (click)="guardar()">Guardar reglas</button></a-header>
+    <a-header title="Reglas de puntos" desc="Se aplican en toda la web."><button aBtn [disabled]="!!errorLimitesTexto()" (click)="guardar()">Guardar reglas</button></a-header>
     @if (errorCarga()) { <a-error-carga (reintentar)="cargar()" /> }
     @if (r(); as r) {
       <div class="grid gap-6 lg:grid-cols-2">
-        <a-panel title="Equivalencia entre puntos y dólares">
-          <a-field label="Equivalencia: puntos por cada US$ 1 (pago mixto y solo dinero)"><input [class]="input" type="number" [value]="r.porDolar" (input)="set('porDolar', +$any($event.target).value)" /></a-field>
-          <p class="mt-3 text-sm text-muted-foreground">Un canje de US$ 100 equivale a <b class="text-foreground">{{ (r.porDolar * 100).toLocaleString("es-EC") }} puntos</b>.</p>
+        <a-panel title="Equivalencia entre puntos y soles">
+          <a-field label="Equivalencia: puntos por cada 1 sol (para promociones con descuento)"><input [class]="input" type="number" [value]="r.porDolar" (input)="set('porDolar', +$any($event.target).value)" /></a-field>
+          <p class="mt-3 text-sm text-muted-foreground">Un canje de S/ 100 equivale a <b class="text-foreground">{{ (r.porDolar * 100).toLocaleString("es-PE") }} puntos</b>.</p>
         </a-panel>
-        <a-panel title="Formas de pago en checkout">
+        <a-panel title="Forma de canje en checkout">
           <div class="flex items-center justify-between py-2"><span>Solo puntos</span><a-toggle label="Solo puntos" [on]="true" /></div>
-          <div class="flex items-center justify-between py-2"><span>Solo dinero (tarjeta)</span><a-toggle label="Solo dinero" [on]="r.soloDinero" (onChange)="set('soloDinero', $event)" /></div>
         </a-panel>
         <a-panel title="Compra de puntos">
           <a-toggle actions label="Compra de puntos activa" [on]="r.compraActiva" (onChange)="set('compraActiva', $event)" />
           <div class="grid gap-4 sm:grid-cols-2">
-            <a-field label="Precio por punto (US$)"><input [class]="input" type="number" step="0.001" [value]="r.precio" (input)="set('precio', +$any($event.target).value)" /></a-field>
+            <a-field label="Precio por punto (S/)"><input [class]="input" type="number" step="0.001" [value]="r.precio" (input)="set('precio', +$any($event.target).value)" /></a-field>
             <a-field label="Mínimo por compra"><input [class]="input" type="number" [value]="r.min" (input)="set('min', +$any($event.target).value)" /></a-field>
             <a-field label="Máximo por compra"><input [class]="input" type="number" [value]="r.max" (input)="set('max', +$any($event.target).value)" /></a-field>
             <a-field label="Máximo mensual por participante"><input [class]="input" type="number" [value]="r.mensual" (input)="set('mensual', +$any($event.target).value)" /></a-field>
@@ -200,13 +199,10 @@ type Reglas = { porDolar: number; precio: number; min: number; max: number; mens
           </div>
           <p class="mt-3 text-sm text-muted-foreground">1 000 puntos cuestan <b class="text-foreground">{{ usd(r.precio * 1000) }}</b>.</p>
         </a-panel>
-        <a-panel title="Límites del canje y de las cotizaciones">
-          <p class="mb-3 text-sm text-muted-foreground">Valores que se aplican en la web y en la app. Si se dejan como están, rigen los de siempre.</p>
+        <a-panel title="Límites del canje">
+          <p class="mb-3 text-sm text-muted-foreground">Valores que se aplican en la web. Si se dejan como están, rigen los de siempre.</p>
           <div class="grid gap-4 sm:grid-cols-2">
             <a-field label="Máximo de unidades por producto en un canje"><input [class]="input" type="number" min="1" max="99" [value]="lim().maxPorLinea" (input)="set('maxPorLinea', +$any($event.target).value)" /></a-field>
-            <a-field label="Máximo de pasajeros por cotización de vuelo"><input [class]="input" type="number" min="1" max="20" [value]="lim().maxPasajeros" (input)="set('maxPasajeros', +$any($event.target).value)" /></a-field>
-            <a-field label="Responder una cotización en (horas)"><input [class]="input" type="number" min="1" max="720" [value]="lim().cotizacionRespuestaHoras" (input)="set('cotizacionRespuestaHoras', +$any($event.target).value)" /></a-field>
-            <a-field label="Validez de una cotización enviada (horas)"><input [class]="input" type="number" min="1" max="720" [value]="lim().cotizacionValidezHoras" (input)="set('cotizacionValidezHoras', +$any($event.target).value)" /></a-field>
           </div>
           @if (errorLimitesTexto(); as e) { <p role="alert" class="mt-3 rounded-xl bg-destructive/10 p-3 text-sm font-semibold text-destructive">{{ e }}</p> }
         </a-panel>
@@ -274,7 +270,7 @@ export class ReglasPage {
             <a-field label="Correo de soporte (se muestra en el pie)"><input [class]="input" type="email" [value]="s.correoSoporte" (input)="set('correoSoporte', $event)" /></a-field>
             <a-field label="Teléfono (se muestra en el pie)"><input [class]="input" [value]="s.telefonoPie" (input)="set('telefonoPie', $event)" /></a-field>
             <a-field label="WhatsApp de soporte (botón flotante)"><input [class]="input" [value]="s.whatsapp" (input)="set('whatsapp', $event)" /></a-field>
-            <a-field label="Ciudades con agencia (se muestran en el pie)"><input [class]="input" placeholder="Quito · Guayaquil · Cuenca" [value]="s.ciudadesPie ?? ''" (input)="set('ciudadesPie', $event)" /></a-field>
+            <a-field label="Ciudades con agencia (se muestran en el pie)"><input [class]="input" placeholder="Lima · Arequipa · Cusco" [value]="s.ciudadesPie ?? ''" (input)="set('ciudadesPie', $event)" /></a-field>
             <a-field label="Texto del enlace a las agencias"><input [class]="input" placeholder="Encuentra tu agencia" [value]="s.agenciasTexto ?? ''" (input)="set('agenciasTexto', $event)" /></a-field>
             <a-field label="Enlace “Encuentra tu agencia”"><input [class]="input" type="url" [value]="s.agenciasUrl" (input)="set('agenciasUrl', $event)" /></a-field>
           </div>
@@ -596,6 +592,121 @@ export class AtencionPage {
     descargarTabla("atencion", [["Asunto", "Participante", "Correo", "Fecha", "Estado"], ...this.pag.items().map((m) => [m.asunto, m.nombre, m.email, m.fecha, m.estado])], "Atención al participante");
   }
 }
+/* ------------------------------------------------------------------ */
+/* Solicitudes de eliminación de cuenta (se piden desde Mi perfil)     */
+/* ------------------------------------------------------------------ */
+type SolicitudEliminacion = {
+  id: string; participanteId: string; nombre: string; email: string; cedula: string; puntos: number;
+  fecha: string; hora: string; estado: "Pendiente" | "En proceso" | "Completada" | "Rechazada"; motivo: string;
+};
+@Component({
+  selector: "a-solicitudes-eliminacion-page",
+  imports: [OrdenColumnaComponent, FilaEsqueletoComponent, LimpiarFiltrosComponent, PageHeaderComponent, PillComponent, BtnDirective, IconComponent, PagerComponent, DrawerComponent, DrawerTitleComponent, RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <a-header title="Solicitudes de eliminación" [desc]="abiertas().toLocaleString('es') + ' por atender · ' + pag.total().toLocaleString('es') + ' en total'">
+      <a routerLink="/admin/participantes" aBtn variant="outline"><app-icon name="Users" class="h-4 w-4" /> Participantes</a>
+    </a-header>
+    <p class="mb-4 max-w-3xl text-sm text-muted-foreground">Cada solicitud la crea la persona desde Mi perfil, ya verificada con un código enviado a su correo. Su cuenta sigue activa hasta que la marques como completada; recuerda conservar solo los datos que la ley obliga a guardar.</p>
+    <div class="adm-filtros">
+      <div class="adm-busca">
+        <app-icon name="Search" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input aria-label="Buscar solicitud" [class]="input + ' pl-9'" placeholder="Código, nombre, correo o cédula" (input)="pag.buscar($any($event.target).value)" />
+      </div>
+      <select aria-label="Estado" [class]="input + ' w-auto'" (change)="pag.filtrar('estado', $any($event.target).value)">
+        <option value="">Todos los estados</option>
+        <option>Pendiente</option>
+        <option>En proceso</option>
+        <option>Completada</option>
+        <option>Rechazada</option>
+      </select>
+      <app-limpiar-filtros [activo]="pag.activo()" (limpiar)="pag.limpiar()" />
+    </div>
+
+    <div class="adm-wrap">
+      <table class="adm-table">
+        <thead><tr><th aOrden="id" [pag]="pag" etiquetaOrden="Solicitud">Solicitud</th><th aOrden="estado" [pag]="pag" etiquetaOrden="Estado">Estado</th><th aOrden="nombre" [pag]="pag" etiquetaOrden="Participante">Participante</th><th>Fecha</th><th>Puntos</th><th aria-label="Acciones"></th></tr></thead>
+        <tbody>
+          @for (s of pag.items(); track s.id) {
+            <tr>
+              <td><button class="text-left font-bold hover:underline" (click)="abrir(s)">{{ s.id }}</button></td>
+              <td class="det-completo det-chip"><a-pill [tone]="tono(s.estado)">{{ s.estado }}</a-pill></td>
+              <td>{{ s.nombre }}<span class="block text-xs text-muted-foreground">{{ s.email }}</span></td>
+              <td>{{ s.fecha }} {{ s.hora }}</td>
+              <td>{{ s.puntos.toLocaleString("es") }}</td>
+              <td class="det-ojo"><button type="button" class="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground" [attr.aria-label]="'Ver solicitud ' + s.id" title="Ver detalle" (click)="abrir(s)"><app-icon name="Eye" class="h-4 w-4" /></button></td>
+            </tr>
+          } @empty {
+            @if (pag.cargando()) { @for (n of [1, 2, 3, 4, 5]; track n) { <tr aEsqueleto [cols]="6"></tr> } } @else { <tr><td colspan="6" class="adm-empty">No hay solicitudes con estos filtros</td></tr> }
+          }
+        </tbody>
+      </table>
+    </div>
+    <a-pager [p]="pag" />
+
+    <a-drawer [open]="!!sel()" (closed)="sel.set(null)">
+      @if (sel(); as s) {
+        <a-drawer-title (closed)="sel.set(null)">
+          <p class="text-sm text-muted-foreground">Solicitud · {{ s.fecha }} {{ s.hora }}</p>
+          <h2 class="text-2xl font-bold">{{ s.id }}</h2>
+          <a-pill [tone]="tono(s.estado)">{{ s.estado }}</a-pill>
+        </a-drawer-title>
+
+        <h3 class="mt-6 font-semibold">Participante</h3>
+        <p class="mt-2 text-sm"><b>{{ s.nombre }}</b> · {{ s.email }}</p>
+        <p class="mt-1 text-sm text-muted-foreground">Documento {{ s.cedula }} · {{ s.puntos.toLocaleString("es") }} puntos al pedirlo</p>
+        <a [routerLink]="['/admin/participantes', s.participanteId]" class="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"><app-icon name="Users" class="h-4 w-4" /> Ver ficha del participante</a>
+
+        @if (s.estado === "Pendiente" || s.estado === "En proceso") {
+          <h3 class="mt-6 font-semibold">Respuesta</h3>
+          <textarea [class]="input + ' mt-2 h-24 py-2'" aria-label="Motivo (solo si la rechazas)" placeholder="Motivo, si vas a rechazar la solicitud (por ejemplo, un pedido en curso)…" [value]="motivo()" (input)="motivo.set($any($event.target).value)"></textarea>
+          <div class="mt-3 flex flex-wrap gap-2 border-t border-border pt-5">
+            @if (s.estado === "Pendiente") { <button aBtn variant="outline" (click)="cambiar('En proceso')">Marcar en proceso</button> }
+            <button aBtn (click)="cambiar('Completada')">Completar eliminación</button>
+            <button aBtn variant="outline" [disabled]="!motivo().trim()" (click)="cambiar('Rechazada')">Rechazar</button>
+          </div>
+          <p class="mt-3 text-xs text-muted-foreground">Al cambiar el estado la persona recibe un correo y un aviso en su cuenta.</p>
+        } @else if (s.estado === "Rechazada" && s.motivo) {
+          <h3 class="mt-6 font-semibold">Motivo</h3>
+          <p class="mt-2 rounded-xl bg-muted/60 p-4 text-sm">{{ s.motivo }}</p>
+        }
+      }
+    </a-drawer>
+  `,
+})
+export class SolicitudesEliminacionPage {
+  private readonly api = inject(ApiService);
+  private readonly toast = inject(ToastService);
+  protected readonly input = INPUT_CLS;
+  protected readonly pag = new Paginado<SolicitudEliminacion>(inject(ApiService), "solicitudesEliminacion", 15);
+  protected readonly sel = signal<SolicitudEliminacion | null>(null);
+  protected readonly motivo = signal("");
+  protected readonly abiertas = computed(() => (this.pag.facetas()["estado"]?.["Pendiente"] ?? 0) + (this.pag.facetas()["estado"]?.["En proceso"] ?? 0));
+
+  constructor() {
+    this.pag.campos = "estado";
+    this.pag.recargar();
+  }
+  protected tono(estado: SolicitudEliminacion["estado"]) {
+    return estado === "Pendiente" ? "bad" : estado === "En proceso" ? "warn" : estado === "Completada" ? "ok" : "muted";
+  }
+  protected abrir(s: SolicitudEliminacion) {
+    this.motivo.set("");
+    this.sel.set(s);
+  }
+  protected cambiar(estado: SolicitudEliminacion["estado"]) {
+    const s = this.sel();
+    if (!s) return;
+    const nuevo = { ...s, estado, motivo: estado === "Rechazada" ? this.motivo().trim() : s.motivo };
+    this.api.put(`admin/c/solicitudesEliminacion/${s.id}`, nuevo).subscribe(() => {
+      this.sel.set(nuevo);
+      this.motivo.set("");
+      this.pag.recargar();
+      this.toast.show(estado === "Completada" ? "Solicitud completada y persona avisada" : estado === "Rechazada" ? "Solicitud rechazada y persona avisada" : "Solicitud en proceso");
+    });
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /* Usuarios                                                           */
 /* ------------------------------------------------------------------ */

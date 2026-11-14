@@ -33,7 +33,7 @@ test.describe("Vista de tabla en los módulos", () => {
     expect((await display(page)).fila).toBe("grid");
   });
 
-  for (const [ruta, modulo] of [["/admin/cotizaciones", "Cotizaciones"], ["/admin/compras-puntos", "Compras de puntos"], ["/admin/movimientos", "Movimientos"], ["/admin/auditoria", "Registro de cambios"], ["/admin/importaciones", "Importaciones"]] as const) {
+  for (const [ruta, modulo] of [["/admin/compras-puntos", "Compras de puntos"], ["/admin/movimientos", "Movimientos"], ["/admin/auditoria", "Registro de cambios"], ["/admin/importaciones", "Importaciones"]] as const) {
     test(`${modulo} ofrece el selector de vista`, async ({ page }) => {
       await entrarAdmin(page);
       await page.goto(ruta);

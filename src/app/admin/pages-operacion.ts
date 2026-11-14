@@ -43,7 +43,7 @@ import {
   abrirDesdeUrl,
 } from './kit';
 
-const ahora = () => new Date().toLocaleString('es-EC', { dateStyle: 'short', timeStyle: 'short' });
+const ahora = () => new Date().toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' });
 
 /* ------------------------------------------------------------------ */
 /* Participantes                                                       */
@@ -62,6 +62,9 @@ type Ficha = Participante & { direcciones: Direccion[]; ajustes: Ajuste[] };
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <a-header vista="participantes" title="Participantes" [desc]="pag.total().toLocaleString('es') + ' participantes registrados'">
+      <a routerLink="/admin/participantes/solicitudes-eliminacion" aBtn variant="outline">
+        <app-icon name="Trash2" class="h-4 w-4" /> Solicitudes de eliminación
+      </a>
       <button aBtn variant="outline" (click)="ajusteMasivo.set(true)">
         <app-icon name="Upload" class="h-4 w-4" /> Ajuste masivo de puntos
       </button>
@@ -77,7 +80,7 @@ type Ficha = Participante & { direcciones: Direccion[]; ajustes: Ajuste[] };
       />
       <input
         [class]="input + ' pl-9'"
-        placeholder="Buscar por nombre o cédula"
+        placeholder="Buscar por nombre o DNI"
         aria-label="Buscar participante"
         (input)="pag.buscar($any($event.target).value)"
       />
@@ -90,7 +93,7 @@ type Ficha = Participante & { direcciones: Direccion[]; ajustes: Ajuste[] };
             <th aOrden="nombre" [pag]="pag" etiquetaOrden="Participante">Participante</th>
             <th aOrden="estado" [pag]="pag" etiquetaOrden="Estado">Estado</th>
             <th aOrden="canal" [pag]="pag" etiquetaOrden="Canal">Canal</th>
-            <th aOrden="cedula" [pag]="pag" etiquetaOrden="Cédula">Cédula</th>
+            <th aOrden="cedula" [pag]="pag" etiquetaOrden="DNI">DNI</th>
             <th aOrden="puntos" [pag]="pag" etiquetaOrden="Saldo">Saldo</th>
             <th aOrden="acumulados12m" [pag]="pag" etiquetaOrden="Nivel">Nivel</th>
             <th aria-label="Ficha"></th>
@@ -179,7 +182,7 @@ const flujoDigital: EstadoPedido[] = ['Confirmado', 'Digital enviado'];
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <a-header vista="pedidos" title="Pedidos" desc="Canjes de productos y beneficios desde web y app.">
+    <a-header vista="pedidos" title="Pedidos" desc="Canjes de productos y beneficios desde la web.">
       <button aBtn variant="outline" (click)="exportar()">
         <app-icon name="Download" class="h-4 w-4" /> Descargar
       </button>
@@ -470,351 +473,6 @@ export class PedidosPage {
   }
 }
 
-/* ------------------------------------------------------------------ */
-/* Cotizaciones de vuelos                                              */
-/* ------------------------------------------------------------------ */
-type CotizacionFila = Cotizacion & { cliente?: string; email?: string };
-type Ejecutivo = { id: string; nombre: string; rol: string };
-const ESTADOS: Cotizacion['estado'][] = ['Enviada', 'En revisión', 'Cotizada', 'Cerrada'];
-
-/** Años cumplidos a hoy desde una fecha ISO (yyyy-mm-dd). */
-const edadDe = (iso: string) => {
-  if (!iso) return null;
-  const n = new Date(`${iso}T12:00:00`);
-  const h = new Date();
-  let e = h.getFullYear() - n.getFullYear();
-  if (h.getMonth() < n.getMonth() || (h.getMonth() === n.getMonth() && h.getDate() < n.getDate())) e--;
-  return e;
-};
-const fechaCorta = (iso: string) => (iso ? new Date(iso.length > 10 ? iso : `${iso}T12:00:00`).toLocaleDateString('es', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—');
-const fechaHora = (iso: string) => (iso ? new Date(iso).toLocaleString('es', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—');
-
-@Component({
-  selector: 'a-cotizaciones-page',
-  imports: [OrdenColumnaComponent, FilaEsqueletoComponent, 
-    LimpiarFiltrosComponent,IconComponent, PageHeaderComponent, PillComponent, BtnDirective, FieldComponent, StatComponent, DrawerComponent, DrawerTitleComponent, PagerComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <a-header vista="cotizaciones" title="Cotizaciones de vuelos" desc="Solicitudes recibidas desde web y app. Responder en un máximo de {{ horasRespuesta() }}.">
-      <button aBtn variant="outline" (click)="exportar()"><app-icon name="Download" class="h-4 w-4" /> Descargar</button>
-    </a-header>
-
-    <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      @for (e of estados; track e) {
-        <a-stat [label]="e === 'Enviada' ? 'Nuevas' : e" [value]="cuenta(e)" />
-      }
-    </div>
-
-    <div class="adm-filtros">
-<div class="adm-busca"><app-icon name="Search" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input aria-label="Buscar cotización" [class]="input + ' pl-9'" placeholder="Código, participante o ciudad" (input)="pag.buscar($any($event.target).value)" /></div>
-<select aria-label="Estado" [class]="input + ' w-auto'" (change)="pag.filtrar('estado', $any($event.target).value)">
-<option value="">Todos los estados</option>
-@for (e of estados; track e) { <option>{{ e }}</option> }
-</select>
-<input type="date" aria-label="Desde" [class]="input + ' w-auto'" (input)="pag.filtrar('desde', $any($event.target).value)" />
-<input type="date" aria-label="Hasta" [class]="input + ' w-auto'" (input)="pag.filtrar('hasta', $any($event.target).value)" />
-<app-limpiar-filtros [activo]="pag.activo()" (limpiar)="pag.limpiar()" />
-</div>
-
-    <div class="adm-wrap">
-      <table class="adm-table">
-        <thead>
-          <tr><th aOrden="codigo" [pag]="pag" etiquetaOrden="Código">Código</th><th aOrden="estado" [pag]="pag" etiquetaOrden="Estado">Estado</th><th aOrden="fecha" [pag]="pag" etiquetaOrden="Fecha">Fecha</th><th aOrden="cliente" [pag]="pag" etiquetaOrden="Participante">Participante</th><th>Ruta</th><th>Viaje</th><th aOrden="pasajeros" [pag]="pag" etiquetaOrden="Pax">Pax</th><th aOrden="ejecutiva" [pag]="pag" etiquetaOrden="Ejecutiva">Ejecutiva</th><th>SLA</th><th aria-label="Gestionar"></th></tr>
-        </thead>
-        <tbody>
-          @for (r of pag.items(); track r.codigo) {
-            <tr>
-              <td><button class="font-bold hover:underline" (click)="abrir(r)">{{ r.codigo }}</button></td>
-              <td class="det-completo det-chip"><a-pill [tone]="tono(r.estado)">{{ r.estado }}</a-pill></td>
-              <td>{{ r.fecha }}</td>
-              <td>{{ r.cliente || '—' }}</td>
-              <td class="adm-ancha">{{ ciudad(r.origen) }} → {{ ciudad(r.destino) }}</td>
-              <td>{{ r.tipoViaje }} · {{ r.clase }}</td>
-              <td>{{ r.pasajeros }}@if (conAsistencia(r)) { <app-icon name="Accessibility" class="ml-1 inline h-4 w-4 text-primary" /><span class="sr-only">Requiere asistencia</span> }</td>
-              <td>{{ r.ejecutiva || 'Sin asignar' }}</td>
-              <td>
-                @if (r.estado === 'Enviada' || r.estado === 'En revisión') {
-                  <a-pill [tone]="horas(r.fecha) > 48 ? 'bad' : 'ok'">{{ horas(r.fecha) > 48 ? 'Vencido' : 48 - horas(r.fecha) + ' h' }}</a-pill>
-                } @else { — }
-              </td>
-              <td class="det-ojo"><button type="button" class="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground" [attr.aria-label]="'Gestionar ' + r.codigo" title="Gestionar" (click)="abrir(r)"><app-icon name="Eye" class="h-4 w-4" /></button></td>
-            </tr>
-          } @empty {
-            @if (pag.cargando()) { @for (n of [1, 2, 3, 4, 5]; track n) { <tr aEsqueleto [cols]="10"></tr> } } @else { <tr><td colspan="10" class="adm-empty">No hay cotizaciones con estos filtros</td></tr> }
-          }
-        </tbody>
-      </table>
-    </div>
-    <a-pager [p]="pag" />
-
-    <a-drawer [open]="!!sel()" (closed)="cerrar()">
-      @if (sel(); as s) {
-        <a-drawer-title (closed)="cerrar()">
-          <p class="text-sm text-muted-foreground">Cotización · {{ s.fecha }}</p>
-          <h2 class="text-2xl font-bold">{{ s.codigo }}</h2>
-          <a-pill [tone]="tono(s.estado)">{{ s.estado }}</a-pill>
-        </a-drawer-title>
-
-        <div class="mt-6 rounded-xl bg-muted/60 p-4">
-          <div class="flex items-center justify-between gap-3 text-lg font-bold">
-            <span>{{ ciudad(s.origen) }}</span><app-icon name="Plane" class="h-5 w-5 text-primary" /><span>{{ ciudad(s.destino) }}</span>
-          </div>
-          <dl class="mt-3 grid grid-cols-2 gap-2 text-sm">
-            <div><dt class="text-muted-foreground">Tipo</dt><dd class="font-semibold">{{ s.tipoViaje }}</dd></div>
-            <div><dt class="text-muted-foreground">Clase</dt><dd class="font-semibold">{{ s.clase }}</dd></div>
-            <div><dt class="text-muted-foreground">Ida</dt><dd class="font-semibold">{{ corta(s.salida) }}</dd></div>
-            <div><dt class="text-muted-foreground">Regreso</dt><dd class="font-semibold">{{ s.regreso ? corta(s.regreso) : '—' }}</dd></div>
-          </dl>
-        </div>
-
-        <h3 class="mt-6 font-semibold">Contacto</h3>
-        <div class="mt-2 space-y-1 text-sm">
-          <p class="font-semibold">{{ s.cliente || '—' }}</p>
-          <p class="flex items-center gap-2"><app-icon name="Mail" class="h-4 w-4" /> {{ s.email || '—' }}</p>
-          @if (celular(s); as cel) { <p class="flex items-center gap-2"><app-icon name="Phone" class="h-4 w-4" /> {{ cel }}</p> }
-        </div>
-        <p class="mt-2 text-xs text-muted-foreground">La comunicación con el participante es por WhatsApp o correo, directamente desde tu cuenta. Al usar estos botones queda anotado el contacto.</p>
-        <div class="mt-2 flex flex-wrap gap-2">
-          @if (waUrl(s); as wa) {
-            <a [href]="wa" target="_blank" rel="noopener noreferrer" (click)="registrarContacto('WhatsApp')"
-              class="inline-flex h-11 items-center gap-2 rounded-xl bg-[#25D366] px-4 text-sm font-bold text-white hover:opacity-90"><app-icon name="MessageSquare" class="h-4 w-4" /> Escribir por WhatsApp</a>
-          }
-          @if (s.email) {
-            <a [href]="mailtoUrl(s)" (click)="registrarContacto('Correo')"
-              class="inline-flex h-11 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold hover:bg-muted"><app-icon name="Mail" class="h-4 w-4" /> Enviar correo</a>
-          }
-        </div>
-        @if (s.contactos?.length) {
-          <ul class="mt-2 space-y-0.5 text-xs text-muted-foreground" aria-label="Contactos registrados">
-            @for (k of s.contactos; track $index) { <li>{{ k.canal }} · {{ k.por }} · {{ hora(k.fecha) }}</li> }
-          </ul>
-        }
-
-        <h3 class="mt-6 flex items-center gap-2 font-semibold"><app-icon name="Users" class="h-4 w-4" /> Pasajeros ({{ s.pasajerosDetalle.length }})</h3>
-        <ul class="mt-2 divide-y divide-border rounded-xl border border-border text-sm" aria-label="Pasajeros">
-          @for (p of s.pasajerosDetalle; track $index) {
-            <li class="grid gap-x-4 gap-y-1 p-3 sm:grid-cols-2">
-              <span class="font-semibold sm:col-span-2">{{ p.nombres }} {{ p.apellidos }}</span>
-              <span class="text-muted-foreground">{{ tipoDoc(p.tipoDoc) }} · {{ p.numDoc }}</span>
-              <span class="text-muted-foreground">Nació el {{ corta(p.nacimiento) }} · <b class="text-foreground">{{ edadDe(p.nacimiento) }} años</b></span>
-              <span class="sm:col-span-2">
-                @if (p.asistencia) { <a-pill tone="warn">Requiere asistencia (discapacidad)</a-pill> } @else { <span class="text-muted-foreground">Sin requerimientos especiales</span> }
-              </span>
-            </li>
-          } @empty { <li class="p-3 text-muted-foreground">Sin datos de pasajeros.</li> }
-        </ul>
-
-        <h3 class="mt-6 font-semibold">Gestión</h3>
-        <p class="mt-1 text-xs text-muted-foreground">Las ejecutivas son los usuarios con rol Atención, Operaciones o Administrador (Usuarios y roles).</p>
-        <div class="mt-2 grid gap-3 sm:grid-cols-2">
-          <a-field label="Ejecutiva asignada">
-            <select [class]="input" aria-label="Ejecutiva asignada" (change)="ejecutivaId.set($any($event.target).value)">
-              <option value="" [selected]="!ejecutivaId()">Sin asignar</option>
-              @for (e of ejecutivos(); track e.id) { <option [value]="e.id" [selected]="e.id === ejecutivaId()">{{ e.nombre }} · {{ e.rol }}</option> }
-            </select>
-          </a-field>
-          <a-field label="Monto cotizado">
-            <input [class]="input" inputmode="decimal" placeholder="Ej. 850.00" [value]="monto()" (input)="monto.set($any($event.target).value)" />
-          </a-field>
-          <a-field label="Nota interna (no la ve el participante)" class="sm:col-span-2">
-            <textarea [class]="input + ' min-h-24'" [value]="nota()" (input)="nota.set($any($event.target).value)" placeholder="Aerolínea, escalas, condiciones…"></textarea>
-          </a-field>
-        </div>
-
-        <h3 class="mt-6 font-semibold">Cotización en PDF</h3>
-        @if (pdf()) {
-          <div class="mt-2 flex items-center gap-3 rounded-xl border border-border p-3">
-            <app-icon name="FileText" class="h-6 w-6 text-primary" /><span class="min-w-0 flex-1 truncate font-medium">{{ pdf() }}</span>
-            <button aBtn variant="ghost" (click)="pdf.set('')">Quitar</button>
-          </div>
-        } @else {
-          <label class="mt-2 flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border text-sm text-muted-foreground hover:border-primary">
-            <app-icon name="Paperclip" class="h-4 w-4" /><span><b class="text-foreground">Adjuntar PDF</b> con itinerario y tarifas</span>
-            <input type="file" accept="application/pdf" class="sr-only" (change)="adjuntar($any($event.target).files?.[0])" />
-          </label>
-        }
-        <button aBtn variant="outline" class="mt-3" (click)="guardarGestion()">Guardar gestión</button>
-
-        <h3 class="mt-6 font-semibold">Historial de estados</h3>
-        <ol class="mt-2 space-y-1 text-sm" aria-label="Historial de estados">
-          @for (h of s.historial; track $index) {
-            <li class="flex flex-wrap items-center gap-2"><a-pill [tone]="tono(h.estado)">{{ h.estado }}</a-pill><span class="text-muted-foreground">{{ hora(h.fecha) }} · {{ h.por }}</span></li>
-          }
-        </ol>
-
-        <div class="mt-6 flex flex-wrap gap-2 border-t border-border pt-5">
-          @if (s.estado === 'Enviada') { <button aBtn (click)="cambiar('En revisión')">Tomar solicitud</button> }
-          @if (s.estado === 'En revisión') {
-            <button aBtn [disabled]="!montoValido() || !pdf()" (click)="enviarCotizacion()">Enviar cotización</button>
-          }
-          @if (s.estado === 'Cotizada') { <button aBtn variant="outline" (click)="cambiar('En revisión')">Volver a revisión</button> }
-          @if (s.estado === 'Cerrada') { <button aBtn variant="outline" (click)="cambiar('En revisión')">Reabrir</button> }
-          @if (s.estado !== 'Cerrada') { <button aBtn variant="outline" (click)="cambiar('Cerrada')">Cerrar</button> }
-          @if (s.estado === 'En revisión' && (!montoValido() || !pdf())) {
-            <p class="w-full text-sm text-muted-foreground">Ingresa el monto y adjunta el PDF para enviar la cotización.</p>
-          }
-        </div>
-      }
-    </a-drawer>
-  `,
-})
-export class CotizacionesAdminPage {
-  /** Plazo de respuesta de una cotización (Reglas → Límites). */
-  protected readonly horasRespuesta = computed(() => textoHoras(this.catalog.limites().cotizacionRespuestaHoras));
-  protected readonly toast = inject(ToastService);
-  private readonly api = inject(ApiService);
-  private readonly catalog = inject(CatalogService);
-  private readonly session = inject(AdminSession);
-  protected readonly input = INPUT_CLS;
-  protected readonly estados = ESTADOS;
-  protected readonly edadDe = edadDe;
-  protected readonly corta = fechaCorta;
-  protected readonly hora = fechaHora;
-
-  /** Paginada en el servidor: buscar, filtrar por estado/fechas y conteo por estado no recorren todo en el navegador. */
-  protected readonly pag = new Paginado<CotizacionFila>(inject(ApiService), 'cotizaciones', 15);
-  protected readonly ejecutivos = leer(this.api.get<Ejecutivo[]>('admin/ejecutivos'), [] as Ejecutivo[]);
-  private readonly participantes = leer(this.api.get<{ items: Participante[] }>('admin/q/participantes', { size: 50 }).pipe(map((r) => r.items)), [] as Participante[]);
-  private readonly seleccion = signal<CotizacionFila | null>(null);
-  /** La cotización abierta se actualiza con cada respuesta del servidor. */
-  protected readonly sel = this.seleccion.asReadonly();
-
-  // Borradores del formulario de gestión
-  protected readonly ejecutivaId = signal('');
-  protected readonly monto = signal('');
-  protected readonly nota = signal('');
-  protected readonly pdf = signal('');
-  private readonly pdfUrl = signal('');
-  private readonly brand = inject(BrandService);
-  protected readonly montoValido = computed(() => Number(this.monto().replace(',', '.')) > 0);
-
-  constructor() {
-    this.pag.campos = 'estado';
-    this.pag.recargar();
-    abrirDesdeUrl((c) => this.api.get<{ items: CotizacionFila[] }>('admin/q/cotizaciones', { q: c, size: 5 }).subscribe((r) => { const f = r.items.find((x) => x.codigo === c); if (f) this.abrir(f); }));
-  }
-
-  protected abrir(c: CotizacionFila) {
-    this.mostrar(c);
-  }
-  protected cerrar() {
-    this.seleccion.set(null);
-  }
-  private mostrar(c: CotizacionFila) {
-    this.seleccion.set(c);
-    this.ejecutivaId.set(c.ejecutivaId ?? '');
-    this.monto.set(c.monto ? String(c.monto) : '');
-    this.nota.set(c.nota ?? '');
-    this.pdf.set(c.pdf ?? '');
-    this.pdfUrl.set(c.pdfUrl ?? '');
-  }
-  private actualizada(c: CotizacionFila, mensaje?: string) {
-    this.mostrar(c);
-    this.pag.recargar();
-    if (mensaje) this.toast.show(mensaje);
-  }
-
-  protected celular(c: CotizacionFila) {
-    return this.participantes().find((p) => p.email === c.email)?.celular ?? '';
-  }
-  protected conAsistencia(c: CotizacionFila) {
-    return (c.pasajerosDetalle ?? []).some((p) => p.asistencia);
-  }
-  protected tipoDoc(v: string) {
-    return ({ cedula: 'Cédula', pasaporte: 'Pasaporte', ruc: 'RUC' } as Record<string, string>)[v] ?? v;
-  }
-  protected ciudad(c: string) {
-    return this.catalog.ciudades().find((x) => x.codigo === c || x.ciudad === c)?.ciudad ?? c;
-  }
-  protected horas(f: string) {
-    return Math.floor((Date.now() - new Date(f).getTime()) / 36e5);
-  }
-  protected cuenta(e: string) {
-    return (this.pag.facetas()['estado']?.[e] ?? 0).toLocaleString('es');
-  }
-  protected tono(e: Cotizacion['estado']) {
-    return e === 'Enviada' ? 'warn' : e === 'En revisión' ? 'info' : e === 'Cotizada' ? 'ok' : 'muted';
-  }
-  protected adjuntar(f?: File) {
-    if (!f) return;
-    this.pdf.set(f.name);
-    this.pdfUrl.set('');
-    this.toast.show('PDF adjuntado');
-    // Para que el participante pueda abrirlo desde Mis cotizaciones (con un servidor real se sube el archivo y se guarda su URL).
-    if (f.size <= 1.5 * 1024 * 1024) {
-      const r = new FileReader();
-      r.onload = () => this.pdfUrl.set(String(r.result));
-      r.readAsDataURL(f);
-    }
-  }
-
-  /** Número para wa.me: solo dígitos y con el prefijo del país (un celular local empieza con 0). */
-  private numeroWa(cel: string) {
-    const prefijo = this.brand.pais().telefonoPrefijo.replace(/\D/g, '');
-    const d = cel.replace(/\D/g, '');
-    return d.startsWith(prefijo) && d.length > 10 ? d : prefijo + d.replace(/^0+/, '');
-  }
-  private mensajeSugerido(s: CotizacionFila) {
-    const nombre = (s.cliente ?? '').split(' ')[0] || 'Hola';
-    const ruta = `${this.ciudad(s.origen)} → ${this.ciudad(s.destino)}`;
-    return s.estado === 'Cotizada' && s.monto
-      ? `Hola ${nombre}, te escribo por tu cotización ${s.codigo} (${ruta}). El valor es ${formatUSD(s.monto)} y tiene validez de ${textoHoras(this.catalog.limites().cotizacionValidezHoras)}. También la encuentras en Mis cotizaciones. ¿La confirmamos?`
-      : `Hola ${nombre}, te escribo por tu solicitud de cotización ${s.codigo} (${ruta}).`;
-  }
-  protected waUrl(s: CotizacionFila) {
-    const cel = this.celular(s);
-    return cel ? `https://wa.me/${this.numeroWa(cel)}?text=${encodeURIComponent(this.mensajeSugerido(s))}` : '';
-  }
-  protected mailtoUrl(s: CotizacionFila) {
-    return `mailto:${s.email}?subject=${encodeURIComponent('Tu cotización ' + s.codigo)}&body=${encodeURIComponent(this.mensajeSugerido(s))}`;
-  }
-  /** Anota en la cotización que la ejecutiva escribió por ese canal (no impide abrir WhatsApp o el correo). */
-  protected registrarContacto(canal: 'WhatsApp' | 'Correo') {
-    const s = this.sel();
-    if (!s) return;
-    this.api
-      .post<CotizacionFila>(`admin/cotizaciones/${s.codigo}/contacto`, { canal, por: this.session.usuario()?.nombre })
-      .subscribe((c) => this.actualizada(c));
-  }
-
-  private nombreEjecutiva(id: string) {
-    return this.ejecutivos().find((e) => e.id === id)?.nombre ?? '';
-  }
-  /** Guarda ejecutiva, monto, PDF y nota sin cambiar el estado. */
-  protected guardarGestion() {
-    const s = this.sel();
-    if (!s) return;
-    this.api
-      .patch<CotizacionFila>('admin/cotizaciones/' + s.codigo, {
-        ejecutivaId: this.ejecutivaId(), ejecutiva: this.nombreEjecutiva(this.ejecutivaId()),
-        monto: this.montoValido() ? Number(this.monto().replace(',', '.')) : undefined, pdf: this.pdf(), pdfUrl: this.pdfUrl(), nota: this.nota(),
-      })
-      .subscribe((c) => this.actualizada(c, 'Gestión guardada'));
-  }
-  /** Cambia el estado. Al tomar una solicitud sin ejecutiva, queda a cargo de quien la toma. */
-  protected cambiar(estado: Cotizacion['estado']) {
-    const s = this.sel();
-    if (!s) return;
-    const yo = this.session.usuario();
-    const asigna = !s.ejecutivaId && estado === 'En revisión' && yo ? { ejecutivaId: yo.id, ejecutiva: yo.nombre } : {};
-    this.api
-      .patch<CotizacionFila>('admin/cotizaciones/' + s.codigo, { estado, por: yo?.nombre, ...asigna })
-      .subscribe((c) => this.actualizada(c, `Cotización ${s.codigo} → ${estado} · el participante lo ve en Mis cotizaciones`));
-  }
-  protected enviarCotizacion() {
-    const s = this.sel();
-    if (!s || !this.montoValido() || !this.pdf()) return;
-    const monto = Number(this.monto().replace(',', '.'));
-    const yo = this.session.usuario();
-    this.api
-      .patch<CotizacionFila>('admin/cotizaciones/' + s.codigo, { estado: 'Cotizada', por: yo?.nombre, monto, pdf: this.pdf(), pdfUrl: this.pdfUrl(), nota: this.nota(), ejecutivaId: this.ejecutivaId() || yo?.id, ejecutiva: this.nombreEjecutiva(this.ejecutivaId()) || yo?.nombre })
-      .subscribe((c) => this.actualizada(c, `Cotización ${s.codigo} → Cotizada · avísale al participante por WhatsApp o correo (botones del detalle)`));
-  }
-  /** Descarga en CSV las cotizaciones de la página y filtros actuales. */
-  protected exportar() {
-    descargarTabla('cotizaciones', [['Código', 'Fecha', 'Participante', 'Origen', 'Destino', 'Pasajeros', 'Ejecutiva', 'Estado'], ...this.pag.items().map((c) => [c.codigo, c.fecha, c.cliente ?? '', c.origen, c.destino, c.pasajeros, c.ejecutiva ?? '', c.estado])], 'Cotizaciones de vuelos');
-  }
-}
 /* ------------------------------------------------------------------ */
 /* Compras de puntos                                                   */
 /* ------------------------------------------------------------------ */

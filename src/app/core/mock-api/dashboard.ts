@@ -9,7 +9,7 @@ const A = (x: unknown): any[] => (Array.isArray(x) ? x : []);
 /** A qué reporte lleva cada indicador del Dashboard. */
 const ENLACES: Record<string, string> = {
   emitidos: "puntos", canjeados: "puntos", pedidos: "canjes", comprasPuntosUSD: "ventas", activos: "participantes", altas: "participantes",
-  tasaCanje: "resumen", conversion: "embudo", cotizaciones: "vuelos",
+  tasaCanje: "resumen", conversion: "embudo",
 };
 
 /**
@@ -23,7 +23,7 @@ export function dashboard(desde: string, hasta: string): Dashboard {
   const emb = reporteTipo("embudo", desde, hasta);
   const kpis: KpiReporte[] = [
     de(resumen, "emitidos"), de(resumen, "canjeados"), de(resumen, "pedidos"), de(resumen, "comprasPuntosUSD"),
-    de(participantes, "activos"), de(participantes, "altas"), de(resumen, "tasaCanje"), de(emb, "conversion"), de(resumen, "cotizaciones"),
+    de(participantes, "activos"), de(participantes, "altas"), de(resumen, "tasaCanje"), de(emb, "conversion"),
   ];
   const r = reporteResumen(desde, hasta);
   const e = embudo(desde, hasta);
@@ -36,7 +36,6 @@ export function dashboard(desde: string, hasta: string): Dashboard {
     { id: "compras", nivel: "media", titulo: "Compras de puntos pendientes", detalle: "Pagos que el banco aún no confirma.", cantidad: A(db.admin.comprasPuntos).filter((c) => c.estado === "Pendiente").length, enlace: "/admin/compras-puntos" },
     { id: "pedidos", nivel: "alta", titulo: "Pedidos por atender", detalle: "Confirmados o en preparación.", cantidad: pedidosPorAtender, enlace: "/admin/pedidos" },
     { id: "mensajes", nivel: "alta", titulo: "Mensajes sin atender", detalle: "Consultas nuevas de participantes.", cantidad: A(db.admin.mensajes).filter((m) => m.estado === "Nuevo").length, enlace: "/admin/atencion" },
-    { id: "cotizaciones", nivel: "media", titulo: "Cotizaciones de vuelos sin atender", detalle: "Enviadas y aún sin ejecutiva en revisión.", cantidad: [...A(db.cotizaciones), ...A((db as any).cotizacionesExtra)].filter((c) => c.estado === "Enviada").length, enlace: "/admin/cotizaciones" },
     { id: "correos", nivel: "media", titulo: "Correos con problemas", detalle: "Rebotados o fallidos tras los reintentos.", cantidad: correosConProblema, enlace: "/admin/correos" },
     { id: "lotes", nivel: "info", titulo: "Lotes de códigos casi agotados", detalle: "Con el 80 % o más de los códigos usados.", cantidad: lotesCasiAgotados, enlace: "/admin/beneficios" },
   ].filter((a) => a.cantidad > 0) as AlertaDashboard[];

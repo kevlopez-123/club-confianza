@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { entrarAdmin, esperarCarga } from "./helpers";
 
-const K = "bancosolidario_mockdb_v11";
+const K = "confianza_mockdb_v1";
 
 /** Cambia la base simulada del navegador (como si el panel ya lo hubiera guardado) y deja la página lista para recargar. */
 async function editarDb(page: Page, parches: { benef?: Record<string, Record<string, unknown>>; provincia?: string | null; liberarCupones?: boolean; canjesHaceDias?: number | null }) {
@@ -102,30 +102,30 @@ test.describe("Fase C: reglas de los beneficios", () => {
   });
 
   test("provincias: el filtro del catálogo muestra lo disponible en la provincia elegida y la ficha avisa si no aplica", async ({ page }) => {
-    await editarDb(page, { benef: { b1: { provincias: ["Guayas"] }, b2: { provincias: ["Pichincha"] } }, provincia: "Pichincha", liberarCupones: true, canjesHaceDias: null });
+    await editarDb(page, { benef: { b1: { provincias: ["Arequipa"] }, b2: { provincias: ["Lima"] } }, provincia: "Lima", liberarCupones: true, canjesHaceDias: null });
     await page.goto("/beneficios");
     await esperarCarga(page);
     await expect(page.locator('a[href="/beneficios/b1"]').first()).toBeVisible(); // sin filtro se ven todos
     await page.getByRole("button", { name: /Filtros/ }).click();
     const sel = page.getByLabel("Provincia", { exact: true });
-    await expect(sel.locator("option")).toHaveText(["Todas las provincias", "Guayas", "Pichincha"]);
-    await sel.selectOption("Pichincha");
+    await expect(sel.locator("option")).toHaveText(["Todas las provincias", "Arequipa", "Lima"]);
+    await sel.selectOption("Lima");
     await expect(page.locator('a[href="/beneficios/b1"]')).toHaveCount(0);
     await expect(page.locator('a[href="/beneficios/b2"]').first()).toBeVisible();
-    await sel.selectOption("Guayas");
+    await sel.selectOption("Arequipa");
     await expect(page.locator('a[href="/beneficios/b1"]').first()).toBeVisible();
     await expect(page.locator('a[href="/beneficios/b2"]')).toHaveCount(0);
 
     await abrirBeneficio(page, "b1");
-    await expect(page.getByText("Disponible en Guayas").first()).toBeVisible();
-    await expect(page.getByText(/Tu provincia \(Pichincha\) no está incluida/)).toBeVisible();
+    await expect(page.getByText("Disponible en Arequipa").first()).toBeVisible();
+    await expect(page.getByText(/Tu provincia \(Lima\) no está incluida/)).toBeVisible();
     await expect(botonGenerar(page)).toBeDisabled();
     await abrirBeneficio(page, "b2");
     await expect(botonGenerar(page)).toBeEnabled();
   });
 
   test("sin provincia en Mis datos el beneficio se muestra y se pide completarla", async ({ page }) => {
-    await editarDb(page, { benef: { b1: { provincias: ["Guayas"] } }, provincia: null, liberarCupones: true, canjesHaceDias: null });
+    await editarDb(page, { benef: { b1: { provincias: ["Arequipa"] } }, provincia: null, liberarCupones: true, canjesHaceDias: null });
     await abrirBeneficio(page);
     await expect(page.getByText(/Indica tu provincia en Mis datos para canjearlo/)).toBeVisible();
     await expect(page.getByRole("link", { name: "Completar mis datos" })).toBeVisible();
@@ -146,9 +146,9 @@ test.describe("Fase C: reglas de los beneficios", () => {
     await d.getByLabel("Código del cupón").selectOption("compartido");
     await d.getByLabel("Código compartido").fill("verano26");
     await d.getByRole("switch", { name: "En todo el país" }).click();
-    await d.getByRole("button", { name: "Guayas", exact: true }).click();
-    await d.getByRole("button", { name: "Azuay", exact: true }).click();
-    await expect(d.getByText("2 de 24 provincias")).toBeVisible();
+    await d.getByRole("button", { name: "Arequipa", exact: true }).click();
+    await d.getByRole("button", { name: "Cusco", exact: true }).click();
+    await expect(d.getByText("2 de 25 provincias")).toBeVisible();
 
     // Un vencimiento anterior al inicio no deja guardar.
     await d.getByLabel("Vencimiento", { exact: true }).fill(dia(-10));
@@ -160,9 +160,9 @@ test.describe("Fase C: reglas de los beneficios", () => {
 
     const fila = page.locator("tbody tr").first();
     await expect(fila).toContainText("Vigente");
-    await expect(fila).toContainText("Guayas, Azuay");
+    await expect(fila).toContainText("Arequipa, Cusco");
     const guardado = await page.evaluate((k) => { const b = JSON.parse(localStorage.getItem(k)!).admin.beneficios[0]; return { cod: b.codigoCompartido, modo: b.modoCodigo, cupon: b.cupon, prov: b.provincias, vig: b.vigencia }; }, K);
-    expect(guardado).toEqual({ cod: "VERANO26", modo: "compartido", cupon: { horas: 24, limite: 1, meses: 3 }, prov: ["Guayas", "Azuay"], vig: undefined });
+    expect(guardado).toEqual({ cod: "VERANO26", modo: "compartido", cupon: { horas: 24, limite: 1, meses: 3 }, prov: ["Arequipa", "Cusco"], vig: undefined });
 
     // El filtro de vigencia de la lista.
     await page.getByLabel("Vigencia", { exact: true }).selectOption("vencido");

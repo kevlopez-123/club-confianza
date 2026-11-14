@@ -21,7 +21,7 @@ test.describe("Fase B: descargas en Excel o PDF y cargas con plantilla de Excel"
     expect(xlsx.suggestedFilename()).toMatch(/^pedidos_\d{4}-\d{2}-\d{2}\.xlsx$/);
     const x = await textoDeArchivo(xlsx);
     expect(x).toContain("CLIENTE"); // encabezados en mayúscula
-    expect(x).toContain("FF00BDD2"); // color de la marca
+    expect(x).toContain("FF005699"); // color de la marca
     expect(x).toContain("state=\"frozen\""); // fila de encabezado fija
 
     const pdf = await descargarListado(page, () => boton.click(), "PDF");
@@ -41,7 +41,7 @@ test.describe("Fase B: descargas en Excel o PDF y cargas con plantilla de Excel"
     expect(await textoDeArchivo(x)).toContain("FFE11D48");
     // se deja la marca como estaba
     await page.goto("/admin/configuracion");
-    await page.getByLabel("Color principal (hex)").fill("#00bdd2");
+    await page.getByLabel("Color principal (hex)").fill("#005699");
     await page.getByRole("button", { name: "Guardar marca" }).click();
   });
 
@@ -68,7 +68,7 @@ test.describe("Fase B: descargas en Excel o PDF y cargas con plantilla de Excel"
     await page.goto("/admin/participantes");
     await page.getByRole("button", { name: "Carga masiva" }).click();
     const d = page.getByRole("dialog");
-    const lote = xlsxDeExcel([["DOCUMENTO *", "NOMBRE *", "CORREO *", "PUNTOS *"], ["1712345678", "Ana Torres", "ana.torres@correo.com", "1000"], ["123", "Mal Documento", "mal@correo.com", "5"]]);
+    const lote = xlsxDeExcel([["DOCUMENTO *", "NOMBRE *", "CORREO *", "PUNTOS *"], ["17123456", "Ana Torres", "ana.torres@correo.com", "1000"], ["123", "Mal Documento", "mal@correo.com", "5"]]);
     await d.locator('input[type="file"]').setInputFiles({ name: "participantes.xlsx", mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buffer: lote });
     await expect(d.getByText(/2 filas/)).toBeVisible();
     await expect(d.getByText(/1 por crear/)).toBeVisible();

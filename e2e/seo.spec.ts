@@ -24,7 +24,7 @@ test.describe("SEO", () => {
       vistas.add((await meta(page, 'name="description"')) ?? "");
     }
     expect(vistas.size).toBe(2);
-    for (const ruta of ["/canjea", "/beneficios", "/vuelos", "/preguntas-frecuentes"]) {
+    for (const ruta of ["/canjea", "/beneficios", "/preguntas-frecuentes"]) {
       await page.goto(ruta);
       await esperarMeta(page, 'name="robots"', /noindex, nofollow/);
     }
@@ -63,13 +63,6 @@ test.describe("SEO", () => {
     await expect(page.locator("script#seo-jsonld")).toHaveCount(1);
     await page.getByRole("link", { name: /Canjea tus puntos/ }).first().click();
     await expect(page.locator("script#seo-jsonld")).toHaveCount(0);
-  });
-
-  test("ficha de beneficio y de destino ajustan su título y descripción", async ({ page }) => {
-    await page.goto("/beneficios/b1");
-    await expect.poll(() => page.title()).toMatch(/ en .*\|/);
-    await page.goto("/vuelos/destinos/miami");
-    await expect.poll(() => page.title()).toMatch(/^Vuelos a /);
   });
 
   test("robots.txt y sitemap.xml se sirven y son coherentes", async ({ request }) => {

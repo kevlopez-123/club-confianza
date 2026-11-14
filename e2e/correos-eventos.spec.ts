@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { entrarAdmin } from "./helpers";
 
-const K = "bancosolidario_mockdb_v11";
+const K = "confianza_mockdb_v1";
 const retocarDb = (page: Page, fn: (d: any) => void) =>
   page.evaluate(([k, src]) => {
     const d = JSON.parse(localStorage.getItem(k as string)!);
@@ -20,7 +20,7 @@ test.describe("Correos: eventos conectados", () => {
     await entrarAdmin(page);
     await page.goto("/admin/participantes");
     await page.getByRole("button", { name: "Carga masiva" }).click();
-    const csv = ["documento,nombre,correo,puntos", "1718293045,Rosa Benítez,rosa.benitez@correo.com,1500", "0923456781,Pedro Guamán,pedro.guaman@correo.com,800"].join("\n");
+    const csv = ["documento,nombre,correo,puntos", "17182930,Rosa Benítez,rosa.benitez@correo.com,1500", "09234567,Pedro Guamán,pedro.guaman@correo.com,800"].join("\n");
     await page.getByRole("dialog").locator('input[type="file"]').setInputFiles({ name: "p.csv", mimeType: "text/csv", buffer: Buffer.from(csv, "utf8") });
     await page.getByRole("button", { name: /Importar 2 participantes/ }).click();
     await expect(page.getByText("Carga completada")).toBeVisible();
@@ -47,7 +47,7 @@ test.describe("Correos: eventos conectados", () => {
   test("un ajuste que cruza el umbral de nivel avisa del cambio de nivel", async ({ page }) => {
     await entrarAdmin(page);
     await page.goto("/admin/participantes");
-    await page.getByPlaceholder("Buscar por nombre o cédula").fill("Ana Torres");
+    await page.getByPlaceholder("Buscar por nombre o DNI").fill("Ana Torres");
     await expect(page.locator("tbody tr")).toHaveCount(1);
     await page.getByRole("link", { name: "Ver ficha" }).click();
     await page.getByRole("tab", { name: /^Ajustes/ }).click();

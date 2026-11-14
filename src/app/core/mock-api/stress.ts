@@ -6,9 +6,9 @@ import type { Db } from "./db";
  */
 const NOMBRES = ["Ana", "Luis", "María", "Carlos", "Gabriela", "Diego", "Valeria", "Jorge", "Daniela", "Andrés", "Paula", "Santiago", "Camila", "Fernando", "Lucía", "Mateo", "Sofía", "Iván", "Rosa", "Pedro"];
 const APELLIDOS = ["Torres", "Mendoza", "Paredes", "Andrade", "Ruiz", "Salazar", "Cevallos", "Villacís", "Moreno", "Espinoza", "Jaramillo", "Vera", "Ortiz", "Ríos", "Chiriboga", "Quinde", "Herrera", "Benítez", "Guamán", "Cárdenas"];
-const MARCAS = ["HP", "Oster", "Sony", "LG", "Samsung", "Xiaomi", "Totto", "Philips", "Huawei", "Indurama", "GW", "Cinemark"];
+const MARCAS = ["HP", "Oster", "Sony", "LG", "Samsung", "Xiaomi", "Totto", "Philips", "Huawei", "Mabe", "Oxford", "Cineplanet"];
 const ESTADOS_PEDIDO = ["Confirmado", "Preparando", "Enviado", "Entregado", "Digital enviado", "Cancelado"];
-const CANALES = ["Web", "App", "Web + App"];
+const CANALES = ["Web"];
 
 /** Generador pseudoaleatorio determinista (mismos datos en cada corrida). */
 const rnd = (() => {
@@ -30,7 +30,7 @@ export function generarStress(db: Db, n: number) {
       nombre,
       cedula: String(1000000000 + i * 7).slice(0, 10),
       email: `usuario${i}@correo.com`,
-      celular: `+593 9${String(80000000 + i).slice(0, 8)}`,
+      celular: `+51 9${String(80000000 + i).slice(0, 8)}`,
       puntos: Math.round(acum * 0.4),
       acumulados12m: acum,
       estado: rnd() < 0.03 ? "Bloqueado" : "Activo",

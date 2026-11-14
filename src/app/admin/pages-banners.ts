@@ -17,10 +17,10 @@ import {
 
 /* ------------------------------------------------------------------ */
 /* Banners por módulo: la misma pantalla se usa en Home (Contenido),    */
-/* Productos, Beneficios; los de Vuelos están en Destinos.             */
+/* Productos y Beneficios.                                           */
 /* Se ordenan con las flechas; el orden guardado es el del sitio.       */
 /* ------------------------------------------------------------------ */
-type Canal = 'Web' | 'App';
+type Canal = 'Web';
 type Banner = {
   id?: string;
   key: string;
@@ -189,7 +189,6 @@ const estadoB = (b: Banner) =>
             <a-field label="Canal"
               ><select [class]="input" (change)="setB({ canal: $any($event.target).value })">
                 <option [selected]="e.canal === 'Web'">Web</option>
-                <option [selected]="e.canal === 'App'">App</option>
               </select></a-field
             >
             <a-field label="Ubicación"
@@ -293,7 +292,7 @@ export class BannersEditorComponent {
   protected readonly toast = inject(ToastService);
   private readonly admin = inject(AdminApi);
   protected readonly input = INPUT_CLS;
-  protected readonly canales: Canal[] = ['Web', 'App'];
+  protected readonly canales: Canal[] = ['Web'];
   protected readonly canal = signal<Canal>('Web');
   protected readonly ubic = signal('Todas');
   protected readonly banners = signal<Banner[]>([]);

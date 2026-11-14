@@ -10,7 +10,7 @@ test.describe("Página Contáctanos", () => {
     await page.getByLabel("Correo", { exact: true }).fill("hola@bancosolidario.test");
     await page.getByRole("button", { name: "Guardar", exact: true }).click();
     await expect(page.getByText("Configuración guardada")).toBeVisible();
-    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11") ?? "{}").config?.contacto?.correo)).toBe("hola@bancosolidario.test");
+    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("confianza_mockdb_v1") ?? "{}").config?.contacto?.correo)).toBe("hola@bancosolidario.test");
     await page.goto("/contacto");
     const tarjeta = page.locator("section", { has: page.getByRole("heading", { name: "Contáctanos", exact: true }) });
     await expect(tarjeta).toContainText("Lunes a sábado de 8h a 20h");
@@ -26,18 +26,18 @@ test.describe("Página Contáctanos", () => {
     await page.getByLabel("Horario de atención").fill("");
     await page.getByRole("button", { name: "Guardar", exact: true }).click();
     await expect(page.getByText("Configuración guardada")).toBeVisible();
-    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11") ?? "{}").config?.contacto?.horario)).toBe("");
+    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("confianza_mockdb_v1") ?? "{}").config?.contacto?.horario)).toBe("");
     await page.goto("/contacto");
     const tarjeta = page.locator("section", { has: page.getByRole("heading", { name: "Contáctanos", exact: true }) });
-    await expect(tarjeta).toContainText("servicioalcliente@banco-solidario.com"); // correo de soporte del pie
-    await expect(tarjeta).toContainText("1800 SOLIDARIO");
+    await expect(tarjeta).toContainText("atencion@confianza.pe"); // correo de soporte del pie
+    await expect(tarjeta).toContainText("(01) 619 2000");
     await expect(tarjeta.locator("svg").first()).toBeVisible();
   });
 
   test("una consulta enviada desde Contáctanos llega a Atención con el participante, su teléfono y WhatsApp", async ({ page }) => {
     await page.goto("/contacto");
     await page.getByLabel("Teléfono").fill("996543210");
-    await page.getByLabel("Consulta").fill("No me llegó el correo con mi cupón de Cinemark");
+    await page.getByLabel("Consulta").fill("No me llegó el correo con mi cupón de Cineplanet");
     await page.getByRole("button", { name: "Enviar" }).click();
     await expect(page.getByRole("dialog", { name: "Consulta enviada" })).toBeVisible();
 
@@ -50,7 +50,7 @@ test.describe("Página Contáctanos", () => {
     const d = page.locator("aside").last();
     await expect(d).toContainText("Recibido desde: Contáctanos");
     await expect(d).toContainText("99654");
-    await expect(d.getByRole("link", { name: "WhatsApp" })).toHaveAttribute("href", /^https:\/\/wa\.me\/593996543210\?text=/);
+    await expect(d.getByRole("link", { name: "WhatsApp" })).toHaveAttribute("href", /^https:\/\/wa\.me\/51996543210\?text=/);
     await expect(d.getByRole("link", { name: "Correo" })).toHaveAttribute("href", /^mailto:.+subject=Re/);
   });
 });

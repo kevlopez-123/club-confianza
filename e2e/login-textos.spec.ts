@@ -12,7 +12,7 @@ test.describe("Textos editables de la pantalla de ingreso", () => {
     await page.getByRole("button", { name: "Guardar", exact: true }).click();
     await page.goto("/login");
     await expect(page.getByRole("heading", { name: "Bienvenido de vuelta" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /^Tus .+ en Banco Solidario$/ })).toBeAttached();
+    await expect(page.getByRole("heading", { name: /^Tus .+ en Financiera Confianza$/ })).toBeAttached();
     await expect(page.getByPlaceholder("Escribe tu documento")).toBeVisible();
     await expect(page.getByText("Al ingresar aceptas")).toHaveCount(0);
     // lo que no se editó conserva el texto original

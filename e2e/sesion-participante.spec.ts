@@ -27,7 +27,7 @@ test.describe("Sesión del participante: ingreso, rutas privadas y cierre", () =
   });
 
   test("todas las rutas piden ingreso, salvo Términos, Privacidad y baja", async ({ page }) => {
-    for (const r of ["/", "/canjea", "/beneficios", "/vuelos", "/preguntas-frecuentes", "/carrito", "/favoritos", "/perfil", "/mi-nivel", "/notificaciones", "/mis-beneficios", "/mis-puntos/historial", "/mis-puntos/compra", "/contacto", "/vuelos/cotizaciones"]) {
+    for (const r of ["/", "/canjea", "/beneficios", "/preguntas-frecuentes", "/carrito", "/favoritos", "/perfil", "/mi-nivel", "/notificaciones", "/mis-beneficios", "/mis-puntos/historial", "/mis-puntos/compra", "/contacto"]) {
       await page.goto(r);
       await expect(page, r).toHaveURL(/\/login/);
     }

@@ -40,7 +40,7 @@ function participantesPorCanal(desde: string, hasta: string) {
   for (const p of db.admin.pedidos as any[]) if (dentro(p.fechaISO, desde, hasta) && p.cliente) activos.add(p.cliente);
   const cuenta = new Map<string, number>();
   for (const p of db.admin.participantes as any[]) if (activos.has(p.nombre)) cuenta.set(p.canal, (cuenta.get(p.canal) ?? 0) + 1);
-  return ["Web", "App", "Web + App"].map((name) => ({ name, value: cuenta.get(name) ?? 0 })).filter((c) => c.value > 0);
+  return ["Web"].map((name) => ({ name, value: cuenta.get(name) ?? 0 })).filter((c) => c.value > 0);
 }
 
 /** Productos y beneficios más canjeados (unidades) en los pedidos del rango. */

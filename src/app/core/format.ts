@@ -1,15 +1,15 @@
 import type { Nivel } from "./models";
 
-/** Equivalencia usada en todo el prototipo: 70 puntos = $1.00 */
-export const PUNTOS_POR_DOLAR = 70;
-/** Precio de compra de puntos: $0.02 por punto */
-export const PRECIO_POR_PUNTO = 0.02;
+/** Equivalencia usada en todo el prototipo: 20 puntos = S/ 1.00 */
+export const PUNTOS_POR_DOLAR = 20;
+/** Precio de compra de puntos: S/ 0.07 por punto */
+export const PRECIO_POR_PUNTO = 0.07;
 /** Equivalencia de canje hacia tarjeta: 320.5 puntos = $1.00 */
 export const PUNTOS_POR_DOLAR_CASHBACK = 320.5;
 export const GIROS_MAXIMOS = 3;
 
 /** Formato regional vigente; lo establece `BrandService` según el país del tenant. */
-let formato = { locale: "es-EC", simbolo: "$" };
+let formato = { locale: "es-PE", simbolo: "S/ " };
 export const configurarFormato = (f: { locale: string; simbolo: string }) => (formato = f);
 export const localeActual = () => formato.locale;
 

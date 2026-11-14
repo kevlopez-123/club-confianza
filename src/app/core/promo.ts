@@ -1,4 +1,4 @@
-import { PUNTOS_POR_DOLAR } from "./format";
+import { PUNTOS_POR_DOLAR, formatUSD } from "./format";
 
 /** Campos de promoción que el panel guarda en cada producto o beneficio. */
 export type PromoCampos = {
@@ -51,7 +51,7 @@ export function aplicarPromo<T extends { puntos?: number | undefined; precio?: n
     precio: precio == null ? precio : Math.max(0, redondea(precio - v)),
     puntosOriginal: puntos,
     precioOriginal: precio,
-    promoEtiqueta: `-$${Number.isInteger(v) ? v : v.toFixed(2)}`,
+    promoEtiqueta: `-${formatUSD(v)}`,
   };
 }
 

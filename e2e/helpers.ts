@@ -8,7 +8,7 @@ export const PUBLIC_ROUTES = [
   "/", "/canjea", "/canjea/p1", "/beneficios", "/beneficios/b1", "/beneficios/b6", "/buscar?q=sony", "/favoritos", "/carrito", "/gracias",
   "/mi-nivel", "/notificaciones", "/mis-beneficios", "/mis-compras", "/mis-compras/BNB-4F82KDL1",
   "/mis-puntos/historial", "/mis-puntos/compra",
-  "/perfil", "/contacto", "/vuelos", "/vuelos/cotizaciones", "/vuelos/destinos/galapagos",
+  "/perfil", "/contacto",
   "/preguntas-frecuentes", "/terminos", "/privacidad",
 ];
 
@@ -17,7 +17,7 @@ export const PUBLIC_ROUTES = [
 
 export const ADMIN_ROUTES = [
   "/admin", "/admin/reportes", "/admin/participantes", "/admin/formulario", "/admin/movimientos", "/admin/reglas", "/admin/niveles",
-  "/admin/productos", "/admin/beneficios", "/admin/marcas", "/admin/destinos", "/admin/compras-puntos", "/admin/pedidos", "/admin/cotizaciones", "/admin/atencion",
+  "/admin/productos", "/admin/beneficios", "/admin/marcas", "/admin/compras-puntos", "/admin/pedidos", "/admin/atencion",
   "/admin/contenido", "/admin/configuracion", "/admin/usuarios", "/admin/roles", "/admin/auditoria",
 ];
 
@@ -104,7 +104,7 @@ export async function textoDeArchivo(d: { path(): Promise<string | null> }) {
 /** Deja a la participante demo sin haber aceptado nada: es su primer ingreso (en la base simulada del navegador). */
 export async function primerIngreso(page: Page) {
   await page.evaluate(() => {
-    const k = "bancosolidario_mockdb_v11";
+    const k = "confianza_mockdb_v1";
     const d = JSON.parse(localStorage.getItem(k) ?? "{}");
     d.aceptaciones = { ...(d.aceptaciones ?? {}), p1: {} };
     localStorage.setItem(k, JSON.stringify(d));

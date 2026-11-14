@@ -90,7 +90,7 @@ test.describe("Pagos de la compra de puntos: aprobado, rechazado, pendiente y re
     await page.goto("/canjea");
     await page.getByRole("button", { name: "Agregar al carrito" }).first().click();
     await page.goto("/carrito");
-    const pagar = page.getByRole("button", { name: /Finalizar compra|Pagar/ }).first();
+    const pagar = page.getByRole("button", { name: /Finalizar canje|Pagar/ }).first();
     await pagar.click();
     // si el carrito no requiere dinero se confirma directo; la prueba solo aplica cuando abre la pasarela
     const tarjeta = page.getByLabel("Número de tarjeta");

@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { entrarAdmin, ORIGEN } from "./helpers";
 
-const DB = "bancosolidario_mockdb_v11";
+const DB = "confianza_mockdb_v1";
 const ficha = (page: Page, id = "p1") =>
   page.evaluate(([k, id]) => (JSON.parse(localStorage.getItem(k as string) ?? "{}").admin?.participantes ?? []).find((p: { id: string }) => p.id === id), [DB, id]);
 

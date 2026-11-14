@@ -1,6 +1,6 @@
 /**
  * Provincias → ciudades (cantones) como valores fijos: la ciudad depende de la provincia y no se escribe a mano.
- * Hoy está cargado Ecuador; para otro país no hay lista y el formulario pide la ciudad como texto validado.
+ * Hoy están cargados Ecuador y Perú; para otro país no hay lista y el formulario pide la ciudad como texto validado.
  */
 const lista = (s: string) => s.split("|").map((x) => x.trim());
 
@@ -31,7 +31,35 @@ const ECUADOR: Record<string, string[]> = {
   "Zamora Chinchipe": lista("Zamora|Centinela del Cóndor|Chinchipe|El Pangui|Nangaritza|Palanda|Paquisha|Yacuambi|Yantzaza"),
 };
 
-const POR_PAIS: Record<string, Record<string, string[]>> = { EC: ECUADOR };
+const PERU: Record<string, string[]> = {
+  Amazonas: lista("Chachapoyas|Bagua|Bagua Grande|Jumbilla|Lamud|Luya|Mendoza|Nieva"),
+  Áncash: lista("Huaraz|Casma|Chimbote|Caraz|Carhuaz|Huari|Nuevo Chimbote|Yungay"),
+  Apurímac: lista("Abancay|Andahuaylas|Chalhuanca|Chincheros|Cotabambas|Curahuasi|Tambobamba"),
+  Arequipa: lista("Arequipa|Camaná|Caylloma|Cayma|Cerro Colorado|Characato|Mollendo|Yanahuara|Cocachacra"),
+  Ayacucho: lista("Ayacucho|Cangallo|Huanta|Huamanga|Puquio|San Miguel|Coracora"),
+  Cajamarca: lista("Cajamarca|Celendín|Chota|Jaén|San Ignacio|San Marcos|Cutervo"),
+  Callao: lista("Callao|Bellavista|Carmen de la Legua|La Perla|La Punta|Ventanilla"),
+  Cusco: lista("Cusco|Calca|Espinar|La Convención|Quillabamba|Urubamba|Sicuani|Paucartambo"),
+  Huancavelica: lista("Huancavelica|Acobamba|Angaraes|Castrovirreyna|Churcampa|Tayacaja"),
+  Huánuco: lista("Huánuco|Ambo|Dos de Mayo|Leoncio Prado|Tingo María|Pachitea|Yarowilca"),
+  Ica: lista("Ica|Chincha Alta|Nasca|Palpa|Pisco|Paracas|Parcona"),
+  Junín: lista("Huancayo|Chanchamayo|La Merced|Jauja|Junín|Satipo|Tarma|Concepción|Chupaca"),
+  "La Libertad": lista("Trujillo|Ascope|Chepén|Pacasmayo|Otuzco|Pataz|Virú|Huamachuco|La Esperanza"),
+  Lambayeque: lista("Chiclayo|Ferreñafe|Lambayeque|José Leonardo Ortiz|La Victoria|Monsefú|Pimentel"),
+  Lima: lista("Lima|Barranca|Cañete|Huaral|Huacho|Huaura|Callao|Miraflores|San Isidro|Surco|La Molina|San Borja|Barranco|Jesús María|San Miguel|Los Olivos|Comas|San Juan de Lurigancho|Ate|Chorrillos"),
+  Loreto: lista("Iquitos|Alto Amazonas|Maynas|Nauta|Requena|Yurimaguas|Ucayali"),
+  "Madre de Dios": lista("Puerto Maldonado|Iñapari|Iberia|Tambopata|Manu"),
+  Moquegua: lista("Moquegua|Ilo|Mariscal Nieto|General Sánchez Cerro|Omate"),
+  Pasco: lista("Cerro de Pasco|Chaupimarca|Oxapampa|Daniel Alcides Carrión|Yanahuanca"),
+  Piura: lista("Piura|Castilla|Paita|Sullana|Talara|Sechura|Tambo Grande|Ayabaca|Huancabamba"),
+  Puno: lista("Puno|Juliaca|Azángaro|Ayaviri|Ilave|Juli|Yunguyo|Sandia"),
+  "San Martín": lista("Moyobamba|Rioja|Tarapoto|Bellavista|Juanjuí|Lamas|Tocache|Picota"),
+  Tacna: lista("Tacna|Candarave|Jorge Basadre|Tarata|Pocollay|Ciudad Nueva"),
+  Tumbes: lista("Tumbes|Zarumilla|Contralmirante Villar|Aguas Verdes|Zorritos"),
+  Ucayali: lista("Pucallpa|Atalaya|Coronel Portillo|Padre Abad|Aguaytía|Purús"),
+};
+
+const POR_PAIS: Record<string, Record<string, string[]>> = { EC: ECUADOR, PE: PERU };
 
 /** Ciudades de una provincia; vacío si no hay lista cargada para ese país o provincia. */
 export const ciudadesDe = (pais: string, provincia: string): string[] => POR_PAIS[pais]?.[provincia] ?? [];
@@ -43,8 +71,13 @@ const sinTildes = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLo
 export function ciudadCoincidente(pais: string, provincia: string, texto: string): string {
   const t = sinTildes(texto);
   if (!t) return "";
-  return ciudadesDe(pais, provincia).find((c) => {
-    const n = sinTildes(c.replace(/\s*\(.*\)/, ""));
-    return t === sinTildes(c) || t.split(/[,/-]/).some((p) => p.trim() === n);
-  }) ?? "";
+  const ciudades = ciudadesDe(pais, provincia);
+  const exacta = ciudades.find((c) => t === sinTildes(c));
+  if (exacta) return exacta;
+  // «Ciudad, Provincia»: manda la primera parte (la más específica). Así «Miraflores, Lima» da Miraflores y no Lima.
+  for (const parte of t.split(/[,/-]/).map((p) => p.trim())) {
+    const c = ciudades.find((x) => sinTildes(x.replace(/\s*\(.*\)/, "")) === parte);
+    if (c) return c;
+  }
+  return "";
 }

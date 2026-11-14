@@ -11,7 +11,7 @@ test.describe("Ficha de la marca aliada", () => {
     await page.getByRole("tab", { name: /Productos/ }).click();
     await expect(page).toHaveURL(/tab=productos/);
     await expect(page.getByRole("table", { name: "Productos de la marca" })).toContainText("Laptop Pavilion 15 Core i5");
-    await page.goto("/admin/marcas/cinemark?tab=beneficios");
+    await page.goto("/admin/marcas/cineplanet?tab=beneficios");
     await expect(page.getByRole("table", { name: "Beneficios de la marca" })).toContainText("2x1 en entradas 2D");
   });
 
@@ -64,7 +64,7 @@ test.describe("Ficha de la marca aliada", () => {
     await page.getByRole("link", { name: "Ver el producto Laptop Pavilion 15 Core i5" }).click();
     await expect(page).toHaveURL(/\/admin\/productos\?ver=/);
     await expect(page.getByRole("dialog").or(page.locator("aside")).getByText("Laptop Pavilion 15 Core i5").first()).toBeVisible();
-    await page.goto("/admin/marcas/cinemark?tab=beneficios");
+    await page.goto("/admin/marcas/cineplanet?tab=beneficios");
     await page.getByRole("link", { name: /^Ver el beneficio 2x1/ }).first().click();
     await expect(page).toHaveURL(/\/admin\/beneficios\?ver=/);
     await expect(page.locator("aside").getByText(/2x1 en entradas/).first()).toBeVisible();

@@ -3,10 +3,10 @@ import { entrarAdmin, textoDeArchivo } from "./helpers";
 
 const CSV = [
   "documento,nombre,correo,puntos",
-  "1718293045,Rosa Benítez,rosa.benitez@correo.com,1500",
+  "17182930,Rosa Benítez,rosa.benitez@correo.com,1500",
   "17182,Mónica Vélez,monica.velez@correo.com,1200", // documento corto
-  "1104567893,Iván Cárdenas,ivan.cardenas,300", // correo inválido
-  "1709876543,Sofía Herrera,sofia.herrera@correo.com,abc", // puntos no numéricos
+  "11045678,Iván Cárdenas,ivan.cardenas,300", // correo inválido
+  "17098765,Sofía Herrera,sofia.herrera@correo.com,abc", // puntos no numéricos
 ].join("\n");
 
 async function subirParticipantes(page: Page) {
@@ -26,7 +26,7 @@ test.describe("Importaciones: plantillas, reporte de errores e historial", () =>
     for (const hoja of ["Instrucciones", "Datos", "Ejemplo"]) expect(xlsx).toContain(`name="${hoja}"`);
     expect(xlsx).toContain("DOCUMENTO *"); // encabezados en mayúscula, con * en los obligatorios
     expect(xlsx).toContain("ana.torres@correo.com");
-    expect(xlsx).toContain("FF00BDD2"); // color de la plataforma
+    expect(xlsx).toContain("FF005699"); // color de la plataforma
   });
 
   test("antes de importar se puede descargar el reporte de las filas con error y su motivo", async ({ page }) => {
@@ -48,7 +48,7 @@ test.describe("Importaciones: plantillas, reporte de errores e historial", () =>
     await subirParticipantes(page);
     await page.getByRole("button", { name: /Importar 1 participantes/ }).click();
     await expect(page.getByText("Carga completada")).toBeVisible();
-    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11") ?? "{}").admin?.importaciones?.some((i: any) => i.archivo === "participantes_nov.csv"))).toBe(true);
+    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("confianza_mockdb_v1") ?? "{}").admin?.importaciones?.some((i: any) => i.archivo === "participantes_nov.csv"))).toBe(true);
     await page.getByRole("dialog").getByRole("link", { name: "Importaciones" }).click();
     await expect(page).toHaveURL(/\/admin\/importaciones$/);
     const fila = page.locator("tbody tr", { hasText: "participantes_nov.csv" });

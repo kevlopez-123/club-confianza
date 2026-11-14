@@ -22,6 +22,9 @@ import {
   OrdenSelectComponent, ProductSectionComponent, SearchFilterBarComponent,
 } from "../shared/widgets";
 import { Countdown } from "../shared/countdown";
+import { QrCodeComponent } from "../shared/qr-code";
+import { ToastService } from "../shared/toast";
+import { descargarCuponPdf, imprimirCuponPdf, type DatosCupon } from "../core/pdf-cupon";
 
 /* ------------------------------------------------------------------ */
 /* Inicio                                                              */
@@ -31,7 +34,7 @@ import { Countdown } from "../shared/countdown";
   imports: [HeroSliderComponent, ProductSectionComponent, BenefitsSectionComponent, CtaDuoComponent, HomeCategoriesComponent, HomeDestinosComponent, HomeCtaPuntosComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <h1 class="sr-only">{{ brand.programa() }}: canjea tus {{ brand.unidad() }} por productos, beneficios y vuelos</h1>
+    <h1 class="sr-only">{{ brand.programa() }}: canjea tus {{ brand.unidad() }} por productos y beneficios</h1>
     @for (s of secciones(); track s.id) {
       @switch (s.id) {
         @case ("banners") { <app-hero-slider [items]="catalog.bannersHome()" /> }
@@ -112,12 +115,15 @@ export class HomePage {
         </div>
 
         @if (visibles() < lista().length) {
-          <div class="mt-10 flex justify-center">
+          <div class="mt-10 flex flex-col items-center gap-2">
+            <p class="text-sm text-muted-foreground" aria-live="polite">Mostrando {{ visiblesLista().length }} de {{ lista().length }}</p>
             <button type="button" (click)="visibles.set(visibles() + 8)"
               class="rounded-full border border-border bg-card px-8 py-3 text-sm font-semibold text-ink transition-colors hover:border-primary hover:text-primary">
               Cargar más
             </button>
           </div>
+        } @else if (lista().length > 12) {
+          <p class="mt-8 text-center text-sm text-muted-foreground">Ya viste todos los productos ({{ lista().length }}).</p>
         }
 
         @if (catalog.errorCarga() && !catalog.cargado()) { <app-estado-error (reintentar)="catalog.reintentar()" /> }
@@ -256,7 +262,6 @@ export class CanjeaPage {
                   </div>
                   <div class="min-w-0 text-right sm:text-left">
                     <p class="text-lg font-extrabold text-ink">{{ puntos(producto.puntos * cantidad()) }} puntos@if (producto.puntosOriginal) { <s class="ml-2 text-sm font-medium text-muted-foreground">{{ puntos(producto.puntosOriginal * cantidad()) }}</s> }</p>
-                    <p class="text-sm text-muted-foreground">o {{ usd(producto.precio * cantidad()) }} con tu tarjeta@if (producto.precioOriginal) { <s class="ml-2">{{ usd(producto.precioOriginal * cantidad()) }}</s> }</p>
                   </div>
                 </div>
               </div>
@@ -289,21 +294,25 @@ export class CanjeaPage {
 
       <section class="bg-background py-14">
         <div class="page-container">
-          <h2 class="text-center text-xl font-extrabold text-ink sm:text-2xl">Más sobre la marca</h2>
+          <!-- «Más sobre la marca» solo si el panel tiene una descripción de la marca: logo (o sus iniciales), nombre, descripción y, si tiene, su web. -->
           @if (catalog.marcaPorNombre(producto.marca); as info) {
-            @if (info.logo) {
-              <img [src]="info.logo" [alt]="info.nombre" class="mx-auto mt-4 h-14 max-w-[200px] object-contain" />
+            @if (info.descripcion?.trim()) {
+              <h2 class="text-center text-xl font-extrabold text-ink sm:text-2xl">Más sobre la marca</h2>
+              @if (info.logo) {
+                <img [src]="info.logo" [alt]="producto.marca" class="mx-auto mt-4 h-14 max-w-[200px] object-contain" />
+              } @else {
+                <span class="mx-auto mt-4 grid h-14 w-14 place-items-center rounded-full bg-secondary text-lg font-extrabold text-primary" aria-hidden="true">{{ producto.marca.slice(0, 2).toUpperCase() }}</span>
+              }
+              <p class="mt-2 text-center text-base font-semibold uppercase text-ink">{{ producto.marca }}</p>
+              <p class="mx-auto mt-3 max-w-4xl text-center text-sm leading-relaxed text-muted-foreground">{{ info.descripcion }}</p>
+              @if (info.web) {
+                <p class="mt-3 text-center">
+                  <a [href]="info.web" target="_blank" rel="noreferrer" class="inline-flex items-center gap-1 text-sm font-semibold text-celeste hover:underline">
+                    Visitar sitio web de {{ producto.marca }} <app-icon name="Link2" class="h-4 w-4" />
+                  </a>
+                </p>
+              }
             }
-          }
-          <p class="mx-auto mt-4 max-w-4xl text-center text-sm leading-relaxed text-muted-foreground">
-            {{ catalog.marcaPorNombre(producto.marca)?.descripcion || producto.marca + ' forma parte de las marcas aliadas de ' + brand.programa() + '. Encuentra más productos de su catálogo y canjéalos con tus ' + brand.unidad() + ' o combínalos con tu tarjeta.' }}
-          </p>
-          @if (catalog.marcaPorNombre(producto.marca)?.web; as web) {
-            <p class="mt-3 text-center">
-              <a [href]="web" target="_blank" rel="noreferrer" class="inline-flex items-center gap-1 text-sm font-semibold text-celeste hover:underline">
-                Visitar sitio web de {{ producto.marca }} <app-icon name="Link2" class="h-4 w-4" />
-              </a>
-            </p>
           }
           <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             @for (p of relacionados(); track p.id) {
@@ -497,7 +506,7 @@ export class BeneficiosPage {
 /* ------------------------------------------------------------------ */
 @Component({
   selector: "app-beneficio-detalle-page",
-  imports: [RouterLink, IconComponent, ModalComponent, AddedToCartModalComponent, Countdown],
+  imports: [RouterLink, IconComponent, ModalComponent, AddedToCartModalComponent, Countdown, QrCodeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (beneficio(); as beneficio) {
@@ -567,15 +576,8 @@ export class BeneficiosPage {
 
               @if (beneficio.tipo === "compra") {
                 <div class="mt-6 rounded-2xl border border-border p-5">
-                  @if (beneficio.soloDinero) {
-                    <p class="text-lg font-extrabold text-ink">{{ usd(beneficio.precio ?? 0) }}@if (beneficio.precioOriginal) { <s class="ml-2 text-sm font-medium text-muted-foreground">{{ usd(beneficio.precioOriginal) }}</s> }</p>
-                    <p class="text-sm text-muted-foreground">Beneficio exclusivo: no es canjeable con puntos.</p>
-                    <p class="mt-2 text-sm text-muted-foreground">En el carrito lo pagas al 100% con tu tarjeta de débito o crédito.</p>
-                  } @else {
-                    <p class="text-lg font-extrabold text-ink">{{ puntos(beneficio.puntos ?? 0) }} puntos@if (beneficio.puntosOriginal) { <s class="ml-2 text-sm font-medium text-muted-foreground">{{ puntos(beneficio.puntosOriginal) }}</s> }</p>
-                    <p class="text-sm text-muted-foreground">o {{ usd(beneficio.precio ?? 0) }} pagando solo con tu tarjeta@if (beneficio.precioOriginal) { <s class="ml-2">{{ usd(beneficio.precioOriginal) }}</s> }</p>
-                    <p class="mt-2 text-sm text-muted-foreground">En el carrito eliges cómo pagarlo: todo con puntos, puntos + tarjeta o solo con dinero.</p>
-                  }
+                  <p class="text-lg font-extrabold text-ink">{{ puntos(beneficio.puntos ?? 0) }} puntos@if (beneficio.puntosOriginal) { <s class="ml-2 text-sm font-medium text-muted-foreground">{{ puntos(beneficio.puntosOriginal) }}</s> }</p>
+                  <p class="mt-2 text-sm text-muted-foreground">Se canjea únicamente con puntos.</p>
                   <button type="button" (click)="agregarAlCarrito()"
                     class="mt-4 w-full rounded-full bg-primary py-3.5 text-base font-bold uppercase tracking-wide text-primary-foreground transition-transform hover:scale-[1.02]">
                     Agregar al carrito
@@ -589,14 +591,13 @@ export class BeneficiosPage {
                       <p class="text-sm text-ink">Presenta este QR a un encargado del local.</p>
                       <p class="mt-4 text-sm text-muted-foreground">Te quedan:</p>
                       <div class="mt-2"><app-countdown [expira]="cupon.expira" /></div>
-                      <img [src]="'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + cupon.codigo" [alt]="'Código QR ' + cupon.codigo"
-                        width="220" height="220" class="mx-auto mt-5 h-48 w-48" />
+                      <app-qr [valor]="cupon.codigo" clase="mx-auto mt-5 h-48 w-48" />
                       <p class="mt-2 text-lg font-extrabold text-ink">{{ cupon.codigo }}</p>
                     </div>
                   </div>
                   <div class="mt-4 flex justify-center gap-3">
-                    <button type="button" aria-label="Descargar cupón" class="grid h-11 w-11 place-items-center rounded-full bg-secondary text-primary"><app-icon name="Download" class="h-4 w-4" /></button>
-                    <button type="button" aria-label="Imprimir cupón" class="grid h-11 w-11 place-items-center rounded-full bg-secondary text-primary"><app-icon name="Printer" class="h-4 w-4" /></button>
+                    <button type="button" aria-label="Descargar cupón" (click)="descargarCupon(cupon)" class="grid h-11 w-11 place-items-center rounded-full bg-secondary text-primary"><app-icon name="Download" class="h-4 w-4" /></button>
+                    <button type="button" aria-label="Imprimir cupón" (click)="imprimirCupon(cupon)" class="grid h-11 w-11 place-items-center rounded-full bg-secondary text-primary"><app-icon name="Printer" class="h-4 w-4" /></button>
                   </div>
                   <p class="mt-4 flex items-center justify-center gap-2 text-sm font-medium text-ink">
                     <app-icon name="CheckCircle2" class="h-4 w-4 text-primary" /> Cupón generado. Este beneficio queda bloqueado hasta que expire.
@@ -643,7 +644,7 @@ export class BeneficiosPage {
             <li>• El cupón tendrá una validez de {{ horasCupon() }} {{ horasCupon() === 1 ? "hora" : "horas" }}</li>
             @if (reglaTexto(); as r) { <li>• {{ r }}</li> }
             <li>• Solo puedes tener un cupón activo a la vez</li>
-            <li>• Debes presentarlo en el establecimiento junto con tu cédula de identidad</li>
+            <li>• Debes presentarlo en el establecimiento junto con tu DNI</li>
           </ul>
         </div>
 
@@ -670,6 +671,20 @@ export class BeneficioDetallePage {
   readonly id = input.required<string>();
   private readonly api = inject(ApiService);
   private readonly sesion = inject(SesionService);
+  private readonly brand = inject(BrandService);
+  private readonly toast = inject(ToastService);
+  /** Datos del PDF del cupón: marca del beneficio, código, cuándo se generó y cuándo vence. */
+  private datosCupon(cupon: { codigo: string; expira: number }): DatosCupon {
+    const b = this.beneficio();
+    const txt = (t: number) => { const d = new Date(t); const p = (n: number) => String(n).padStart(2, "0"); return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`; };
+    return { programa: this.brand.programa(), marca: b?.marca ?? "", beneficio: b?.nombre ?? "", codigo: cupon.codigo, generado: txt(cupon.expira - this.horasCupon() * 3_600_000), vence: txt(cupon.expira), color: this.brand.tenant().tema.primario };
+  }
+  protected descargarCupon(cupon: { codigo: string; expira: number }) {
+    descargarCuponPdf(this.datosCupon(cupon)).catch(() => this.toast.error("No se pudo generar el PDF del cupón."));
+  }
+  protected imprimirCupon(cupon: { codigo: string; expira: number }) {
+    imprimirCuponPdf(this.datosCupon(cupon)).catch(() => this.toast.error("No se pudo preparar el cupón para imprimir."));
+  }
   /** Horas de validez del cupón: las de este beneficio (o las generales del programa si no tiene regla propia). */
   protected readonly horasCupon = computed(() => this.beneficio()?.reglaCupon?.horas || this.catalog.config()?.cupon?.horas || 3);
   /** Qué le toca a este participante con este beneficio: disponible o el motivo por el que no puede canjearlo ahora. */
@@ -833,7 +848,25 @@ export class BuscarPage {
     <div class="bg-surface py-10 lg:py-14">
       <div class="page-container">
         <h1 class="text-2xl font-extrabold text-ink lg:text-3xl">Mis favoritos</h1>
-        <p class="mt-2 text-base text-muted-foreground">{{ prods().length + bens().length }} elementos guardados.</p>
+        <p class="mt-2 text-base text-muted-foreground">{{ visibles() !== total() ? visibles() + " de " + total() : total() }} elementos guardados.</p>
+
+        <!-- Buscador solo con más de 8 favoritos y chips solo si hay productos y beneficios: con pocos, serían estorbo. -->
+        @if (conBuscador()) {
+          <input type="search" aria-label="Buscar en mis favoritos" placeholder="Buscar en mis favoritos" maxlength="60" [value]="texto()" (input)="texto.set($any($event.target).value)"
+            class="mt-5 h-12 w-full max-w-xl rounded-full border border-border bg-card px-5 text-base text-ink outline-none focus:ring-2 focus:ring-primary/50" />
+        }
+        @if (conTipos()) {
+          <div role="tablist" aria-label="Tipo de favoritos" class="mt-4 flex flex-wrap gap-2">
+            @for (t of tiposFiltro(); track t.id) {
+              <button role="tab" type="button" [attr.aria-selected]="tipoActivo() === t.id" (click)="tipo.set(t.id)"
+                [class]="'min-h-10 rounded-full border px-5 text-sm font-bold ' + (tipoActivo() === t.id ? 'border-ink bg-ink text-white' : 'border-border bg-card text-ink hover:border-primary')">{{ t.label }}</button>
+            }
+          </div>
+        }
+
+        @if (total() > 0 && visibles() === 0) {
+          <p class="mt-10 rounded-2xl bg-card p-8 text-center text-base text-muted-foreground shadow-[var(--shadow-card)]">No encontramos favoritos. Prueba con otra búsqueda o con otro tipo.</p>
+        }
 
         @if (prods().length > 0) {
           <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -845,7 +878,7 @@ export class BuscarPage {
             @for (b of bens(); track b.id) { <app-benefit-card [beneficio]="b" [nivel]="2" /> }
           </div>
         }
-        @if (prods().length + bens().length === 0) {
+        @if (total() === 0) {
           <p class="mt-10 rounded-2xl bg-card p-8 text-center text-base text-muted-foreground shadow-[var(--shadow-card)]">
             Todavía no tienes favoritos. Toca el corazón en cualquier producto o beneficio.
           </p>
@@ -859,11 +892,36 @@ export class FavoritosPage {
   private readonly catalog = inject(CatalogService);
   private readonly store = inject(StoreService);
   protected readonly agregado = signal<Producto | null>(null);
-  protected readonly prods = computed(() => this.catalog.productos().filter((p) => this.store.favoritos().includes(p.id)));
-  protected readonly bens = computed(() => this.catalog.beneficios().filter((b) => this.store.favoritos().includes(b.id)));
+  private readonly todosProds = computed(() => this.catalog.productos().filter((p) => this.store.favoritos().includes(p.id)));
+  private readonly todosBens = computed(() => this.catalog.beneficios().filter((b) => this.store.favoritos().includes(b.id)));
+  protected readonly total = computed(() => this.todosProds().length + this.todosBens().length);
+
+  /** Búsqueda y tipo («todos», «productos» o «beneficios»). El buscador solo aparece con más de 8 favoritos. */
+  protected readonly texto = signal("");
+  protected readonly tipo = signal<"todos" | "productos" | "beneficios">("todos");
+  protected readonly conBuscador = computed(() => this.total() > 8);
+  /** Los chips de tipo solo tienen sentido si hay de los dos tipos. */
+  protected readonly conTipos = computed(() => this.todosProds().length > 0 && this.todosBens().length > 0);
+  protected readonly tipoActivo = computed(() => (this.conTipos() ? this.tipo() : "todos"));
+  protected readonly tiposFiltro = computed(() => [
+    { id: "todos" as const, label: "Todos" },
+    { id: "productos" as const, label: `Productos (${this.todosProds().length})` },
+    { id: "beneficios" as const, label: `Beneficios (${this.todosBens().length})` },
+  ]);
+  private readonly q = computed(() => (this.conBuscador() ? sinTildes(this.texto().trim()) : ""));
+  protected readonly prods = computed(() =>
+    this.tipoActivo() === "beneficios" ? [] : this.todosProds().filter((p) => !this.q() || sinTildes(`${p.marca} ${p.nombre}`).includes(this.q())),
+  );
+  protected readonly bens = computed(() =>
+    this.tipoActivo() === "productos" ? [] : this.todosBens().filter((b) => !this.q() || sinTildes(`${b.marca} ${b.nombre}`).includes(this.q())),
+  );
+  protected readonly visibles = computed(() => this.prods().length + this.bens().length);
 
   protected onAdd(p: Producto) {
     agregarProducto(this.store, p);
     this.agregado.set(p);
   }
 }
+
+/** Minúsculas y sin tildes, para que «cafetera» encuentre «Cafetera» y «cámara» encuentre «camara». */
+const sinTildes = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();

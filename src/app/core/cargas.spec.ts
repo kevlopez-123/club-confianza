@@ -13,7 +13,7 @@ const ctx = (extra: Partial<CtxCarga> = {}): CtxCarga => ({
   ...extra,
 });
 
-const ENC_PROD = ["CÓDIGO *", "NOMBRE *", "MARCA *", "CATEGORÍA *", "SUBCATEGORÍA", "PUNTOS *", "PRECIO US$", "TIPO", "DESCRIPCIÓN", "CONSIDERACIONES", "ESPECIFICACIONES", "IMÁGENES", "ACTIVO"];
+const ENC_PROD = ["CÓDIGO *", "NOMBRE *", "MARCA *", "CATEGORÍA *", "SUBCATEGORÍA", "PUNTOS *", "PRECIO S/", "TIPO", "DESCRIPCIÓN", "CONSIDERACIONES", "ESPECIFICACIONES", "IMÁGENES", "ACTIVO"];
 
 describe("conversión de celdas", () => {
   it("fechas: ISO, dd/mm/aaaa y número de serie de Excel; rechaza las imposibles", () => {
@@ -127,7 +127,7 @@ describe("carga de beneficios", () => {
     expect(prepararCarga("beneficios", [ENC, fila({ ...base, "Espera (meses)": 99 })], ctx()).filas[0]!.error).toContain("60");
   });
   it("modalidad Compra y solo dinero", () => {
-    const e = prepararCarga("beneficios", [ENC, fila({ ...base, "Modalidad": "compra", "Solo dinero": "Sí", "Precio US$": 12 })], ctx()).filas[0]!.entidad;
+    const e = prepararCarga("beneficios", [ENC, fila({ ...base, "Modalidad": "compra", "Solo dinero": "Sí", "Precio S/": 12 })], ctx()).filas[0]!.entidad;
     expect(e).toMatchObject({ tipo: "compra", soloDinero: true, precio: 12 });
   });
 });

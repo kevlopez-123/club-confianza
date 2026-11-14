@@ -21,7 +21,7 @@ test.describe("Limpiar filtros: mismo comportamiento en todas las pantallas", ()
     await expect(page.locator("tbody tr")).toHaveCount(total);
   });
 
-  test("Atención, Movimientos y Cotizaciones del panel también la tienen", async ({ page }) => {
+  test("Atención y Movimientos del panel también la tienen", async ({ page }) => {
     await entrarAdmin(page);
     await page.goto("/admin/atencion");
     await expect(page.locator("tbody tr", { hasText: "Pedido no llega" })).toBeVisible();
@@ -39,12 +39,6 @@ test.describe("Limpiar filtros: mismo comportamiento en todas las pantallas", ()
     await expect(page.getByLabel("Desde")).toHaveValue("");
     await expect(limpiar(page)).toHaveCount(0);
 
-    await page.goto("/admin/cotizaciones");
-    await expect(page.locator("tbody tr", { hasText: "COT-100482" })).toBeVisible();
-    await page.getByLabel("Estado").selectOption("Cerrada");
-    await expect(page.locator("tbody tr", { hasText: "COT-100482" })).toHaveCount(0);
-    await limpiar(page).click();
-    await expect(page.locator("tbody tr", { hasText: "COT-100482" })).toBeVisible();
   });
 
   test("Registro de cambios, Compras de puntos y Productos", async ({ page }) => {
@@ -69,16 +63,7 @@ test.describe("Limpiar filtros: mismo comportamiento en todas las pantallas", ()
     await expect(limpiar(page)).toHaveCount(0);
   });
 
-  test("Sitio: cotizaciones, historial de puntos, mis beneficios y catálogo", async ({ page }) => {
-    await page.goto("/vuelos/cotizaciones");
-    await expect(page.locator("article")).toHaveCount(4);
-    await expect(limpiar(page)).toHaveCount(0);
-    await page.locator("main").getByRole("searchbox").fill("Madrid");
-    await expect(page.locator("article")).toHaveCount(1);
-    await limpiar(page).click();
-    await expect(page.locator("article")).toHaveCount(4);
-    await expect(page.locator("main").getByRole("searchbox")).toHaveValue("");
-
+  test("Sitio: historial de puntos, mis beneficios y catálogo", async ({ page }) => {
     await page.goto("/mis-puntos/historial");
     await expect(limpiar(page)).toHaveCount(0); // el periodo por defecto no cuenta como filtro
     await page.getByLabel("Tipo de movimiento").selectOption("canje");

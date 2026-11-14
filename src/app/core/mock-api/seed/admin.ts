@@ -1,4 +1,4 @@
-// Datos mock del panel de administración (un solo contenido para web y app).
+// Datos mock del panel de administración (contenido de la web).
 export type Participante = {
   id: string;
   nombre: string;
@@ -8,7 +8,7 @@ export type Participante = {
   puntos: number;
   acumulados12m: number;
   estado: "Activo" | "Bloqueado";
-  canal: "Web" | "App" | "Web + App";
+  canal: "Web";
   alta: string;
   /** Acepta correos de novedades y campañas (false = baja). Los avisos de su cuenta (códigos, pedidos, puntos) se envían igual. */
   recibeNovedades?: boolean;
@@ -27,13 +27,13 @@ export const participantes: Participante[] = nombres.map((n, i) => {
   return {
     id: `p${i + 1}`,
     nombre: n,
-    cedula: `17${String(10293847 + i * 7311).slice(0, 8)}`,
+    cedula: String(10293847 + i * 7311).slice(0, 8),
     email: n.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ /g, ".") + "@correo.com",
-    celular: `+593 9${String(81234567 + i * 1371).slice(0, 8)}`,
+    celular: `+51 9${String(81234567 + i * 1371).slice(0, 8)}`,
     puntos: Math.round(acum * 0.42),
     acumulados12m: acum,
     estado: i === 5 || i === 13 ? "Bloqueado" : "Activo",
-    canal: (["Web", "App", "Web + App"] as const)[i % 3]!,
+    canal: "Web" as const,
     alta: `${String((i % 27) + 1).padStart(2, "0")}/0${(i % 9) + 1}/2026`,
   };
 });
@@ -76,16 +76,16 @@ export const mensajes: Mensaje[] = [
   { id: "c1", nombre: "Ana Torres", email: "ana.torres@correo.com", asunto: "Pedido no llega", mensaje: "Hice un canje hace 5 días y aún no recibo mis audífonos.", fecha: "27/10/2026", estado: "Nuevo" },
   { id: "c2", nombre: "Carlos Andrade", email: "carlos.andrade@correo.com", asunto: "Cupón no válido", mensaje: "El local no aceptó mi cupón de descuento.", fecha: "26/10/2026", estado: "En proceso" },
   { id: "c3", nombre: "Gabriela Ruiz", email: "gabriela.ruiz@correo.com", asunto: "Puntos de compra", mensaje: "Compré 5 000 puntos pero no se reflejan.", fecha: "25/10/2026", estado: "Respondido" },
-  { id: "c4", nombre: "Diego Salazar", email: "diego.salazar@correo.com", asunto: "Cuenta bloqueada", mensaje: "No puedo ingresar a la app.", fecha: "24/10/2026", estado: "Nuevo" },
+  { id: "c4", nombre: "Diego Salazar", email: "diego.salazar@correo.com", asunto: "Cuenta bloqueada", mensaje: "No puedo ingresar a la web.", fecha: "24/10/2026", estado: "Nuevo" },
 ];
 
 /** Nombre del rol: los cinco del sistema u otros creados por el administrador. */
 export type RolAdmin = string;
 export const rolesAdmin: { rol: RolAdmin; descripcion: string; permisos: string[] }[] = [
   { rol: "Administrador", descripcion: "Acceso total al panel.", permisos: ["Todo"] },
-  { rol: "Catálogo", descripcion: "Gestiona productos, beneficios, marcas, destinos y contenido.", permisos: ["Productos", "Beneficios", "Marcas", "Destinos", "Contenido"] },
-  { rol: "Operaciones", descripcion: "Gestiona participantes, pedidos, movimientos y cotizaciones.", permisos: ["Participantes", "Pedidos", "Movimientos", "Cotizaciones"] },
-  { rol: "Atención", descripcion: "Responde mensajes y cotizaciones de vuelos y consulta participantes.", permisos: ["Atención", "Cotizaciones", "Participantes"] },
+  { rol: "Catálogo", descripcion: "Gestiona productos, beneficios, marcas y contenido.", permisos: ["Productos", "Beneficios", "Marcas", "Contenido"] },
+  { rol: "Operaciones", descripcion: "Gestiona participantes, pedidos y movimientos.", permisos: ["Participantes", "Pedidos", "Movimientos"] },
+  { rol: "Atención", descripcion: "Responde mensajes y consulta participantes.", permisos: ["Atención", "Participantes"] },
   { rol: "Solo lectura", descripcion: "Consulta reportes y dashboard.", permisos: ["Dashboard", "Reportes"] },
 ];
 
@@ -109,7 +109,7 @@ export const credencialesIniciales = [
 
 export const auditoria = [
   { fecha: "28/10/2026 12:31", usuario: "Mariela Castro", accion: "Editó nivel Oro (rango de puntos)" },
-  { fecha: "28/10/2026 10:05", usuario: "Roberto Peña", accion: "Publicó banner “Black Friday” (App)" },
+  { fecha: "28/10/2026 10:05", usuario: "Roberto Peña", accion: "Publicó banner “Black Friday” (Web)" },
   { fecha: "27/10/2026 17:44", usuario: "Karla Núñez", accion: "Ajustó +5 000 puntos a Ana Torres" },
   { fecha: "27/10/2026 11:20", usuario: "Roberto Peña", accion: "Creó destino “Galápagos”" },
 ];
@@ -120,7 +120,7 @@ export const onboarding = [
   { id: "o3", titulo: "Beneficios exclusivos", texto: "Descuentos en tus marcas favoritas.", activo: true },
 ];
 
-export const provincias = ["Pichincha", "Guayas", "Azuay", "Manabí", "El Oro", "Tungurahua", "Imbabura", "Loja"];
+export const provincias = ["Lima", "Arequipa", "Cusco", "La Libertad", "Piura", "Lambayeque", "Junín", "Ica"];
 
 // ---------- Formulario dinámico ----------
 export type TipoCampo = "texto" | "email" | "telefono" | "numero" | "fecha" | "textarea" | "select" | "checkbox";
@@ -157,6 +157,6 @@ export const camposIniciales: CampoForm[] = [
   { id: "f5", tipo: "fecha", etiqueta: "Fecha de nacimiento", obligatorio: false, mapeo: "fecha_nacimiento", ancho: "media" },
   { id: "f6", tipo: "select", etiqueta: "Género", obligatorio: true, opciones: ["Femenino", "Masculino", "Prefiero no decir"], mapeo: "genero", ancho: "media" },
   { id: "f7", tipo: "select", etiqueta: "Provincia", obligatorio: false, opciones: provincias, mapeo: "provincia", ancho: "media" },
-  { id: "f8", tipo: "select", etiqueta: "Ciudad", obligatorio: false, opciones: ["Quito", "Guayaquil", "Cuenca"], mapeo: "ciudad", ancho: "media" },
+  { id: "f8", tipo: "select", etiqueta: "Ciudad", obligatorio: false, opciones: ["Lima", "Arequipa", "Cusco", "Trujillo", "Piura", "Chiclayo", "Huancayo", "Ica"], mapeo: "ciudad", ancho: "media" },
 
 ];

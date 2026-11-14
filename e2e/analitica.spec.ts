@@ -11,16 +11,16 @@ const estado = (analitica: boolean) => ({
 const eventosDeEstaVisita = (page: Page) =>
   page.evaluate(() => {
     const visita = sessionStorage.getItem("bs_visita");
-    const db = JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11") ?? "{}");
+    const db = JSON.parse(localStorage.getItem("confianza_mockdb_v1") ?? "{}");
     return { visita, tipos: ((db.analitica ?? []) as { v: string; t: string }[]).filter((e) => e.v === visita).map((e) => e.t) };
   });
-const totalEventos = (page: Page) => page.evaluate(() => (JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11") ?? "{}").analitica ?? []).length as number);
+const totalEventos = (page: Page) => page.evaluate(() => (JSON.parse(localStorage.getItem("confianza_mockdb_v1") ?? "{}").analitica ?? []).length as number);
 
 async function canjearDigital(page: Page) {
   await page.goto("/canjea/p14");
   await page.getByRole("button", { name: "Agregar al carrito" }).first().click();
   await page.getByRole("dialog").getByRole("link", { name: "Ver carrito" }).click();
-  await page.getByRole("button", { name: "Finalizar compra" }).click();
+  await page.getByRole("button", { name: "Finalizar canje" }).click();
   await expect(page).toHaveURL(/gracias$/);
 }
 

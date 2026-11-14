@@ -1,6 +1,6 @@
 /* ---------------- Tarjetas y documentos (compra de puntos) ---------------- */
 
-export const tiposDocumento = ["Cédula de Identidad", "Carné de Extranjería", "Pasaporte"];
+export const tiposDocumento = ["DNI", "Carné de Extranjería", "Pasaporte"];
 
 export type TarjetaBanbif = { id: string; label: string };
 

@@ -109,44 +109,12 @@ type Modo = "puntos" | "mixto" | "dinero";
               <h2 class="text-base font-bold text-ink">Resumen</h2>
               <p class="mt-2 text-sm text-muted-foreground">Tienes {{ puntos(store.puntos()) }} puntos disponibles</p>
 
-              @if (haySoloDinero()) {
-                <div class="mt-4 rounded-2xl border border-primary bg-secondary/40 p-4 text-sm text-ink">
-                  <p class="font-semibold">Pago solo con tarjeta</p>
-                  <p class="mt-1 text-muted-foreground">Tu carrito incluye un beneficio exclusivo que no es canjeable con puntos, así que el total se paga con tu tarjeta de débito o crédito.</p>
-                </div>
-              } @else {
-                <div class="mt-4 grid gap-2">
-                  @for (m of modos(); track m.value) {
-                    <button type="button" (click)="modo.set(m.value)"
-                      [class]="'min-h-[56px] rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition-colors ' + (modo() === m.value ? 'border-primary bg-secondary/40 text-primary' : 'border-border text-ink')">
-                      {{ m.label }}
-                      @if (m.value === "dinero") {
-                        <span class="mt-0.5 block text-xs font-normal text-muted-foreground">No usas puntos: pagas {{ usd(puntosADolares(store.totalPuntos())) }} con tu tarjeta.</span>
-                      }
-                    </button>
-                  }
-                </div>
-              }
-
-              @if (modoEfectivo() === "mixto") {
-                <div class="mt-4">
-                  <label for="puntos-usar" class="text-sm font-semibold text-ink">Puntos a canjear</label>
-                  <input id="puntos-usar" type="range" min="0" [max]="puntosMax()" step="100" [value]="puntosAplicados()" (input)="puntosUsados.set(+$any($event.target).value)"
-                    class="mt-2 w-full accent-[var(--color-primary)]" />
-                  <input type="number" min="0" [max]="puntosMax()" [value]="puntosAplicados()" (input)="onPuntosInput($event)"
-                    class="mt-2 w-full rounded-xl border border-border px-4 py-2 text-sm text-ink" />
-                  <p class="mt-2 text-xs text-muted-foreground">Equivalencia: {{ porDolar() }} puntos = $1.00</p>
-                </div>
-              }
-
               <div class="mt-5 space-y-2 border-t border-border pt-4 text-sm">
-                <div class="flex justify-between text-muted-foreground"><span>Total en puntos</span><span>{{ puntos(store.totalPuntos()) }}</span></div>
                 <div class="flex justify-between font-semibold text-ink"><span>Puntos a canjear</span><span>{{ puntos(totales().puntosFinal) }}</span></div>
-                <div class="flex justify-between text-base font-extrabold text-ink"><span>A pagar con tarjeta</span><span>{{ usd(totales().montoUSD) }}</span></div>
               </div>
 
               @if (puntosInsuficientes()) {
-                <p class="mt-3 rounded-xl bg-aviso-fondo p-3 text-xs text-aviso">No te alcanzan los puntos para pagar todo. Elige la opción mixta o compra más puntos.</p>
+                <p class="mt-3 rounded-xl bg-aviso-fondo p-3 text-xs text-aviso">No te alcanzan los puntos para este canje. Compra más puntos o quita productos del carrito.</p>
               }
 
               @if (error()) {
@@ -155,9 +123,8 @@ type Modo = "puntos" | "mixto" | "dinero";
 
               <button type="button" [disabled]="puntosInsuficientes()" (click)="pagar()"
                 class="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-primary py-3.5 text-base font-bold uppercase tracking-wide text-primary-foreground transition-transform hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50">
-                <app-icon name="CreditCard" class="h-4 w-4" /> Finalizar compra
+                <app-icon name="CheckCircle2" class="h-4 w-4" /> Finalizar canje
               </button>
-              <p class="mt-3 text-center text-[11px] text-muted-foreground">Todo pago se valida con tu tarjeta de débito o crédito.</p>
             </aside>
           </div>
         </div>
@@ -197,13 +164,6 @@ export class CarritoPage {
   protected readonly brand = inject(BrandService);
 
   /** "Pagar solo con dinero" se puede deshabilitar desde Admin → Reglas de puntos. */
-  protected readonly modos = computed<{ value: Modo; label: string }[]>(() =>
-    [
-      { value: "puntos" as Modo, label: "Pagar todo con puntos" },
-      { value: "mixto" as Modo, label: "Pagar con puntos + tarjeta" },
-      { value: "dinero" as Modo, label: "Pagar solo con dinero" },
-    ].filter((m) => m.value !== "dinero" || this.catalog.reglas().soloDinero),
-  );
 
   protected readonly modo = signal<Modo>("puntos");
   protected readonly puntosUsados = signal(0);
@@ -219,11 +179,11 @@ export class CarritoPage {
   protected readonly correo = computed(() => this.correoSel() ?? this.store.correos()[0] ?? "");
 
   protected readonly hayFisicos = computed(() => this.store.items().some((i) => !i.digital));
-  protected readonly haySoloDinero = computed(() => this.store.items().some((i) => i.soloDinero));
   protected readonly puntosMax = computed(() => Math.min(this.store.totalPuntos(), this.store.puntos()));
-  protected readonly modoEfectivo = computed<Modo>(() => (this.haySoloDinero() ? "dinero" : this.modo()));
+  /** Los productos se canjean solo con puntos: no hay pago mixto ni en dinero. */
+  protected readonly modoEfectivo = computed<Modo>(() => "puntos");
   protected readonly puntosAplicados = computed(() => Math.min(this.puntosUsados(), this.puntosMax()));
-  private readonly totalUsdFijo = computed(() => this.store.items().filter((i) => i.soloDinero).reduce((a, i) => a + i.precio * i.cantidad, 0));
+  private readonly totalUsdFijo = computed(() => 0);
 
   protected readonly totales = computed(() => {
     const total = this.store.totalPuntos();
@@ -343,7 +303,6 @@ export class CarritoPage {
 
               <dl class="mt-5 space-y-2 border-t border-border pt-4 text-sm">
                 <div class="flex justify-between"><dt class="text-muted-foreground">Puntos canjeados</dt><dd class="font-semibold text-ink">{{ puntos(o.puntosUsados) }}</dd></div>
-                <div class="flex justify-between"><dt class="text-muted-foreground">Pagado con tarjeta</dt><dd class="font-semibold text-ink">{{ usd(o.montoUSD) }}</dd></div>
                 <div class="flex justify-between"><dt class="text-muted-foreground">Entrega</dt><dd class="max-w-[60%] text-right font-semibold text-ink">{{ o.entrega }}</dd></div>
                 <div class="flex justify-between"><dt class="text-muted-foreground">Puntos disponibles</dt><dd class="font-semibold text-ink">{{ puntos(store.puntos()) }}</dd></div>
               </dl>

@@ -36,14 +36,12 @@ const grupos = [
     { to: "/admin/productos", label: "Productos", icon: "Package" },
     { to: "/admin/beneficios", label: "Beneficios", icon: "Gift" },
     { to: "/admin/marcas", label: "Marcas", icon: "Tag" },
-    { to: "/admin/destinos", label: "Destinos", icon: "Plane" },
   ] },
   { label: "Operación", items: [
     { to: "/admin/pedidos", label: "Pedidos", icon: "ShoppingBag" },
-    { to: "/admin/cotizaciones", label: "Cotizaciones de vuelos", icon: "PlaneTakeoff" },
     { to: "/admin/atencion", label: "Atención", icon: "MessageSquare" },
   ] },
-  { label: "Sitio y app", items: [
+  { label: "Sitio", items: [
     { to: "/admin/contenido", label: "Contenido", icon: "Image" },
     { to: "/admin/popups", label: "Pop-ups", icon: "Sparkles" },
     { to: "/admin/legales", label: "Textos legales", icon: "FileText" },
@@ -202,7 +200,7 @@ const leer = (k: string) => {
         <!-- Menú móvil -->
         @if (open()) {
           <div class="fixed inset-0 z-50 lg:hidden">
-            <button aria-label="Cerrar menú" class="absolute inset-0 bg-foreground/40" (click)="open.set(false)"></button>
+            <button aria-label="Cerrar menú" class="absolute inset-0 bg-black/40" (click)="open.set(false)"></button>
             <aside class="relative flex h-full w-72 flex-col bg-card">
               <div class="flex h-14 items-center justify-between border-b border-border pr-3 [&>div]:h-full [&>div]:border-b-0">
                 <ng-container *ngTemplateOutlet="marcaTpl" />
@@ -286,7 +284,7 @@ const leer = (k: string) => {
 
         <!-- Paleta de comandos -->
         @if (paleta()) {
-          <div class="fixed inset-0 z-[80] grid place-items-start justify-items-center bg-foreground/40 p-4 pt-[12vh]" (click)="paleta.set(false)">
+          <div class="fixed inset-0 z-[80] grid place-items-start justify-items-center bg-black/40 p-4 pt-[12vh]" (click)="paleta.set(false)">
             <div class="w-full max-w-xl overflow-hidden rounded-2xl border border-border bg-card shadow-2xl" role="dialog" aria-modal="true" aria-label="Paleta de comandos" (click)="$event.stopPropagation()">
               <div class="flex items-center gap-3 border-b border-border px-4">
                 <app-icon name="Search" class="h-4 w-4 text-muted-foreground" />
@@ -445,11 +443,6 @@ export class AdminLayoutComponent {
         ...a.filter((x) => x.ruta !== "/admin/atencion"),
         ...(r.mensajes.length ? [{ texto: "Mensajes sin responder", ruta: "/admin/atencion", icono: "MessageSquare", n: r.mensajes.length }] : []),
       ]);
-    });
-    // Solo si el rol puede ver cotizaciones (si no, el servidor respondería 403).
-    if (puede(this.session.rol(), "cotizaciones", "ver")) this.api.get<{ facetas: Record<string, Record<string, number>> }>("admin/q/cotizaciones", { size: 1, facetas: "estado" }).subscribe((c) => {
-      const n = c.facetas["estado"]?.["Enviada"] ?? 0;
-      this.avisos.update((a) => [...a.filter((x) => x.ruta !== "/admin/cotizaciones"), ...(n ? [{ texto: "Cotizaciones nuevas", ruta: "/admin/cotizaciones", icono: "PlaneTakeoff", n }] : [])]);
     });
   }
 

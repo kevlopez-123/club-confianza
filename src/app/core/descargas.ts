@@ -27,7 +27,7 @@ let servicio: DescargaService | undefined;
 export const colorMarca = () => colorActual;
 
 const hoy = () => new Date().toISOString().slice(0, 10);
-const ahora = () => new Date().toLocaleString("es-EC", { dateStyle: "short", timeStyle: "short" });
+const ahora = () => new Date().toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" });
 
 export function guardarArchivo(blob: Blob, nombre: string) {
   const url = URL.createObjectURL(blob);

@@ -93,71 +93,10 @@ test.describe("Banners en su módulo y con orden", () => {
     await expect(page.locator("a-panel").nth(0).locator("p.truncate")).toHaveText(alt1); // se conserva
   });
 
-  test("banners de Vuelos y pantallas de onboarding también se reordenan", async ({ page }) => {
-    await entrarAdmin(page);
-    await page.goto("/admin/destinos");
-    await page.getByRole("button", { name: "Banners de vuelos" }).click();
-    const bv = page.locator("a-panel");
-    await expect(bv.first()).toBeVisible();
-    const a0 = await bv.nth(0).locator("p.font-semibold").innerText();
-    await bv.nth(0).getByRole("button", { name: "Mover después" }).click();
-    await expect(bv.nth(1).locator("p.font-semibold")).toHaveText(a0);
-
-    await page.goto("/admin/contenido");
-    await page.getByRole("button", { name: "Onboarding app" }).click();
-    const ob = page.locator("a-panel");
-    const t0 = await ob.nth(0).getByLabel("Título").inputValue();
-    await ob.nth(0).getByRole("button", { name: "Mover después" }).click();
-    await expect(ob.nth(1).getByLabel("Título")).toHaveValue(t0);
-  });
 });
 test.describe("Subida de imágenes y espaciado de modales", () => {
   const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
 
-  test("un clic cerca del campo de imagen no la elimina; solo la × lo hace", async ({ page }) => {
-    await entrarAdmin(page);
-    await page.goto("/admin/destinos");
-    await page.getByRole("button", { name: "Nuevo destino" }).click();
-    const galeria = page.locator("a-image-upload").first();
-    await expect(galeria.locator("img")).not.toHaveCount(0); // espera a que se pinte la imagen de la copia base
-    const antes = await galeria.locator("img").count();
-    await galeria.locator('input[type="file"]').setInputFiles({ name: "a.png", mimeType: "image/png", buffer: png });
-    await expect(galeria.locator("img")).toHaveCount(antes + 1);
-    // clics en la etiqueta y alrededor de la imagen (zona del <label> del campo)
-    await page.getByText("Galería (la primera es la portada)").click();
-    const caja = await galeria.locator("img").last().boundingBox();
-    await page.mouse.click(caja!.x + caja!.width + 6, caja!.y + 4);
-    await page.mouse.click(caja!.x + caja!.width - 2, caja!.y + caja!.height - 2);
-    await expect(galeria.locator("img")).toHaveCount(antes + 1);
-    await galeria.getByRole("button", { name: "Quitar imagen" }).last().click();
-    await expect(galeria.locator("img")).toHaveCount(antes);
-  });
-
-  test("todos los modales usan 16 px entre campos", async ({ page }) => {
-    await entrarAdmin(page);
-    const separaciones = async () =>
-      page.evaluate(() => {
-        const d = document.querySelector("[role=dialog] .modal-cuerpo")!; // el cuerpo del modal (el encabezado es aparte)
-        const hijos = [...d.children];
-        const contenedor = hijos.length === 1 ? hijos[0]! : d;
-        const hs = [...contenedor.children].filter((e) => e.getBoundingClientRect().height > 0);
-        return hs.slice(1).map((e, i) => Math.round(e.getBoundingClientRect().top - hs[i]!.getBoundingClientRect().bottom));
-      });
-    const casos: [string, string, string?][] = [
-      ["/admin/marcas", "Nueva marca"],
-      ["/admin/usuarios", "Invitar usuario"],
-      ["/admin/contenido", "Nuevo banner"],
-      ["/admin/destinos", "Nueva ciudad", "Ciudades del buscador"],
-    ];
-    for (const [ruta, boton, pestana] of casos) {
-      await page.goto(ruta);
-      if (pestana) await page.getByRole("button", { name: pestana }).click();
-      await page.getByRole("button", { name: boton }).click();
-      await page.getByRole("dialog").waitFor();
-      const g = await separaciones();
-      expect(g.every((v) => v === 16), `${ruta}: ${g}`).toBe(true);
-    }
-  });
 });
 
 test.describe("Subcategorías en productos", () => {

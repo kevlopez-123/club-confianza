@@ -6,7 +6,7 @@ const sinSesion = { cookies: [], origins: [{ origin: ORIGEN, localStorage: [{ na
 test.describe("Sitio cerrado: sin iniciar sesión no se puede navegar", () => {
   test.use({ storageState: sinSesion });
 
-  for (const ruta of ["/", "/canjea", "/canjea/p1", "/beneficios", "/beneficios/b1", "/buscar?q=sony", "/vuelos", "/vuelos/destinos/galapagos", "/preguntas-frecuentes", "/carrito", "/perfil"]) {
+  for (const ruta of ["/", "/canjea", "/canjea/p1", "/beneficios", "/beneficios/b1", "/buscar?q=sony", "/preguntas-frecuentes", "/carrito", "/perfil"]) {
     test(`${ruta} lleva al ingreso`, async ({ page }) => {
       await page.goto(ruta);
       await expect(page).toHaveURL(/\/login/);

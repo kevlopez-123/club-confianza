@@ -1,10 +1,11 @@
 import { NgTemplateOutlet } from "@angular/common";
-import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, signal, viewChildren } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, effect, inject, signal, viewChildren } from "@angular/core";
 import { Router, RouterLink, ActivatedRoute } from "@angular/router";
 import { ApiService } from "../core/api.service";
 import { CatalogService, TEXTOS_INGRESO, type TextosIngreso } from "../core/catalog.service";
 import { BrandService } from "../core/brand.service";
 import { StoreService } from "../core/store.service";
+import { formatPuntos } from "../core/format";
 import { SesionService } from "../core/sesion.service";
 import type { Direccion } from "../core/models";
 import { IconComponent } from "../shared/icon.component";
@@ -27,7 +28,7 @@ const vacia = (): Omit<Direccion, "id"> => ({ alias: "", recibe: "", telefono: "
 /* ------------------------------------------------------------------ */
 @Component({
   selector: "app-perfil-page",
-  imports: [IconComponent, ModalComponent, DireccionFormComponent, TelefonoInputComponent, NgTemplateOutlet],
+  imports: [IconComponent, ModalComponent, DireccionFormComponent, TelefonoInputComponent, NgTemplateOutlet, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="bg-surface py-10 lg:py-14">
@@ -237,6 +238,13 @@ const vacia = (): Omit<Direccion, "id"> => ({ alias: "", recibe: "", telefono: "
             </section>
           }
         </div>
+
+        <!-- Baja de la cuenta: va al final y separada del resto del perfil -->
+        <section class="mt-8 rounded-3xl border border-destructive/30 bg-card p-6 shadow-[var(--shadow-card)]" aria-labelledby="baja-titulo">
+          <h2 id="baja-titulo" class="text-lg font-extrabold text-ink">Eliminar mi cuenta</h2>
+          <p class="mt-1 text-base text-muted-foreground">Puedes pedir que eliminemos tu cuenta y tus datos personales. Perderás tus puntos y cupones, y confirmas con un código que enviamos a tu correo.</p>
+          <a routerLink="/perfil/eliminar-cuenta" class="mt-4 inline-flex min-h-12 items-center rounded-full border border-destructive px-6 text-base font-bold text-destructive hover:bg-destructive/10 lg:min-h-14">Eliminar mi cuenta</a>
+        </section>
       </div>
     </div>
   `,
@@ -248,7 +256,7 @@ export class PerfilPage {
   protected readonly vacia = vacia;
   protected readonly tabs = [
     { value: "datos", label: "Datos personales" },
-    { value: "direcciones", label: "Direcciones de envío" },
+    { value: "direcciones", label: "Direcciones" },
   ] as const;
 
   protected readonly tab = signal<"datos" | "direcciones">("datos");
@@ -581,7 +589,11 @@ export class ContactoPage {
                   class="mt-6 flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-primary px-6 text-base font-bold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-70">
                   @if (cargando()) { <app-icon name="Loader2" class="h-5 w-5 animate-spin" /> Validando… } @else { <app-icon name="Check" class="h-5 w-5" /> Validar e ingresar }
                 </button>
-                <button type="button" class="mt-3 flex min-h-11 w-full items-center justify-center text-base font-semibold text-primary">Reenviar código</button>
+                @if (aviso()) { <p role="status" class="mt-3 text-center text-base text-muted-foreground">{{ aviso() }}</p> }
+                <button type="button" (click)="reenviar()" [disabled]="espera() > 0"
+                  class="mt-3 flex min-h-11 w-full items-center justify-center text-base font-semibold text-primary disabled:text-muted-foreground">
+                  {{ espera() > 0 ? "Reenviar código en " + espera() + " s" : "Reenviar código" }}
+                </button>
               </form>
             }
           </div>
@@ -635,6 +647,10 @@ export class LoginPage {
   protected readonly error = signal("");
   protected readonly cargando = signal(false);
   private readonly correo = signal("");
+  /** Segundos que faltan para poder pedir otro código, y el aviso de que ya salió uno nuevo. */
+  protected readonly espera = signal(0);
+  protected readonly aviso = signal("");
+  private temporizador: ReturnType<typeof setInterval> | undefined;
   private readonly digitos = viewChildren<ElementRef<HTMLInputElement>>("digito");
 
   protected readonly correoOfuscado = computed(() => {
@@ -645,6 +661,32 @@ export class LoginPage {
   constructor() {
     effect(() => {
       if (this.paso() === 2) queueMicrotask(() => this.digitos()[0]?.nativeElement.focus());
+    });
+    inject(DestroyRef).onDestroy(() => clearInterval(this.temporizador));
+  }
+
+  private iniciarEspera() {
+    clearInterval(this.temporizador);
+    this.espera.set(30);
+    this.temporizador = setInterval(() => {
+      this.espera.update((n) => Math.max(0, n - 1));
+      if (this.espera() === 0) clearInterval(this.temporizador);
+    }, 1000);
+  }
+
+  /** Pide otro código al mismo correo (antes el botón no hacía nada): el anterior queda sin uso y las casillas se vacían. */
+  protected reenviar() {
+    if (this.espera() > 0) return;
+    this.api.post<{ correo: string }>("auth/otp", { tipo: this.tipoVal(), documento: this.documento() }).subscribe({
+      next: (r) => {
+        this.error.set("");
+        this.correo.set(r.correo);
+        this.codigo.set(["", "", "", "", "", ""]);
+        this.aviso.set("Te enviamos un código nuevo.");
+        this.iniciarEspera();
+        queueMicrotask(() => this.digitos()[0]?.nativeElement.focus());
+      },
+      error: (err) => this.error.set(err.error?.message ?? "No pudimos enviar el código. Inténtalo de nuevo."),
     });
   }
 
@@ -660,6 +702,8 @@ export class LoginPage {
         this.error.set("");
         this.correo.set(r.correo);
         this.codigo.set(["", "", "", "", "", ""]);
+        this.aviso.set("");
+        this.iniciarEspera();
         this.paso.set(2);
       },
       error: (err) => this.error.set(err.error?.message ?? "No pudimos validar tu documento."),
@@ -692,6 +736,115 @@ export class LoginPage {
         this.cargando.set(false);
         this.error.set(err.error?.message ?? "Código inválido.");
       },
+    });
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Eliminar mi cuenta (solicitud)                                      */
+/* ------------------------------------------------------------------ */
+interface SolicitudEliminacion { id: string; estado: string; fecha: string; hora: string }
+
+/**
+ * La persona pide eliminar su cuenta: ve qué pasa con sus puntos y qué datos se conservan por ley, confirma con un código que llega
+ * a su correo y queda una solicitud «Pendiente» que el equipo atiende desde el panel. La cuenta sigue activa hasta entonces.
+ */
+@Component({
+  selector: "app-eliminar-cuenta-page",
+  imports: [RouterLink, IconComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <div class="bg-surface py-10 lg:py-14">
+      <div class="page-container">
+        <a routerLink="/perfil" class="inline-flex min-h-11 items-center gap-2 text-base font-semibold text-primary">
+          <app-icon name="ArrowLeft" class="h-4 w-4" /> Volver a mi perfil
+        </a>
+        <h1 class="mt-3 text-2xl font-extrabold text-ink lg:text-3xl">Eliminar mi cuenta</h1>
+
+        <div class="mx-auto mt-6 max-w-2xl">
+          @if (solicitud(); as s) {
+            <section class="rounded-3xl bg-card p-6 text-center shadow-[var(--shadow-card)] sm:p-8" aria-labelledby="enviada-titulo">
+              <span class="mx-auto grid h-16 w-16 place-items-center rounded-full bg-secondary"><app-icon name="CheckCircle2" class="h-8 w-8 text-primary" /></span>
+              <h2 id="enviada-titulo" class="mt-4 text-xl font-extrabold text-ink">Recibimos tu solicitud</h2>
+              <p class="mt-2 text-base text-muted-foreground">Solicitud <strong class="text-ink">{{ s.id }}</strong> · {{ s.fecha }} {{ s.hora }} · Estado: <strong class="text-ink">{{ s.estado }}</strong></p>
+              <p class="mt-3 text-base text-muted-foreground">La revisaremos y te avisaremos por correo cuando esté lista. Mientras tanto tu cuenta sigue activa y puedes seguir usándola.</p>
+              <a routerLink="/perfil" class="mt-6 inline-flex min-h-12 items-center rounded-full bg-primary px-8 text-base font-bold uppercase tracking-wide text-primary-foreground lg:min-h-14">Volver a mi perfil</a>
+            </section>
+          } @else if (paso() === "info") {
+            <section class="rounded-3xl bg-card p-6 shadow-[var(--shadow-card)] sm:p-8" aria-labelledby="que-pasa">
+              <h2 id="que-pasa" class="text-lg font-extrabold text-ink">Antes de continuar, esto es lo que pasará</h2>
+              <ul class="mt-4 space-y-3 text-base text-muted-foreground">
+                <li class="flex gap-3"><app-icon name="Coins" class="mt-0.5 h-5 w-5 shrink-0 text-destructive" /> <span>Perderás tus <strong class="text-ink">{{ puntos() }} puntos</strong> y los cupones que tengas activos. No se pueden recuperar.</span></li>
+                <li class="flex gap-3"><app-icon name="Package" class="mt-0.5 h-5 w-5 shrink-0 text-primary" /> <span>Los pedidos en curso se atienden antes de cerrar la cuenta.</span></li>
+                <li class="flex gap-3"><app-icon name="Receipt" class="mt-0.5 h-5 w-5 shrink-0 text-primary" /> <span>Por obligaciones legales podemos conservar datos de tus pedidos, movimientos y comprobantes durante el tiempo que indique la Ley N.º 29733 y las normas aplicables.</span></li>
+                <li class="flex gap-3"><app-icon name="Clock" class="mt-0.5 h-5 w-5 shrink-0 text-primary" /> <span>Revisaremos tu solicitud y te avisaremos por correo. Hasta entonces tu cuenta sigue activa.</span></li>
+              </ul>
+              <label class="mt-6 flex items-start gap-3 text-base font-semibold text-ink">
+                <input type="checkbox" [checked]="entendido()" (change)="entendido.set($any($event.target).checked)" class="mt-1 h-5 w-5 shrink-0 accent-[var(--primary)]" />
+                Entiendo lo que pasará con mi cuenta y mis puntos
+              </label>
+              @if (error()) { <p role="alert" class="mt-3 text-sm text-destructive">{{ error() }}</p> }
+              <div class="mt-6 grid gap-3 sm:grid-cols-2">
+                <a routerLink="/perfil" class="inline-flex min-h-12 items-center justify-center rounded-full border border-border bg-card text-base font-bold uppercase tracking-wide text-ink hover:border-primary hover:text-primary lg:min-h-14">Cancelar</a>
+                <button type="button" [disabled]="!entendido() || trabajando()" (click)="pedirCodigo()"
+                  class="min-h-12 rounded-full bg-destructive text-base font-bold uppercase tracking-wide text-destructive-foreground disabled:opacity-50 lg:min-h-14">Continuar</button>
+              </div>
+            </section>
+          } @else {
+            <section class="rounded-3xl bg-card p-6 shadow-[var(--shadow-card)] sm:p-8" aria-labelledby="verifica">
+              <h2 id="verifica" class="text-lg font-extrabold text-ink">Confirma que eres tú</h2>
+              <p class="mt-2 text-base text-muted-foreground">Enviamos un código de 6 dígitos a <strong class="text-ink">{{ correo() }}</strong>.</p>
+              <label for="codigo-eliminar" class="mt-5 block text-base font-semibold text-ink">Código de verificación</label>
+              <input id="codigo-eliminar" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" [value]="codigo()"
+                (input)="codigo.set($any($event.target).value.replace(/\D/g, '').slice(0, 6))"
+                class="mt-1 h-12 w-full rounded-xl border border-border px-4 text-center text-xl font-bold tracking-[0.5em] text-ink" />
+              @if (error()) { <p role="alert" class="mt-3 text-sm text-destructive">{{ error() }}</p> }
+              <div class="mt-6 grid gap-3 sm:grid-cols-2">
+                <button type="button" (click)="volver()" class="min-h-12 rounded-full border border-border bg-card text-base font-bold uppercase tracking-wide text-ink hover:border-primary hover:text-primary lg:min-h-14">Atrás</button>
+                <button type="button" [disabled]="codigo().length !== 6 || trabajando()" (click)="enviar()"
+                  class="min-h-12 rounded-full bg-destructive text-base font-bold uppercase tracking-wide text-destructive-foreground disabled:opacity-50 lg:min-h-14">{{ trabajando() ? "Enviando…" : "Solicitar eliminación" }}</button>
+              </div>
+            </section>
+          }
+        </div>
+      </div>
+    </div>
+  `,
+})
+export class EliminarCuentaPage {
+  private readonly api = inject(ApiService);
+  private readonly store = inject(StoreService);
+  protected readonly paso = signal<"info" | "codigo">("info");
+  protected readonly entendido = signal(false);
+  protected readonly codigo = signal("");
+  protected readonly correo = signal("");
+  protected readonly error = signal("");
+  protected readonly trabajando = signal(false);
+  protected readonly solicitud = signal<SolicitudEliminacion | null>(null);
+  protected readonly puntos = computed(() => formatPuntos(this.store.puntos()));
+
+  constructor() {
+    // Si ya hay una solicitud abierta se muestra su estado en vez de volver a pedirla.
+    this.api.get<SolicitudEliminacion | null>("me/eliminar-cuenta").subscribe({ next: (s) => this.solicitud.set(s), error: () => undefined });
+  }
+  protected pedirCodigo() {
+    this.error.set("");
+    this.trabajando.set(true);
+    this.api.post<{ correo: string }>("me/eliminar-cuenta/codigo").subscribe({
+      next: (r) => { this.correo.set(r.correo); this.codigo.set(""); this.paso.set("codigo"); this.trabajando.set(false); },
+      error: (e) => { this.error.set(this.store.mensajeError(e)); this.trabajando.set(false); },
+    });
+  }
+  protected volver() {
+    this.error.set("");
+    this.paso.set("info");
+  }
+  protected enviar() {
+    this.error.set("");
+    this.trabajando.set(true);
+    this.api.post<SolicitudEliminacion>("me/eliminar-cuenta", { codigo: this.codigo().split("") }).subscribe({
+      next: (s) => { this.solicitud.set(s); this.trabajando.set(false); },
+      error: (e) => { this.error.set(this.store.mensajeError(e)); this.trabajando.set(false); },
     });
   }
 }

@@ -32,8 +32,8 @@ export function aceptacionesIniciales(ids: string[]): Record<string, Partial<Rec
   ids.forEach((id, i) => {
     if (id === "p1") { if (!(globalThis as { BS_DEMO_PRIMER_INGRESO?: boolean }).BS_DEMO_PRIMER_INGRESO) r[id] = { terminos: { version: 2, fecha: "2026-09-16T14:20:00.000Z", canal: "Web" }, privacidad: { version: 1, fecha: "2026-08-03T09:10:00.000Z", canal: "Web" } }; }
     else if (i % 5 === 3) return; // nunca aceptó nada
-    else if (i % 3 === 1) r[id] = { terminos: { version: 1, fecha: "2026-08-10T11:00:00.000Z", canal: "App" }, privacidad: { version: 1, fecha: "2026-08-10T11:00:00.000Z", canal: "App" } };
-    else r[id] = { terminos: { version: 2, fecha: "2026-09-18T16:40:00.000Z", canal: i % 2 ? "App" : "Web" }, privacidad: { version: 1, fecha: "2026-08-12T10:30:00.000Z", canal: "Web" } };
+    else if (i % 3 === 1) r[id] = { terminos: { version: 1, fecha: "2026-08-10T11:00:00.000Z", canal: "Web" }, privacidad: { version: 1, fecha: "2026-08-10T11:00:00.000Z", canal: "Web" } };
+    else r[id] = { terminos: { version: 2, fecha: "2026-09-18T16:40:00.000Z", canal: "Web" }, privacidad: { version: 1, fecha: "2026-08-12T10:30:00.000Z", canal: "Web" } };
   });
   return r;
 }

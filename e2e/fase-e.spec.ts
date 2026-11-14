@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { pngValido } from "./archivos";
 import { entrarAdmin, esperarCarga } from "./helpers";
 
-const K = "bancosolidario_mockdb_v11";
+const K = "confianza_mockdb_v1";
 const leerDb = (page: Page, ruta: string) => page.evaluate(([k, r]) => { let v: any = JSON.parse(localStorage.getItem(k!)!); for (const p of r!.split(".")) v = v?.[p]; return v; }, [K, ruta]);
 const dia = (d: number) => new Date(Date.now() + d * 864e5).toISOString().slice(0, 10);
 
@@ -93,28 +93,6 @@ test.describe("Fase E: pop-ups", () => {
     await page.goto("/");
     await esperarCarga(page);
     await expect(dialogoDelSitio(page, "Aviso inicio")).toHaveCount(0);
-  });
-
-  test("contenido distinto para web y app: lo de la app no sale en la web", async ({ page }) => {
-    await page.goto("/admin/popups");
-    await page.getByRole("button", { name: "Nuevo pop-up" }).click();
-    const d = page.getByRole("dialog");
-    await d.getByLabel("Nombre interno (solo lo ve el panel)").fill("Doble");
-    await d.getByLabel("Frecuencia", { exact: true }).selectOption("siempre");
-    await d.getByLabel("Título", { exact: true }).fill("Texto de la web");
-    await d.getByLabel("Mensaje").fill("para la web");
-    await d.getByRole("tab", { name: /App/ }).click();
-    await d.getByRole("button", { name: "Agregar contenido para la app" }).click();
-    await d.getByLabel("Título", { exact: true }).fill("Texto de la app");
-    await d.getByLabel("Mensaje").fill("para la app");
-    await d.getByRole("button", { name: "Guardar pop-up" }).click();
-    await expect(page.getByText("Pop-up guardado")).toBeVisible();
-    const guardado = await leerDb(page, "admin.popups").then((l: any[]) => l.find((x) => x.nombre === "Doble"));
-    expect(guardado.web.titulo).toBe("Texto de la web");
-    expect(guardado.app.titulo).toBe("Texto de la app");
-    await page.goto("/");
-    await expect(dialogoDelSitio(page, "Texto de la web")).toBeVisible();
-    await expect(page.getByText("Texto de la app")).toHaveCount(0);
   });
 
   test("formato «solo imagen»: la imagen es todo el pop-up, es clicable y el título hace de texto alternativo", async ({ page }) => {

@@ -83,7 +83,7 @@ Los cambios importantes quedan en el **Registro de cambios** con quién los hizo
 - **PDF:** para imprimir o compartir.
 
 Se descarga **lo que tienes filtrado**, no solo la página que ves. Los archivos salen con los colores de la marca y los encabezados en mayúscula.`),
-  g("colores", "Sitio y app", 1, "Cambiar los colores y el logo del sitio", "Dónde se configura la marca de la plataforma.", ["Administrador"],
+  g("colores", "Sitio", 1, "Cambiar los colores y el logo del sitio", "Dónde se configura la marca de la plataforma.", ["Administrador"],
 `1. Entra a **Configuración → Marca y localización**.
 2. Cambia el **Color principal**, el color del texto y los fondos. Verás los cambios al instante en el panel.
 3. Sube el **logo** y el ícono del navegador.
@@ -157,7 +157,7 @@ Cada solicitud muestra los pasajeros y el seguimiento. Puedes asignar una **ejec
 ## Atención
 
 Los mensajes de los participantes llegan a **Atención**: responde y cambia su estado cuando esté resuelto.`),
-  g("textos-legales", "Sitio y app", 2, "Publicar un texto legal nuevo", "Versiones, vigencia y reaceptación.", ["Administrador"],
+  g("textos-legales", "Sitio", 2, "Publicar un texto legal nuevo", "Versiones, vigencia y reaceptación.", ["Administrador"],
 `En **Textos legales** se guardan los Términos y la Política de privacidad por **versiones**.
 
 1. Edita el texto como **borrador**.
@@ -173,7 +173,7 @@ Las versiones anteriores se conservan y puedes cargarlas de nuevo como borrador.
 - Un rol sin permisos de una sección no la ve en su menú.
 
 Después asigna el rol a cada persona en **Usuarios**.`),
-  g("popups", "Sitio y app", 3, "Crear un pop-up", "Un mensaje con vigencia, distinto para web y app.", ["Administrador", "Catálogo"],
+  g("popups", "Sitio", 3, "Crear un pop-up", "Un mensaje con vigencia, distinto para web y app.", ["Administrador", "Catálogo"],
 `En **Pop-ups** crea un mensaje que aparece por encima del contenido.
 
 - **Contenido por canal:** puedes escribir uno para la web, otro para la app, o el mismo para ambos.

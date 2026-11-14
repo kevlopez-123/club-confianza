@@ -22,10 +22,10 @@ import { FieldComponent, INPUT_CLS } from "./kit";
             <select [class]="input" (change)="cambiarTipo($any($event.target).value)">
               <option value="" [selected]="!valor().promoTipo">Sin promoción</option>
               <option value="porcentaje" [selected]="valor().promoTipo === 'porcentaje'">Porcentaje (%)</option>
-              <option value="monto" [selected]="valor().promoTipo === 'monto'">Monto en US$</option>
+              <option value="monto" [selected]="valor().promoTipo === 'monto'">Monto en S/</option>
             </select>
           </a-field>
-          <a-field [label]="valor().promoTipo === 'monto' ? 'Descuento (US$)' : 'Descuento (%)'">
+          <a-field [label]="valor().promoTipo === 'monto' ? 'Descuento (S/)' : 'Descuento (%)'">
             <input [class]="input" type="number" min="0" [attr.max]="valor().promoTipo === 'porcentaje' ? 100 : null" step="any"
               [disabled]="!valor().promoTipo" [value]="valor().promoValor ?? ''" (input)="cambiarValor($any($event.target).value)" />
           </a-field>

@@ -4,7 +4,7 @@ import { entrarAdmin } from "./helpers";
 async function abrirLista(page: Page, nombre: string) {
   await entrarAdmin(page);
   await page.goto("/admin/participantes");
-  await page.getByPlaceholder("Buscar por nombre o cédula").fill(nombre);
+  await page.getByPlaceholder("Buscar por nombre o DNI").fill(nombre);
   await expect(page.locator("tbody tr")).toHaveCount(1);
 }
 
@@ -34,7 +34,7 @@ test.describe("Ficha del participante en su propia página", () => {
     await expect(page.locator("tbody tr").first()).toContainText(/Compra|Canje|Acumulación/);
     // otro participante: no hereda los movimientos ni los beneficios de Ana
     await page.goto("/admin/participantes");
-    await page.getByPlaceholder("Buscar por nombre o cédula").fill("Diego Salazar");
+    await page.getByPlaceholder("Buscar por nombre o DNI").fill("Diego Salazar");
     await expect(page.locator("tbody tr")).toHaveCount(1);
     await page.getByRole("link", { name: "Ver ficha" }).click();
     await expect(page.getByRole("heading", { name: "Diego Salazar", level: 1 })).toBeVisible();

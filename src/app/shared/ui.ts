@@ -16,7 +16,7 @@ import type { Beneficio, Producto, Slide } from "../core/models";
   host: { class: "inline-flex items-center" },
   template: `
     @if (src()) {
-      <img [src]="src()" [alt]="brand.marca().nombre" width="310" height="82" class="h-full w-auto" />
+      <img [src]="src()" [alt]="brand.marca().nombre" width="310" height="82" [class]="'h-full w-auto' + (blanquear() ? ' brightness-0 invert' : '')" />
     } @else {
       <!-- Sin logo cargado: se muestra el nombre de la marca como isotipo de texto -->
       <span [class]="'whitespace-nowrap font-extrabold leading-none tracking-tight ' + (variant() === 'light' ? 'text-primary' : 'text-white')"
@@ -29,6 +29,8 @@ export class LogoComponent {
   /** "color" = fondos de color/oscuros · "light" = fondos claros o blancos */
   readonly variant = input<"color" | "light">("color");
   protected readonly src = computed(() => (this.variant() === "light" ? this.brand.marca().logoClaro : this.brand.marca().logoOscuro));
+  /** Si no hay una versión del logo para fondos de color (mismo archivo), se muestra en blanco sobre el color de marca. */
+  protected readonly blanquear = computed(() => this.variant() === "color" && this.brand.marca().logoOscuro === this.brand.marca().logoClaro);
 }
 /* ------------------------------------------------------------------ */
 /* Modal                                                               */
@@ -39,7 +41,7 @@ export class LogoComponent {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (open()) {
-      <div class="fixed inset-0 z-[100] flex items-center justify-center bg-ink/50 p-4">
+      <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
         <div
           role="dialog"
           aria-modal="true"
@@ -217,7 +219,6 @@ const cardBase = "card-elevate group flex h-full flex-col overflow-hidden rounde
           <h3 [attr.aria-level]="nivel()" class="mt-1 line-clamp-2 min-h-12 text-base font-semibold text-ink hover:text-primary">{{ producto().nombre }}</h3>
         </a>
         <p class="mt-2 text-base font-extrabold text-ink">{{ puntos(producto().puntos) }} puntos@if (producto().puntosOriginal) { <s class="ml-2 text-sm font-medium text-muted-foreground">{{ puntos(producto().puntosOriginal!) }}</s> }</p>
-        <p class="text-sm text-muted-foreground">o {{ usd(producto().precio) }} con tu tarjeta@if (producto().precioOriginal) { <s class="ml-2">{{ usd(producto().precioOriginal!) }}</s> }</p>
         <div class="mt-auto flex items-center gap-2 pt-5">
           <button type="button" (click)="add.emit(producto())"
             class="flex min-h-11 flex-1 items-center justify-center rounded-full bg-primary px-4 text-sm font-bold uppercase tracking-wide text-primary-foreground transition-transform hover:scale-[1.03] disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:hover:scale-100 lg:min-h-14">
@@ -297,8 +298,6 @@ export class BenefitCardComponent {
   });
   protected readonly subtitulo = computed(() => {
     const b = this.beneficio();
-    if (b.soloDinero) return "Solo con tu tarjeta";
-    if (b.tipo === "compra" && b.precio) return `o ${formatUSD(b.precio)} con tu tarjeta`;
     return `Categoría ${b.categoria}`;
   });
 }

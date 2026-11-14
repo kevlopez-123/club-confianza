@@ -1,7 +1,7 @@
 import {
   ChangeDetectionStrategy, Component, ElementRef, HostListener, computed, effect, inject, input, model, output, signal, viewChild,
 } from "@angular/core";
-import { RouterLink } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import { CatIconComponent, IconComponent } from "./icon.component";
 import { LimpiarFiltrosComponent } from "./limpiar-filtros";
 import { AddedToCartModalComponent, BenefitCardComponent, ModalComponent, ProductCardComponent, SectionTitleComponent, agregarProducto } from "./ui";
@@ -288,34 +288,11 @@ export class CityComboboxComponent {
 /* ------------------------------------------------------------------ */
 @Component({
   selector: "app-niveles-modal",
-  imports: [ModalComponent, RouterLink, IconComponent],
+  imports: [ModalComponent, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-modal [open]="open()" title="¿Cómo funcionan los niveles?" maxWidth="max-w-2xl" (closed)="closed.emit()">
       <p class="text-base text-muted-foreground">{{ catalog.introNiveles() }}</p>
-
-      <ul class="mt-5 space-y-3">
-        @for (n of catalog.niveles(); track n.id) {
-          <li class="flex flex-wrap items-center gap-3 rounded-2xl border border-border p-4"
-            [style.border-color]="n.id === actual().id ? n.color : null" [style.border-width.px]="n.id === actual().id ? 2 : null">
-            <span class="grid h-10 w-10 place-items-center rounded-full" [style.background]="n.color + '22'">
-              <app-icon name="Gem" class="h-5 w-5" [style.color]="n.color" />
-            </span>
-            <div class="min-w-0 flex-1">
-              <p class="text-base font-extrabold text-ink">
-                {{ n.nombre }}
-                @if (n.id === actual().id) { <span class="ml-2 text-sm font-bold text-primary">Tu nivel actual</span> }
-              </p>
-              <p class="text-sm text-muted-foreground">
-                {{ puntos(n.desde) }}{{ n.hasta ? ' – ' + puntos(n.hasta) : ' a más' }} puntos
-              </p>
-              <ul class="mt-2 space-y-1 text-sm text-muted-foreground">
-                @for (b of n.beneficios; track b) { <li class="flex gap-2"><span aria-hidden="true" class="text-primary">•</span>{{ b }}</li> }
-              </ul>
-            </div>
-          </li>
-        }
-      </ul>
 
       <ul class="mt-5 space-y-2 rounded-2xl bg-surface p-4 text-base text-muted-foreground">
         @for (r of catalog.reglasNiveles(); track r) {
@@ -323,10 +300,18 @@ export class CityComboboxComponent {
         }
       </ul>
 
-      <a routerLink="/mi-nivel" (click)="closed.emit()"
-        class="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-primary px-6 text-base font-bold text-primary-foreground lg:min-h-14">
-        Ver todo sobre mi nivel
-      </a>
+      <div class="mt-6 flex flex-col gap-3 sm:flex-row-reverse">
+        <button type="button" (click)="closed.emit()"
+          class="inline-flex min-h-12 flex-1 items-center justify-center rounded-full bg-primary px-6 text-base font-bold text-primary-foreground lg:min-h-14">
+          Entendido
+        </button>
+        @if (!enMiNivel()) {
+          <a routerLink="/mi-nivel" (click)="closed.emit()"
+            class="inline-flex min-h-12 flex-1 items-center justify-center rounded-full border border-border px-6 text-base font-bold text-ink hover:border-primary hover:text-primary lg:min-h-14">
+            Ver niveles y beneficios
+          </a>
+        }
+      </div>
     </app-modal>
   `,
 })
@@ -336,7 +321,9 @@ export class NivelesModalComponent {
   readonly puntosActuales = input.required<number>();
   readonly closed = output<void>();
   protected readonly puntos = formatPuntos;
-  protected readonly actual = computed(() => nivelPorPuntos(this.catalog.niveles(), this.puntosActuales()) ?? { id: "", color: "" });
+  private readonly router = inject(Router);
+  /** En Mi nivel ya está la lista de rangos y beneficios: no se ofrece ir a la misma pantalla. */
+  protected readonly enMiNivel = () => this.router.url.split(/[?#]/)[0] === "/mi-nivel";
 }
 
 @Component({

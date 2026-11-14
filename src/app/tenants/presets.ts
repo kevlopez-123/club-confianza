@@ -1,7 +1,7 @@
 import type { DocumentoIdentidad, Provincia, TenantConfig } from "./tenant.types";
 
 /** País con el que arranca el proyecto (cámbialo para cambiar de cliente por defecto). */
-export const TENANT_POR_DEFECTO = "ecuador";
+export const TENANT_POR_DEFECTO = "confianza";
 
 type Pais = TenantConfig["pais"];
 
@@ -94,7 +94,7 @@ export const PAISES: Record<string, Pais> = {
 };
 
 export const LISTA_PAISES = Object.values(PAISES);
-export const paisPorCodigo = (codigo: string): Pais => structuredClone(PAISES[codigo] ?? PAISES["EC"]!);
+export const paisPorCodigo = (codigo: string): Pais => structuredClone(PAISES[codigo] ?? PAISES["PE"]!);
 
 const imgBase = {
   login: "img/login-banner.jpg",
@@ -125,6 +125,28 @@ export const ECUADOR: TenantConfig = {
   imagenes: imgBase,
 };
 
+/** Cliente: Financiera Confianza (Perú), programa "Club Confianza". Colores y tipografía de https://confianza.pe/ */
+export const CONFIANZA: TenantConfig = {
+  id: "confianza",
+  marca: {
+    nombre: "Financiera Confianza",
+    programa: "Club Confianza",
+    unidadPuntos: "puntos",
+    logoClaro: "img/club-confianza.png",
+    logoOscuro: "img/club-confianza.png",
+    favicon: "favicon.png",
+    derechos: "Financiera Confianza 2026 | Todos los derechos reservados",
+  },
+  tema: {
+    primario: "#005699", textoPrimario: "#ffffff", acento: "#4598d8", titulos: "#015699",
+    texto: "#40403a", fondo: "#ffffff", superficie: "#f8f9fa", superficieAlt: "#eaedf2", radio: 1,
+    fuente: "Open Sans",
+    fuenteUrl: "https://fonts.googleapis.com/css2?family=Open+Sans:wght@300..800&display=swap",
+  },
+  pais: paisPorCodigo("PE"),
+  imagenes: imgBase,
+};
+
 /** La lista de provincias es la oficial del país; de lo guardado solo se conserva si cada una tiene envío. */
 export const provinciasDe = (codigo: string, guardadas: Provincia[] = []): Provincia[] => {
   const envio = new Map(guardadas.map((p) => [p.nombre, p.envio]));
@@ -133,11 +155,11 @@ export const provinciasDe = (codigo: string, guardadas: Provincia[] = []): Provi
 
 /** Completa con valores por defecto lo que falte (configuraciones guardadas o importadas de versiones anteriores). */
 export const normalizarTenant = (t: Partial<TenantConfig>): TenantConfig => {
-  const base = structuredClone(ECUADOR);
-  const pais = { ...paisPorCodigo(t.pais?.codigo ?? "EC"), ...t.pais } as Pais;
+  const base = structuredClone(CONFIANZA);
+  const pais = { ...paisPorCodigo(t.pais?.codigo ?? "PE"), ...t.pais } as Pais;
   pais.provincias = provinciasDe(pais.codigo, t.pais?.provincias);
   return { ...base, ...t, marca: { ...base.marca, ...t.marca }, tema: { ...base.tema, ...t.tema }, pais, imagenes: { ...base.imagenes, ...t.imagenes } } as TenantConfig;
 };
 
-export const PRESETS: Record<string, TenantConfig> = { ecuador: ECUADOR };
-export const presetPorId = (id: string): TenantConfig => structuredClone(PRESETS[id] ?? ECUADOR);
+export const PRESETS: Record<string, TenantConfig> = { ecuador: ECUADOR, confianza: CONFIANZA };
+export const presetPorId = (id: string): TenantConfig => structuredClone(PRESETS[id] ?? CONFIANZA);

@@ -10,9 +10,9 @@ describe("formato de indicadores", () => {
     expect(formatear("pct", 18.14)).toContain("%");
     expect(formatear("dec", 2.25)).toBe((2.25).toLocaleString("es", { maximumFractionDigits: 1 }));
   });
-  it("dinero con el símbolo de dólar", () => {
+  it("dinero con el símbolo de la moneda", () => {
     expect(formatear("usd", 310)).toContain("310");
-    expect(formatear("usd", 310)).toContain("$");
+    expect(formatear("usd", 310)).toContain("S/");
   });
 });
 

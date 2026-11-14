@@ -3,7 +3,7 @@ import { descargarListado, entrarAdmin, textoDeArchivo } from "./helpers";
 
 async function cambiarReglas(page: Page) {
   await page.goto("/admin/reglas");
-  await page.getByLabel("Precio por punto (US$)").fill("0.05");
+  await page.getByLabel("Precio por punto (S/)").fill("0.05");
   await page.getByLabel("Mínimo por compra").fill("1000");
   await page.getByRole("button", { name: "Guardar reglas" }).click();
   await expect(page.getByText(/guardad/i).first()).toBeVisible();
@@ -21,7 +21,7 @@ test.describe("Registro de cambios completo", () => {
     const detalle = page.getByRole("dialog");
     const tabla = detalle.getByRole("table", { name: "Campos modificados" });
     const precio = tabla.locator("tr", { hasText: "precio" }).first();
-    await expect(precio).toContainText("0.02");
+    await expect(precio).toContainText("0.07");
     await expect(precio).toContainText("0.05");
     await expect(tabla.locator("tr", { hasText: "min" }).first()).toContainText("1000");
     await expect(detalle.getByText("Sección: ")).toBeVisible();
@@ -49,7 +49,7 @@ test.describe("Registro de cambios completo", () => {
     await entrarAdmin(page);
     await page.goto("/admin/auditoria");
     await expect(page.locator("tbody tr", { hasText: "Intento fallido de ingreso (admin@bancosolidario.com)" }).first()).toBeVisible();
-    const guardado = await page.evaluate(() => localStorage.getItem("bancosolidario_mockdb_v11") ?? "");
+    const guardado = await page.evaluate(() => localStorage.getItem("confianza_mockdb_v1") ?? "");
     expect(guardado).not.toContain("clave-equivocada-123");
   });
 
@@ -82,21 +82,21 @@ test.describe("Registro de cambios completo", () => {
     expect(descarga.suggestedFilename()).toMatch(/^registro-de-cambios_\d{4}-\d{2}-\d{2}\.xlsx$/);
     const xlsx = await textoDeArchivo(descarga);
     expect(xlsx).toContain("QUÉ CAMBIÓ"); // encabezados en mayúscula
-    expect(xlsx).toMatch(/Editó las reglas de puntos[\s\S]*precio: 0\.02 → 0\.05/);
+    expect(xlsx).toMatch(/Editó las reglas de puntos[\s\S]*precio: 0\.07 → 0\.05/);
     expect(xlsx).toContain("Editó nivel Oro"); // también lo anterior, no solo la primera página
   });
 
   test("una pantalla que describe su propio cambio no duplica el registro automático", async ({ page }) => {
     await entrarAdmin(page);
     await page.goto("/admin/participantes");
-    await page.getByPlaceholder("Buscar por nombre o cédula").fill("Ana Torres");
+    await page.getByPlaceholder("Buscar por nombre o DNI").fill("Ana Torres");
     await expect(page.locator("tbody tr")).toHaveCount(1);
     await page.getByRole("link", { name: "Ver ficha" }).click();
     await page.locator("main").getByRole("button", { name: "Bloquear cuenta" }).click();
     await page.getByRole("button", { name: "Bloquear", exact: true }).click();
     await expect(page.getByText("Cuenta bloqueada")).toBeVisible();
     // el aviso de la pantalla llega al servidor un instante después: se espera a que quede guardado
-    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11") ?? "{}").admin?.auditoria?.some((r: any) => r.descrita && /Bloqueó la cuenta de Ana Torres/.test(r.accion) && r.despues))).toBe(true);
+    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("confianza_mockdb_v1") ?? "{}").admin?.auditoria?.some((r: any) => r.descrita && /Bloqueó la cuenta de Ana Torres/.test(r.accion) && r.despues))).toBe(true);
     await page.goto("/admin/auditoria");
     await expect(page.locator("tbody tr", { hasText: "Bloqueó la cuenta de Ana Torres" })).toHaveCount(1);
   });

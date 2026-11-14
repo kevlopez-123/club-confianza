@@ -50,29 +50,6 @@ test.describe("Fase A: arreglos rápidos", () => {
     await expect.poll(alto).toBeGreaterThan(inicial - 2);
   });
 
-  test("cotización: el casillero de discapacidad sigue alineado con la fecha aunque ésta tenga un error", async ({ page }) => {
-    await entrarAdmin(page);
-    await page.setViewportSize({ width: 1366, height: 900 });
-    await page.goto("/vuelos");
-    await page.getByLabel("Fecha de ida").fill("2027-03-10");
-    await page.getByLabel("Fecha de regreso").fill("2027-03-20");
-    await page.getByRole("button", { name: "Continuar" }).click();
-    const nac = page.locator("#nac-0");
-    const casilla = page.locator("label", { hasText: "Discapacitado y requiere asistencia" });
-    const alineados = async () => {
-      const a = (await nac.boundingBox())!;
-      const b = (await casilla.boundingBox())!;
-      return Math.abs(a.y - b.y) < 2 && Math.abs(a.height - b.height) < 2;
-    };
-    expect(await alineados()).toBe(true);
-    await nac.fill("2015-09-30");
-    await nac.focus();
-    await nac.blur();
-    await page.getByRole("button", { name: "Cotizar" }).click(); // fuerza los errores
-    await expect(page.getByRole("alert").filter({ hasText: /mayor de 18/ }).first()).toBeVisible();
-    expect(await alineados()).toBe(true);
-  });
-
   test("la galería del detalle se queda fija mientras se lee la columna de texto", async ({ page }) => {
     await entrarAdmin(page);
     await page.setViewportSize({ width: 1366, height: 768 });

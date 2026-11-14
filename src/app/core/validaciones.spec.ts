@@ -64,7 +64,8 @@ describe("provincia y ciudad en cascada", () => {
     expect(ciudadesDe("EC", "Guayas")).toContain("Guayaquil");
     expect(ciudadesDe("EC", "Pichincha")).not.toContain("Guayaquil");
     expect(ciudadesDe("EC", "Inventada")).toEqual([]);
-    expect(ciudadesDe("PE", "Lima")).toEqual([]);
+    expect(ciudadesDe("PE", "Lima")).toContain("Miraflores");
+    expect(ciudadesDe("CO", "Antioquia")).toEqual([]); // país sin lista cargada
   });
   it("reconoce la ciudad que sugiere el mapa", () => {
     expect(ciudadCoincidente("EC", "Pichincha", "Quito, Pichincha")).toBe("Quito");

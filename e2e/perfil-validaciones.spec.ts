@@ -6,15 +6,15 @@ test.describe("Mis datos: validaciones y provincia → ciudad", () => {
     const provincia = page.locator("#pf-f7");
     const ciudad = page.locator("#pf-f8");
     await expect(ciudad).toBeDisabled();
-    await provincia.selectOption("Pichincha");
+    await provincia.selectOption("Lima");
     await expect(ciudad).toBeEnabled();
     const opciones = await ciudad.locator("option").allTextContents();
-    expect(opciones).toContain("Quito");
-    expect(opciones).not.toContain("Guayaquil");
-    await ciudad.selectOption("Quito");
-    await provincia.selectOption("Guayas");
+    expect(opciones).toContain("Miraflores");
+    expect(opciones).not.toContain("Mollendo");
+    await ciudad.selectOption("Miraflores");
+    await provincia.selectOption("Arequipa");
     await expect(ciudad).toHaveValue("");
-    expect(await ciudad.locator("option").allTextContents()).toContain("Guayaquil");
+    expect(await ciudad.locator("option").allTextContents()).toContain("Mollendo");
   });
 
   test("fecha de nacimiento: no futura, mayor de 18 y fecha real", async ({ page }) => {
@@ -57,13 +57,13 @@ test.describe("Mis datos: validaciones y provincia → ciudad", () => {
     await page.getByLabel("Correo electrónico *").fill("ana@correo.com");
     await page.getByLabel("N.º de celular").fill("996543210");
     await page.getByLabel("Género").selectOption("Femenino");
-    await page.locator("#pf-f7").selectOption("Pichincha");
-    await page.locator("#pf-f8").selectOption("Quito");
+    await page.locator("#pf-f7").selectOption("Lima");
+    await page.locator("#pf-f8").selectOption("Miraflores");
     await page.getByLabel("Fecha de nacimiento").fill("1990-05-05");
     await page.getByRole("button", { name: "Guardar cambios" }).click();
     await expect(page.getByText("Tus cambios se guardaron correctamente.")).toBeVisible();
     await page.reload();
-    await expect(page.locator("#pf-f7")).toHaveValue("Pichincha");
-    await expect(page.locator("#pf-f8")).toHaveValue("Quito");
+    await expect(page.locator("#pf-f7")).toHaveValue("Lima");
+    await expect(page.locator("#pf-f8")).toHaveValue("Miraflores");
   });
 });

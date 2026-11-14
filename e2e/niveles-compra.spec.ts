@@ -23,16 +23,16 @@ test.describe("Niveles", () => {
     await expect(page.getByText("Cambios guardados")).toBeVisible();
 
     await page.goto("/mi-nivel");
-    await expect(page.getByText("Subir de nivel en Banco Solidario toma 6 meses de puntos.")).toBeVisible();
+    await expect(page.getByText("Subir de nivel en Financiera Confianza toma 6 meses de puntos.")).toBeVisible();
     await expect(page.getByText("Regla uno a 6 meses")).toHaveCount(0); // las reglas viven solo en el modal
     await expect(page.getByText("Beneficio nuevo A")).toBeVisible();
     await expect(page.getByText("Beneficio nuevo B")).toBeVisible();
 
     await page.getByRole("button", { name: "Cómo funcionan los niveles" }).click();
     const modal = page.getByRole("dialog");
-    await expect(modal).toContainText("Intro propia de Banco Solidario Puntos.");
+    await expect(modal).toContainText("Intro propia de Club Confianza.");
     await expect(modal).toContainText("Regla uno a 6 meses");
-    await expect(modal).toContainText("Beneficio nuevo A"); // el modal usa los mismos beneficios que Mi nivel
+    await expect(modal.getByRole("link", { name: "Ver niveles y beneficios" })).toHaveCount(0); // ya estamos en Mi nivel, donde se leen los beneficios por nivel
   });
 
   test("al guardar, el sitio refleja el cambio sin recargar (Mi nivel ya cargada)", async ({ page, context }) => {
@@ -62,10 +62,10 @@ test.describe("Compra de puntos", () => {
     await expect(page.getByText("Cambios guardados")).toBeVisible();
 
     await page.goto("/mis-puntos/compra");
-    const opciones = page.locator("main button").filter({ hasText: /^\s*[\d.]+\s*\$/ });
+    const opciones = page.locator("main button").filter({ hasText: /^\s*[\d\s]+S\/\s?[\d.,]+\s*$/ });
     await expect(opciones).toHaveCount(2); // 70.000 queda fuera del máximo; repetidos y ceros se descartan
-    await expect(opciones.first()).toContainText("1.000");
-    await expect(page.getByText(/entre 1\.000 y 50\.000/)).toBeVisible();
+    await expect(opciones.first()).toContainText("1 000");
+    await expect(page.getByText(/entre 1\s000 y 50\s000/)).toBeVisible();
   });
 
   test("cada compra queda en el historial del participante y en Compras de puntos del panel, con su monto", async ({ page }) => {
@@ -84,7 +84,7 @@ test.describe("Compra de puntos", () => {
     const fila = page.locator("tbody tr", { hasText: codigo });
     await expect(fila).toHaveCount(1);
     await expect(fila).toContainText("Aprobada");
-    await expect(fila).toContainText("$"); // monto pagado
+    await expect(fila).toContainText("S/"); // monto pagado
 
     await page.goto("/admin/movimientos");
     await expect(page.locator("td:visible, p:visible", { hasText: `Compra de puntos operación ${codigo}` }).first()).toBeVisible();

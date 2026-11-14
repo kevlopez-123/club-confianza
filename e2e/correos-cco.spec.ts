@@ -10,7 +10,7 @@ const agregar = async (page: Page, dir: string) => {
   await page.getByLabel("Agregar dirección en copia oculta").fill(dir);
   await page.getByRole("button", { name: "Agregar" }).click();
 };
-const enviados = (page: Page) => page.evaluate(() => (JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11") ?? "{}").admin?.correosEnviados ?? []) as { cco?: string[]; plantillaId: string; campanaId?: string; para: string }[]);
+const enviados = (page: Page) => page.evaluate(() => (JSON.parse(localStorage.getItem("confianza_mockdb_v1") ?? "{}").admin?.correosEnviados ?? []) as { cco?: string[]; plantillaId: string; campanaId?: string; para: string }[]);
 
 test.describe("Correos: copia oculta (CCO)", () => {
   test("se agregan, validan y quitan direcciones, y se guardan", async ({ page }) => {

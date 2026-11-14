@@ -20,8 +20,8 @@ export function enviarCorreo(
   if ((!pl.activo && !pl.fija) || !para) return null;
   const marca: any = (db.config as any).tenant?.marca;
   const base = {
-    programa: marca?.programa ?? "Banco Solidario Puntos",
-    banco: marca?.nombre ?? "Banco Solidario",
+    programa: marca?.programa ?? "Club Confianza",
+    banco: marca?.nombre ?? "Financiera Confianza",
     nombre: extra.destinatario ?? "",
     sitio: typeof location !== "undefined" ? location.origin : "",
     ...vars,
@@ -190,8 +190,8 @@ export function entornoCorreo(): EntornoCorreo {
     primario: t?.tema?.primario ?? "#00bdd2",
     textoPrimario: t?.tema?.textoPrimario ?? "#ffffff",
     fuente: t?.tema?.fuente ?? "",
-    programa: t?.marca?.programa ?? "Banco Solidario Puntos",
-    banco: t?.marca?.nombre ?? "Banco Solidario",
+    programa: t?.marca?.programa ?? "Club Confianza",
+    banco: t?.marca?.nombre ?? "Financiera Confianza",
     redes: ((db.config.sitio as any)?.redes ?? {}) as Record<string, string | undefined>,
   };
 }
@@ -249,7 +249,7 @@ export function avisarPuntosPorVencer(dias?: number) {
   for (const [cliente, x] of porPersona) {
     const part: any = db.admin.participantes.find((p: any) => p.nombre === cliente);
     if (!part || part.estado === "Bloqueado") continue;
-    if (enviarCorreo("puntos-por-vencer", part.email, { puntos: x.puntos.toLocaleString("es"), fecha: x.vence.toLocaleDateString("es-EC") }, { destinatario: part.nombre, participanteId: part.id })) enviados++;
+    if (enviarCorreo("puntos-por-vencer", part.email, { puntos: x.puntos.toLocaleString("es"), fecha: x.vence.toLocaleDateString("es-PE") }, { destinatario: part.nombre, participanteId: part.id })) enviados++;
   }
   return { enviados };
 }

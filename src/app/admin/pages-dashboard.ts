@@ -32,7 +32,7 @@ const col = (ancho: number) => (ancho === 3 ? "md:col-span-2 xl:col-span-3" : an
   imports: [RouterLink, PageHeaderComponent, PeriodFilterComponent, StatComponent, PanelComponent, PillComponent, ChartComponent, DonaComponent, BtnDirective, IconComponent, AdminModalComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <a-header title="Dashboard" [desc]="'Actividad del programa en web y app · ' + etiqueta()">
+    <a-header title="Dashboard" [desc]="'Actividad del programa en la web · ' + etiqueta()">
       <a-period-filter [(per)]="per" [(desde)]="desde" [(hasta)]="hasta" />
       <button aBtn variant="outline" (click)="personalizar.set(true)"><app-icon name="SlidersHorizontal" class="h-4 w-4" /> Personalizar</button>
     </a-header>

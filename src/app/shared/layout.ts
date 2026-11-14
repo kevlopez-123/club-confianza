@@ -210,11 +210,11 @@ export class SearchBoxComponent {
             <span class="w-full text-base text-white/90">Hola {{ store.usuario().nombre }}</span>
             <a routerLink="/mi-nivel" (click)="open.set(false)"
               class="flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-white/10 px-3 py-1.5 text-base text-white transition-colors hover:bg-white/20">
-              <app-icon name="Gem" class="h-4 w-4 text-celeste" />
+              <app-icon name="Gem" class="h-4 w-4 text-white" />
               Nivel {{ store.usuario().nivel }}
             </a>
             <span class="rounded-full bg-white/10 px-5 py-2 text-base text-white">
-              Tienes <strong class="font-extrabold text-celeste">{{ puntos(store.puntos()) }}</strong> puntos
+              Tienes <strong class="font-extrabold text-white">{{ puntos(store.puntos()) }}</strong> puntos
             </span>
           </div>
           }
@@ -425,7 +425,7 @@ export class WhatsappFabComponent {
   host: { "(document:keydown)": "atrapar($event)" },
   template: `
     @if (legales.hayPendientes()) {
-      <div class="fixed inset-0 z-[80] grid place-items-center bg-foreground/60 p-4" role="alertdialog" aria-modal="true" aria-labelledby="legales-titulo" aria-describedby="legales-desc">
+      <div class="fixed inset-0 z-[80] grid place-items-center bg-black/60 p-4" role="alertdialog" aria-modal="true" aria-labelledby="legales-titulo" aria-describedby="legales-desc">
         <div #caja tabindex="-1" class="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-card shadow-2xl outline-none">
           <div class="shrink-0 border-b border-border px-6 py-4">
             <h2 id="legales-titulo" class="text-xl font-bold text-foreground">{{ titulo }}</h2>

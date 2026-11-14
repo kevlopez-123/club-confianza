@@ -87,7 +87,7 @@ export function errorPopup(p: Popup): string {
   if (p.desde && !fecha.test(p.desde)) return "La fecha de inicio no es válida.";
   if (p.hasta && !fecha.test(p.hasta)) return "La fecha de fin no es válida.";
   if (p.desde && p.hasta && p.hasta < p.desde) return "La fecha de fin no puede ser anterior a la de inicio.";
-  if (!p.web?.activo && !p.app?.activo) return "Activa el contenido de la web, de la app o de ambas.";
+  if (!p.web?.activo && !p.app?.activo) return "Activa el contenido del pop-up.";
   const v = errorVariante(p.web, "web") || errorVariante(p.app, "app");
   if (v) return v;
   if (p.frecuencia === "dias" && (!Number.isInteger(p.dias) || (p.dias ?? 0) < 1 || (p.dias ?? 0) > 365)) return "Indica cada cuántos días vuelve a salir (1 a 365).";
@@ -147,7 +147,6 @@ export const POPUPS_INICIALES: Popup[] = [
   {
     id: "popup-bienvenida", nombre: "Bienvenida a la nueva experiencia (ejemplo)", activo: false, frecuencia: "sesion", paginas: "inicio", prioridad: 50,
     web: { activo: true, titulo: "¡Bienvenido!", mensaje: "Descubre los nuevos beneficios y productos que tenemos para ti.", boton: "Ver beneficios", enlace: "/beneficios" },
-    app: { activo: true, titulo: "¡Bienvenido a la app!", mensaje: "Canjea tus puntos y genera tus cupones desde el celular.", boton: "Ver beneficios", enlace: "/beneficios" },
     vistas: { web: 0, app: 0 }, clics: { web: 0, app: 0 },
   },
 ];

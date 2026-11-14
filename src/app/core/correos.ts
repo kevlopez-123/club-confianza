@@ -3,7 +3,7 @@
 export interface PlantillaCorreo {
   id: string;
   nombre: string;
-  grupo: "Seguridad y acceso" | "Compras y puntos" | "Beneficios y vuelos" | "Alertas internas";
+  grupo: "Seguridad y acceso" | "Compras y puntos" | "Beneficios y atención" | "Alertas internas";
   descripcion: string;
   /** Cuándo se dispara. */
   evento: string;
@@ -148,6 +148,8 @@ const p = (
 export const PLANTILLAS_BASE: PlantillaCorreo[] = [
   p("otp", "Seguridad y acceso", "Código de acceso", "El participante pide ingresar al sitio",
     "Tu código de acceso a {programa}", "Hola {nombre},\n\nTu código de acceso es {codigo}. Vence en {minutos} minutos.\n\nSi no lo pediste, ignora este correo.", ["codigo", "minutos"], { fija: true }),
+  p("cuenta-eliminacion", "Seguridad y acceso", "Solicitud de eliminación de cuenta", "El participante pide eliminar su cuenta o el equipo responde su solicitud",
+    "Tu solicitud de eliminación {codigo}", "Hola {nombre},\n\n{mensaje}\n\nSolicitud {codigo}.", ["codigo", "mensaje"]),
   p("bienvenida", "Seguridad y acceso", "Bienvenida", "Se da de alta a un participante (individual o carga masiva)",
     "Te damos la bienvenida a {programa}", "Hola {nombre},\n\nYa eres parte de {programa}. Ingresa con tu documento y canjea tus puntos por productos, beneficios y vuelos.", [], { boton: { texto: "Ingresar a {programa}", url: "{sitio}/login" } }),
   p("correo-cambiado", "Seguridad y acceso", "Cambio de correo de acceso", "Se cambia el correo con el que el participante ingresa",
@@ -168,19 +170,19 @@ export const PLANTILLAS_BASE: PlantillaCorreo[] = [
   p("compra-puntos-fallida", "Compras y puntos", "Pago de puntos rechazado", "Un pago de la compra de puntos es rechazado o falla",
     "No pudimos procesar tu pago {codigo}", "Hola {nombre},\n\nTu pago de la operación {codigo} no se completó: {motivo}.\n\nPuedes volver a intentarlo desde Compra de puntos; no se hizo ningún cargo.", ["codigo", "motivo"], { boton: { texto: "Reintentar mi compra", url: "{sitio}/mis-puntos/compra" } }),
   p("compra-puntos", "Compras y puntos", "Recibo de compra de puntos", "Se aprueba una compra de puntos",
-    "Recibo de tu compra de puntos {codigo}", "Hola {nombre},\n\nAcreditamos {puntos} puntos por US$ {monto}. Operación {codigo}.", ["codigo", "puntos", "monto"]),
+    "Recibo de tu compra de puntos {codigo}", "Hola {nombre},\n\nAcreditamos {puntos} puntos por S/ {monto}. Operación {codigo}.", ["codigo", "puntos", "monto"]),
   p("puntos-por-vencer", "Compras y puntos", "Puntos por vencer", "Faltan pocos días para que venzan puntos",
     "Tienes puntos por vencer", "Hola {nombre},\n\n{puntos} de tus puntos vencen el {fecha}. Canjéalos antes en {programa}.", ["puntos", "fecha"]),
   p("nivel-cambio", "Compras y puntos", "Cambio de nivel", "El participante sube o baja de nivel",
     "Ahora eres nivel {nivel}", "Hola {nombre},\n\nTu nivel en {programa} es {nivel}. Revisa tus nuevos beneficios.", ["nivel"]),
 
-  p("cupon-generado", "Beneficios y vuelos", "Cupón generado", "El participante genera el cupón de un beneficio",
+  p("cupon-generado", "Beneficios y atención", "Cupón generado", "El participante genera el cupón de un beneficio",
     "Tu cupón de {beneficio}", "Hola {nombre},\n\nTu código para {beneficio} es {codigo}. Es válido por {horas} horas.", ["beneficio", "codigo", "horas"], { boton: { texto: "Ver mis beneficios", url: "{sitio}/mis-beneficios" } }),
-  p("cotizacion-recibida", "Beneficios y vuelos", "Cotización recibida", "El participante envía una cotización de vuelo",
+  p("cotizacion-recibida", "Beneficios y atención", "Cotización recibida", "El participante envía una cotización de vuelo",
     "Recibimos tu cotización {codigo}", "Hola {nombre},\n\nRecibimos tu solicitud {codigo} ({origen} → {destino}). Una ejecutiva la revisará y te escribirá pronto.", ["codigo", "origen", "destino"], { boton: { texto: "Ver mis cotizaciones", url: "{sitio}/vuelos/cotizaciones" } }),
-  p("cotizacion-estado", "Beneficios y vuelos", "Cotización: cambio de estado", "El panel cambia el estado de una cotización",
+  p("cotizacion-estado", "Beneficios y atención", "Cotización: cambio de estado", "El panel cambia el estado de una cotización",
     "Tu cotización {codigo} está {estado}", "Hola {nombre},\n\nTu cotización {codigo} ({origen} → {destino}) cambió a: {estado}.", ["codigo", "origen", "destino", "estado"]),
-  p("contacto-acuse", "Beneficios y vuelos", "Acuse de consulta", "El participante envía el formulario Contáctanos",
+  p("contacto-acuse", "Beneficios y atención", "Acuse de consulta", "El participante envía el formulario Contáctanos",
     "Recibimos tu consulta", "Hola {nombre},\n\nRecibimos tu consulta y te responderemos a este correo. Gracias por escribirnos.\n\n\"{consulta}\""  , ["consulta"]),
 
   p("lote-alerta", "Alertas internas", "Lote de códigos con poco stock", "Quedan pocos códigos sin usar en un lote",
@@ -214,6 +216,7 @@ const NOTIFICACIONES_BASE: Record<string, NotificacionPlantilla> = {
   "cotizacion-recibida": { activo: true, tipo: "vuelo", titulo: "Recibimos tu cotización {codigo}", texto: "{origen} → {destino}. Una ejecutiva la revisará pronto.", enlace: "/vuelos/cotizaciones" },
   "cotizacion-estado": { activo: true, tipo: "vuelo", titulo: "Tu cotización {codigo} está {estado}", texto: "{origen} → {destino}. Revisa los detalles.", enlace: "/vuelos/cotizaciones" },
   "contacto-acuse": { activo: true, tipo: "info", titulo: "Recibimos tu consulta", texto: "Te responderemos al correo de tu cuenta.", enlace: "/contacto" },
+  "cuenta-eliminacion": { activo: true, tipo: "cuenta", titulo: "Solicitud de eliminación {codigo}", texto: "{mensaje}", enlace: "/perfil/eliminar-cuenta" },
   bienvenida: { activo: true, tipo: "info", titulo: "Te damos la bienvenida a {programa}", texto: "Canjea tus puntos por productos, beneficios y vuelos.", enlace: "/canjea" },
 };
 for (const p of PLANTILLAS_BASE) if (NOTIFICACIONES_BASE[p.id]) p.notificar = NOTIFICACIONES_BASE[p.id]!;
@@ -269,7 +272,11 @@ export function renderCorreoHtml(bloques: BloqueCorreo[], d: DisenoCorreo, env: 
   const familia = web ? encodeURIComponent(web).replace(/%20/g, "+") : "";
   const hojaFuente = web ? `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=${familia}:wght@400;700&amp;display=swap"><style>@import url('https://fonts.googleapis.com/css2?family=${familia}:wght@400;700&display=swap');</style>` : "";
   const r =(t?: string) => esc(renderPlantilla(t ?? "", vars)).replace(/\n/g, "<br>");
-  const logo = d.logo || env.logoOscuro;
+  // Un logo relativo («img/logo.png») no se ve fuera del sitio: se completa con la dirección del sitio.
+  const absoluta = (u: string) => (u && !/^(https?:\/\/|blob:|data:|\/\/)/i.test(u) && typeof location !== "undefined" ? new URL(u, location.origin + "/").href : u);
+  const logo = absoluta(d.logo || env.logoOscuro);
+  // Si es el mismo logo de color para fondo claro y oscuro, sobre el encabezado de color se muestra en blanco.
+  const logoBlanco = !d.logo && !!env.logoOscuro && env.logoOscuro === env.logoClaro ? "filter:brightness(0) invert(1);" : "";
   const imgOk = /^(https?:\/\/|blob:|data:image\/|\/)/i;
   const hrefOk = /^(https?:\/\/|mailto:|tel:)/i;
   const cuerpo = bloques.map((b) => {
@@ -299,7 +306,7 @@ export function renderCorreoHtml(bloques: BloqueCorreo[], d: DisenoCorreo, env: 
   return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${hojaFuente}<style>body{margin:0}img{-ms-interpolation-mode:bicubic}</style></head>
 <body style="margin:0;padding:0;background:${c.fondo}"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${c.fondo}"><tr><td align="center" style="padding:24px 12px">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden">
-<tr><td align="center" style="background:${c.enc};padding:22px 24px">${logo && imgOk.test(logo) ? `<img src="${esc(logo)}" alt="${esc(env.programa)}" height="36" style="display:block;height:36px;max-width:220px;border:0;margin:0 auto">` : `<span style="font:800 20px ${fuente};color:${env.textoPrimario || "#fff"}">${esc(env.programa)}</span>`}</td></tr>
+<tr><td align="center" style="background:${c.enc};padding:22px 24px">${logo && imgOk.test(logo) ? `<img src="${esc(logo)}" alt="${esc(env.programa)}" height="36" style="display:block;height:36px;max-width:220px;border:0;margin:0 auto;${logoBlanco}">` : `<span style="font:800 20px ${fuente};color:${env.textoPrimario || "#fff"}">${esc(env.programa)}</span>`}</td></tr>
 ${banner}${cuerpo}<tr><td style="height:16px;line-height:16px;font-size:0">&nbsp;</td></tr>
 <tr><td style="background:#fafafa;border-top:1px solid #e5e7eb;padding:18px 24px;text-align:center;font:400 12px/1.6 ${fuente};color:#6b7280">${redes ? `<div style="margin-bottom:8px">${redes}</div>` : ""}${pie}</td></tr>
 </table></td></tr></table></body></html>`;

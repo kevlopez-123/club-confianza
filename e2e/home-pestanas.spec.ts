@@ -42,7 +42,7 @@ test.describe("Pestañas del Home: mezcla de automático y manual", () => {
 
   test("abrir la ficha de un producto suma una vista", async ({ page }) => {
     const vistas = () =>
-      page.evaluate(() => JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11") ?? "{}").admin?.productos?.find((p: any) => p.id === "p7")?.vistas ?? 0);
+      page.evaluate(() => JSON.parse(localStorage.getItem("confianza_mockdb_v1") ?? "{}").admin?.productos?.find((p: any) => p.id === "p7")?.vistas ?? 0);
     await page.goto("/canjea/p7");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect.poll(vistas).toBeGreaterThan(0);

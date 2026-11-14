@@ -55,30 +55,6 @@ describe("API simulada (de punta a punta, sin navegador)", () => {
     expect(e.error.codigo).toBe("pasajeros_maximo");
   });
 
-  it("un dispositivo se registra, se repite sin duplicarse y se quita", async () => {
-    const cliente = http();
-    const token = "fcm-token-de-prueba-" + "x".repeat(30);
-    await firstValueFrom(cliente.post("/api/me/dispositivos", { token, plataforma: "android" }, { headers: SESION }));
-    await firstValueFrom(cliente.post("/api/me/dispositivos", { token, plataforma: "android" }, { headers: SESION }));
-    const guardados = JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11") ?? "{}").dispositivos ?? [];
-    expect(guardados.filter((d: any) => d.token === token).length).toBe(1);
-    await firstValueFrom(cliente.delete("/api/me/dispositivos/" + encodeURIComponent(token), { headers: SESION }));
-    const despues = JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11") ?? "{}").dispositivos ?? [];
-    expect(despues.some((d: any) => d.token === token)).toBe(false);
-  });
-
-  it("un token de dispositivo vacío se rechaza", async () => {
-    const e: any = await firstValueFrom(http().post("/api/me/dispositivos", { token: "corto" }, { headers: SESION })).catch((x) => x);
-    expect(e.status).toBe(422);
-    expect(e.error.codigo).toBe("token_invalido");
-  });
-
-  it("GET onboarding es público y trae solo las pantallas activas, sin campos internos", async () => {
-    const lista: any[] = await firstValueFrom(http().get<any[]>("/api/onboarding"));
-    expect(lista.length).toBeGreaterThan(0);
-    for (const o of lista) expect(Object.keys(o).sort()).toEqual(["id", "texto", "titulo"]);
-  });
-
   it("una ruta inexistente responde ruta_no_encontrada", async () => {
     const e: any = await firstValueFrom(http().get("/api/no-existe")).catch((x) => x);
     expect(e.status).toBe(404);

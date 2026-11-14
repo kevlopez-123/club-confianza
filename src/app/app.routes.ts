@@ -23,7 +23,6 @@ const account = () => import("./pages/account-pages");
 const points = () => import("./pages/points-pages");
 const checkout = () => import("./pages/checkout-pages");
 const profile = () => import("./pages/profile-pages");
-const flights = () => import("./pages/flights-pages");
 const info = () => import("./pages/info-pages");
 
 const general = () => import("./admin/pages-general");
@@ -56,15 +55,14 @@ export const routes: Routes = [
       { path: "roles", title: adminTitle("Roles"), loadComponent: () => general().then((m) => m.RolesPage) },
       { path: "auditoria", title: adminTitle("Registro de cambios"), loadComponent: () => general().then((m) => m.AuditoriaPage) },
       { path: "participantes", title: adminTitle("Participantes"), loadComponent: () => operacion().then((m) => m.ParticipantesPage) },
+      { path: "participantes/solicitudes-eliminacion", title: adminTitle("Solicitudes de eliminación"), loadComponent: () => general().then((m) => m.SolicitudesEliminacionPage) },
       { path: "participantes/:id", title: adminTitle("Ficha del participante"), loadComponent: () => import("./admin/pages-participante").then((m) => m.ParticipanteFichaPage) },
       { path: "compras-puntos", title: adminTitle("Compras de puntos"), loadComponent: () => operacion().then((m) => m.ComprasPuntosPage) },
       { path: "pedidos", title: adminTitle("Pedidos"), loadComponent: () => operacion().then((m) => m.PedidosPage) },
-      { path: "cotizaciones", title: adminTitle("Cotizaciones de vuelos"), loadComponent: () => operacion().then((m) => m.CotizacionesAdminPage) },
       { path: "productos", title: adminTitle("Productos"), loadComponent: () => catalogos().then((m) => m.ProductosAdminPage) },
       { path: "beneficios", title: adminTitle("Beneficios"), loadComponent: () => catalogos().then((m) => m.BeneficiosAdminPage) },
       { path: "marcas", title: adminTitle("Marcas aliadas"), loadComponent: () => import("./admin/pages-aliadas").then((m) => m.MarcasAdminPage) },
       { path: "marcas/:id", title: adminTitle("Ficha de la marca"), loadComponent: () => import("./admin/pages-marca-ficha").then((m) => m.MarcaFichaPage) },
-      { path: "destinos", title: adminTitle("Destinos"), loadComponent: () => catalogos().then((m) => m.DestinosAdminPage) },
       { path: "contenido", title: adminTitle("Contenido"), loadComponent: () => contenido().then((m) => m.ContenidoPage) },
       { path: "formulario", title: adminTitle("Formulario de datos"), loadComponent: () => contenido().then((m) => m.FormularioPage) },
     ],
@@ -96,11 +94,9 @@ export const routes: Routes = [
       { path: "mis-puntos/compra", canActivate: [participanteGuard], title: "Compra de puntos | Banco Solidario Puntos", loadComponent: () => points().then((m) => m.CompraPuntosPage) },
 
       { path: "perfil", canActivate: [participanteGuard], title: "Mi perfil | Banco Solidario Puntos", loadComponent: () => profile().then((m) => m.PerfilPage) },
+      { path: "perfil/eliminar-cuenta", canActivate: [participanteGuard], title: "Eliminar mi cuenta | Banco Solidario Puntos", loadComponent: () => profile().then((m) => m.EliminarCuentaPage) },
       { path: "contacto", canActivate: [participanteGuard], title: "Contáctanos | Banco Solidario Puntos", loadComponent: () => profile().then((m) => m.ContactoPage) },
 
-      { path: "vuelos", title: "Vuelos | Cotiza tu ticket aéreo", loadComponent: () => flights().then((m) => m.VuelosPage) },
-      { path: "vuelos/cotizaciones", canActivate: [participanteGuard], title: "Historial de cotizaciones de vuelos", loadComponent: () => flights().then((m) => m.CotizacionesPage) },
-      { path: "vuelos/destinos/:slug", title: "Destino | Vuelos", loadComponent: () => flights().then((m) => m.DestinoPage) },
 
       { path: "preguntas-frecuentes", title: "Preguntas frecuentes | Banco Solidario Puntos", loadComponent: () => info().then((m) => m.FaqPage) },
       { path: "terminos", title: "Términos y condiciones | Banco Solidario Puntos", loadComponent: () => info().then((m) => m.TerminosPage) },

@@ -53,7 +53,7 @@ test.describe("Textos legales: versiones y aceptación solo en el primer ingreso
     await expect(aviso).toHaveCount(0);
 
     // Quedó registrado con la versión, la fecha y el canal.
-    const ac = await page.evaluate(() => JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11")!).aceptaciones.p1);
+    const ac = await page.evaluate(() => JSON.parse(localStorage.getItem("confianza_mockdb_v1")!).aceptaciones.p1);
     expect(ac.terminos).toMatchObject({ version: 2, canal: "Web" });
     expect(ac.privacidad).toMatchObject({ version: 1, canal: "Web" });
     expect(ac.terminos.fecha).toMatch(/^\d{4}-\d{2}-\d{2}T/);

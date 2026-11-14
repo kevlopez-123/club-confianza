@@ -24,7 +24,7 @@ import { estadoParaParticipante } from "../estados-pedido";
 const LISTAS = [
   "participantes", "pedidos", "mensajes", "usuarios", "auditoria", "productos", "beneficios", "destinos", "ciudades",
   "categoriasProducto", "categoriasBeneficio", "banners", "bannersVuelos", "onboarding", "campos", "lotes", "seccionesHome", "marcas", "comprasPuntos",
-  "plantillasCorreo", "correosEnviados", "campanas", "importaciones", "popups", "guias",
+  "plantillasCorreo", "correosEnviados", "campanas", "importaciones", "popups", "guias", "solicitudesEliminacion",
 ] as const;
 type Lista = (typeof LISTAS)[number];
 
@@ -44,7 +44,7 @@ function devolverPuntos(pedido: any, ficha: any, esDemo: boolean) {
   const detalle = `Devolución por pedido cancelado ${pedido.codigo}`;
   const d = new Date();
   const fechaISO = d.toISOString().slice(0, 10);
-  const fecha = d.toLocaleDateString("es-EC", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const fecha = d.toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
   const hora = d.toTimeString().slice(0, 5);
   if (esDemo) {
     db.usuario.puntos += puntos;
@@ -60,6 +60,20 @@ function devolverPuntos(pedido: any, ficha: any, esDemo: boolean) {
 
 /** Al guardar una colección del admin se refleja lo publicado en el sitio del participante. */
 const sincronizar: Partial<Record<Lista, (anterior: any[]) => void>> = {
+  solicitudesEliminacion: (anterior) => {
+    // Cuando el equipo cambia el estado de una solicitud, la persona recibe el aviso y el correo con lo que se hizo.
+    const textos: Record<string, string> = {
+      "En proceso": "Estamos revisando tu solicitud de eliminación de cuenta.",
+      Completada: "Eliminamos tu cuenta y tus datos personales. Conservamos solo lo que la ley nos obliga a guardar.",
+      Rechazada: "No pudimos eliminar tu cuenta por ahora.",
+    };
+    for (const a of anterior) {
+      const s = (db.admin as any).solicitudesEliminacion.find((x: any) => x.id === a.id);
+      if (!s || s.estado === a.estado || !textos[s.estado]) continue;
+      const motivo = s.estado === "Rechazada" && s.motivo ? ` Motivo: ${s.motivo}` : "";
+      enviarCorreo("cuenta-eliminacion", s.email, { codigo: s.id, mensaje: textos[s.estado] + motivo }, { destinatario: s.nombre, participanteId: s.participanteId, referencia: s.id });
+    }
+  },
   productos: () => {
     const cats = db.admin.categoriasProducto;
     db.catalogo.productos = db.admin.productos
@@ -106,7 +120,7 @@ const sincronizar: Partial<Record<Lista, (anterior: any[]) => void>> = {
       db.movimientos.unshift({
         id: `m${Date.now()}${Math.random().toString(36).slice(2, 5)}`,
         fechaISO: d.toISOString().slice(0, 10),
-        fecha: d.toLocaleDateString("es-EC", { day: "2-digit", month: "2-digit", year: "numeric" }),
+        fecha: d.toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" }),
         detalle: `Ajuste manual: ${a.motivo}`,
         tipo: "ajuste",
         puntos: a.puntos,
@@ -167,6 +181,7 @@ const BUSCABLES: Record<string, string[]> = {
   beneficios: ["nombre", "marca", "categoria"],
   movimientos: ["detalle", "cliente"],
   mensajes: ["asunto", "nombre", "email"],
+  solicitudesEliminacion: ["id", "nombre", "email", "cedula"],
   destinos: ["titulo", "ciudad", "pais", "codigo"],
   ciudades: ["ciudad", "codigo", "pais"],
   cotizaciones: ["codigo", "cliente", "origen", "destino"],
@@ -394,7 +409,7 @@ export const adminRoutes: Route[] = [
       return { fila: it.fila, ok: true as const, id: p.id, documento: it.documento, participante: p.nombre as string, puntos: it.puntos, motivo: String(it.motivo).trim(), saldoAntes: antes, saldoDespues: despues };
     });
     if (aplicar) {
-      const fecha = new Date().toLocaleDateString("es-EC");
+      const fecha = new Date().toLocaleDateString("es-PE");
       for (const r of evaluadas) {
         if (!r.ok) continue;
         const ficha = (db.admin.participantes as any[]).find((x) => x.id === r.id);
@@ -544,7 +559,7 @@ export const adminRoutes: Route[] = [
     const reg = {
       id: `im${d.getTime()}${Math.random().toString(36).slice(2, 5)}`,
       tipo: String(body?.tipo ?? "Otro"), archivo: String(body?.archivo ?? ""), usuario: String(body?.usuario ?? "Panel"),
-      ts: d.toISOString(), fecha: d.toLocaleString("es-EC", { dateStyle: "short", timeStyle: "short" }), fechaISO: d.toISOString().slice(0, 10),
+      ts: d.toISOString(), fecha: d.toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" }), fechaISO: d.toISOString().slice(0, 10),
       total: Number(body?.total) || 0, importadas: Number(body?.importadas) || 0, conErrores: Number(body?.conErrores) || errores.length,
       errores, columnas: Array.isArray(body?.columnas) ? body.columnas : [],
     };
@@ -622,7 +637,7 @@ export const adminRoutes: Route[] = [
   ["GET", "admin/reportes/resumen", ({ query }) => reporteResumen(query.get("desde") ?? "", query.get("hasta") ?? "")],
   ["GET", "admin/reportes", () => ({
     tendencia: db.admin.tendencia,
-    canal: [{ name: "Web", value: 46 }, { name: "App", value: 54 }],
+    canal: [{ name: "Web", value: 100 }],
     topBeneficios: db.catalogo.beneficios.slice(0, 6).map((b, i) => ({ name: b.marca, usos: [820, 640, 510, 430, 380, 290][i] ?? 100 })),
   })],
   ["GET", "admin/movimientos", () => db.admin.movimientos],

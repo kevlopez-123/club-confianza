@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { entrarAdmin } from "./helpers";
 
 const guardado = (page: Page, id: string, campo: string) =>
-  page.evaluate(([i, c]) => JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11") ?? "{}").admin?.productos?.find((p: any) => p.id === i)?.[c as string], [id, campo]);
+  page.evaluate(([i, c]) => JSON.parse(localStorage.getItem("confianza_mockdb_v1") ?? "{}").admin?.productos?.find((p: any) => p.id === i)?.[c as string], [id, campo]);
 
 async function editarProducto(page: Page, busqueda: string) {
   await page.goto("/admin/productos");
@@ -24,26 +24,24 @@ test.describe("Promoción, etiqueta propia y listas editables", () => {
     await page.goto("/canjea/p7");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.locator("article").first()).toContainText("-20%");
-    await expect(page.locator("article").first()).toContainText("18.424 puntos");
-    await expect(page.locator("article").first().locator("s", { hasText: "23.030" })).toBeVisible();
-    await expect(page.locator("article").first()).toContainText("$263,20");
+    await expect(page.locator("article").first()).toContainText("19 184 puntos");
+    await expect(page.locator("article").first().locator("s", { hasText: "23 980" })).toBeVisible();
     await page.goto("/canjea");
     const card = page.locator("app-product-card").filter({ hasText: "Galaxy A56" }).first();
     await expect(card).toContainText("-20%");
-    await expect(card.locator("s")).toHaveCount(2);
+    await expect(card.locator("s")).toHaveCount(1);
   });
 
-  test("monto en US$: descuenta dinero y su equivalente en puntos", async ({ page }) => {
+  test("monto en S/: descuenta dinero y su equivalente en puntos", async ({ page }) => {
     await entrarAdmin(page);
     const d = await editarProducto(page, "Galaxy A56");
     await d.getByLabel("Tipo de descuento").selectOption("monto");
-    await d.getByLabel("Descuento (US$)").fill("10");
+    await d.getByLabel("Descuento (S/)").fill("10");
     await d.getByRole("button", { name: "Guardar producto" }).click();
     await expect.poll(() => guardado(page, "p7", "promoTipo")).toBe("monto");
     await page.goto("/canjea/p7");
-    await expect(page.locator("article").first()).toContainText("-$10");
-    await expect(page.locator("article").first()).toContainText("22.330 puntos");
-    await expect(page.locator("article").first()).toContainText("$319,00");
+    await expect(page.locator("article").first()).toContainText(/-S\/\s?10/);
+    await expect(page.locator("article").first()).toContainText("23 780 puntos");
   });
 
   test("una promoción con fecha futura todavía no se muestra", async ({ page }) => {
@@ -57,7 +55,7 @@ test.describe("Promoción, etiqueta propia y listas editables", () => {
     await page.goto("/canjea/p7");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.locator("article").first()).not.toContainText("-30%");
-    await expect(page.locator("article").first()).toContainText("23.030 puntos");
+    await expect(page.locator("article").first()).toContainText("23 980 puntos");
   });
 
   test("etiqueta propia con color, consideraciones y especificaciones se ven en la ficha", async ({ page }) => {
@@ -88,7 +86,7 @@ test.describe("Promoción, etiqueta propia y listas editables", () => {
     await d.getByLabel("Especificaciones (una por línea)").fill("Incluye bebida\nSolo fines de semana");
     await d.getByLabel("Texto (opcional)").fill("Nuevo");
     await d.getByRole("button", { name: "Guardar beneficio" }).click();
-    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11") ?? "{}").admin?.beneficios?.find((b: any) => b.id === "b1")?.etiqueta)).toBe("Nuevo");
+    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("confianza_mockdb_v1") ?? "{}").admin?.beneficios?.find((b: any) => b.id === "b1")?.etiqueta)).toBe("Nuevo");
     await page.goto("/beneficios/b1");
     await expect(page.locator("section", { has: page.getByRole("heading", { name: "Especificaciones" }) }).locator("li")).toHaveCount(2);
     await expect(page.getByText("Nuevo").first()).toBeVisible();

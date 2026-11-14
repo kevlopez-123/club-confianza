@@ -19,7 +19,7 @@ const generar = async (page: Page) => {
 };
 const liberarCupon = (page: Page) =>
   page.evaluate(() => {
-    const k = "bancosolidario_mockdb_v11";
+    const k = "confianza_mockdb_v1";
     const d = JSON.parse(localStorage.getItem(k)!);
     d.cupones = {};
     localStorage.setItem(k, JSON.stringify(d));
@@ -36,7 +36,7 @@ test.describe("Carga de códigos de beneficios por lotes (FIFO)", () => {
     await cargarLote(page, ["LOTEB-1"], "2026-12-31");
     await expect(page.getByText("En uso").first()).toBeVisible();
     await expect(page.getByText("En espera").first()).toBeVisible();
-    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11") ?? "{}").admin?.lotes?.filter((l: any) => l.beneficioId === "b1").length)).toBe(2);
+    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("confianza_mockdb_v1") ?? "{}").admin?.lotes?.filter((l: any) => l.beneficioId === "b1").length)).toBe(2);
 
     await generar(page);
     await expect(page.getByAltText(/Código QR LOTEA-1/)).toBeVisible();
@@ -55,7 +55,7 @@ test.describe("Carga de códigos de beneficios por lotes (FIFO)", () => {
     await cargarLote(page, ["DUP-1", "DUP-2"], "2027-12-31");
     await cargarLote(page, ["DUP-2", "NUEVO-3"], "2027-12-31");
     // El que ya estaba en otro lote se rechaza en la revisión y el resto se carga.
-    const totales = await page.evaluate(() => JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11") ?? "{}").admin?.lotes?.filter((l: any) => l.beneficioId === "b1").map((l: any) => l.total));
+    const totales = await page.evaluate(() => JSON.parse(localStorage.getItem("confianza_mockdb_v1") ?? "{}").admin?.lotes?.filter((l: any) => l.beneficioId === "b1").map((l: any) => l.total));
     expect(totales?.sort()).toEqual([1, 2]);
   });
 });

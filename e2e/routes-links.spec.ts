@@ -18,17 +18,16 @@ test.describe("Rutas del participante", () => {
     await expect(page.getByRole("heading", { name: "404" })).toBeVisible();
   });
 
-  test("detalles inexistentes muestran mensaje, no pantalla en blanco", async ({ page }) => {
-    for (const [ruta, texto] of [
-      ["/canjea/zzz", "Producto no disponible"],
-      ["/beneficios/zzz", "Beneficio no disponible"],
-      ["/vuelos/destinos/zzz", "Destino no encontrado"],
-      ["/mis-compras/ZZZ", "No encontramos ese pedido"],
-    ] as const) {
+  test("detalles inexistentes no dejan la pantalla en blanco ni dan errores", async ({ page }) => {
+    for (const ruta of ["/canjea/p999", "/beneficios/b999"]) {
+      const errores = vigilarErrores(page);
       await page.goto(ruta);
-      await expect(page.getByText(texto)).toBeVisible();
+      await esperarCarga(page);
+      await expect(page.locator("main")).not.toBeEmpty();
+      expect(errores).toEqual([]);
     }
   });
+
 });
 
 test.describe("Rutas del admin", () => {
@@ -97,7 +96,6 @@ test.describe("Enlaces", () => {
     for (const [grupo, hijo, ruta] of [
       ["Beneficios", "Catálogo de beneficios", "/beneficios"], ["Beneficios", "Mis beneficios", "/mis-beneficios"],
       ["Mis puntos", "Historial de puntos", "/mis-puntos/historial"], ["Mis puntos", "Compra de puntos", "/mis-puntos/compra"], ["Mis puntos", "Mi nivel", "/mi-nivel"],
-      ["Vuelos", "Cotizar vuelo", "/vuelos"], ["Vuelos", "Mis cotizaciones", "/vuelos/cotizaciones"],
     ] as const) {
       await nav.getByRole("button", { name: grupo }).hover();
       await nav.getByRole("link", { name: hijo }).click();

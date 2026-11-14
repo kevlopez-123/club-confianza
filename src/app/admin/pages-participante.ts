@@ -150,7 +150,7 @@ type TabK = (typeof TABS)[number]['k'];
               <section class="rounded-2xl bg-card p-5 shadow-[var(--shadow-card)]">
                 <h2 class="font-semibold">Datos personales</h2>
                 <div class="mt-3 space-y-4">
-                  <a-field label="Cédula (no editable)"><input [class]="input + ' bg-muted'" [value]="s.cedula" disabled /></a-field>
+                  <a-field label="Documento (no editable)"><input [class]="input + ' bg-muted'" [value]="s.cedula" disabled /></a-field>
                   <a-field label="Nombre completo" [error]="errNombre()" [forzar]="intento()"><input [class]="input" maxlength="100" [value]="datos().nombre" (input)="setDato('nombre', $event)" /></a-field>
                   <a-field label="Correo de acceso (no editable aquí)"><input [class]="input + ' bg-muted'" type="email" [value]="s.email" disabled /></a-field>
                   <p class="-mt-2 text-xs text-muted-foreground">Se cambia desde Resumen → Acceso a la cuenta, porque a ese correo llegan los códigos para ingresar y el cambio queda registrado.</p>
@@ -341,7 +341,7 @@ type TabK = (typeof TABS)[number]['k'];
     </a-confirm>
     <a-confirm [open]="confirm() === 'estado'" [danger]="f()?.estado === 'Activo'" [title]="f()?.estado === 'Activo' ? '¿Bloquear esta cuenta?' : '¿Activar esta cuenta?'"
       [confirmLabel]="f()?.estado === 'Activo' ? 'Bloquear' : 'Activar'" (closed)="confirm.set(null)" (confirmed)="cambiarEstado()">
-      {{ f()?.estado === 'Activo' ? f()?.nombre + ' no podrá ingresar a la web ni a la app ni canjear puntos hasta que se reactive.' : f()?.nombre + ' podrá volver a ingresar y canjear.' }}
+      {{ f()?.estado === 'Activo' ? f()?.nombre + ' no podrá ingresar a la web ni canjear puntos hasta que se reactive.' : f()?.nombre + ' podrá volver a ingresar y canjear.' }}
     </a-confirm>
     <a-confirm [open]="!!confirm()?.startsWith('dir:')" [danger]="true" title="¿Eliminar dirección?" confirmLabel="Eliminar" (closed)="confirm.set(null)" (confirmed)="eliminarDireccion()">
       La dirección dejará de estar disponible para nuevos canjes.
@@ -585,7 +585,7 @@ export class ParticipanteFichaPage {
     if (!s) return;
     this.patch({
       puntos: s.puntos + this.pts(),
-      ajustes: [{ fecha: new Date().toLocaleDateString('es-EC'), puntos: this.pts(), motivo: this.ajMotivo(), usuario: this.session.usuario()?.nombre ?? 'Sistema' }, ...s.ajustes],
+      ajustes: [{ fecha: new Date().toLocaleDateString('es-PE'), puntos: this.pts(), motivo: this.ajMotivo(), usuario: this.session.usuario()?.nombre ?? 'Sistema' }, ...s.ajustes],
     });
     this.ajPuntos.set('');
     this.ajMotivo.set('');

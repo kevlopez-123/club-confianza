@@ -53,7 +53,7 @@
               "src/styles.css",
               { "input": "node_modules/leaflet/dist/leaflet.css", "inject": false, "bundleName": "leaflet" }
             ],
-            "allowedCommonJsDependencies": ["leaflet"]
+            "allowedCommonJsDependencies": ["leaflet", "qrcode", "dijkstrajs"]
           },
           "configurations": {
             "production": {
@@ -63,7 +63,7 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "760kB",
+                  "maximumWarning": "780kB",
                   "maximumError": "1MB"
                 },
                 {

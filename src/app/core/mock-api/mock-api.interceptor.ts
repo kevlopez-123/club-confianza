@@ -37,7 +37,7 @@ const hoy = () => {
   const d = new Date();
   return {
     iso: d.toISOString().slice(0, 10),
-    txt: d.toLocaleDateString("es-EC", { day: "2-digit", month: "2-digit", year: "numeric" }),
+    txt: d.toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" }),
   };
 };
 
@@ -123,7 +123,7 @@ const estadoCanje = (beneficioId: string): EstadoCanjeApi => {
   if (disp === "desconocida") return { ...base, estado: "falta_provincia", mensaje: `Este beneficio solo está disponible en ${listaTexto(b.provincias)}. Indica tu provincia en Mis datos para canjearlo.` };
   const canjes = (db.misBeneficios as any[]).filter((m) => m.beneficioId === beneficioId).map(tsDeCanje);
   const ev = evaluarCanje(canjes, regla, Date.now());
-  if (!ev.permitido) return { ...base, estado: "bloqueado", mensaje: `Ya canjeaste este beneficio${regla.limite > 1 ? ` ${regla.limite} veces` : ""}. Podrás volver a canjearlo el ${new Date(ev.hasta!).toLocaleDateString("es-EC", { day: "2-digit", month: "2-digit", year: "numeric" })}.`, disponibleDesde: ev.hasta! };
+  if (!ev.permitido) return { ...base, estado: "bloqueado", mensaje: `Ya canjeaste este beneficio${regla.limite > 1 ? ` ${regla.limite} veces` : ""}. Podrás volver a canjearlo el ${new Date(ev.hasta!).toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" })}.`, disponibleDesde: ev.hasta! };
   if (b.modoCodigo === "compartido" && b.usosMaximos > 0 && (b.usos ?? 0) >= b.usosMaximos) return { ...base, estado: "agotado", mensaje: "Los cupones de este beneficio se agotaron." };
   return { ...base, estado: "disponible", mensaje: "", ...(ev.restantes !== undefined ? { restantes: ev.restantes } : {}) };
 };
@@ -161,6 +161,10 @@ const resolverCompra = (compra: any, aprobada: boolean, motivo = "") => {
   if (esDemo) enviarCorreo("compra-puntos-fallida", db.perfil.correo, { codigo: compra.codigo, motivo }, { destinatario: nombreParticipante(), participanteId: "p1", referencia: compra.codigo });
   return { estado: "Fallida", codigo: compra.codigo, motivo, puntos: db.usuario.puntos };
 };
+/* ---------- Eliminación de la cuenta: el participante pide la baja y el equipo la atiende desde el panel ---------- */
+const solicitudesEliminacion = () => (((db.admin as any).solicitudesEliminacion ??= []) as any[]);
+/** Solicitud de la participante que sigue abierta (pendiente o en proceso); si la rechazaron o ya se completó, puede pedir otra. */
+const solicitudAbierta = () => solicitudesEliminacion().find((x) => x.participanteId === "p1" && (x.estado === "Pendiente" || x.estado === "En proceso")) ?? null;
 const customerRoutes: Route[] = [
   /* ---------- Auth ---------- */
   ["POST", "auth/otp", ({ body }) => {
@@ -181,7 +185,7 @@ const customerRoutes: Route[] = [
       throw new ApiError(401, "Correo o contraseña incorrectos.", "credenciales_invalidas");
     }
     registrarAcceso(true, email, usuario.nombre, usuario.rol, usuario.id);
-    usuario.ultimo = new Date().toLocaleString("es-EC", { dateStyle: "short", timeStyle: "short" });
+    usuario.ultimo = new Date().toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" });
     // Token simulado: lleva el rol (un backend real emite un JWT firmado y comprueba el rol del lado servidor).
     return { id: usuario.id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol, token: `mock.${encodeURIComponent(usuario.rol)}.${usuario.id}` };
   }],
@@ -235,8 +239,6 @@ const customerRoutes: Route[] = [
   /** Marcas aliadas publicadas (nombre, logo y sitio web). */
   ["GET", "catalogo/marcas", () => db.admin.marcas.filter((m: any) => m.activo).map(({ nombre, logo, web, descripcion }: any) => ({ nombre, logo, web, descripcion }))],
   ["GET", "catalogo/banners/:seccion", ({ params }) => db.catalogo.banners[params["seccion"]!] ?? []],
-  /** Pantallas de bienvenida de la app (Contenido → Onboarding app): solo las activas, en el orden del panel. */
-  ["GET", "onboarding", () => (db.admin.onboarding as any[]).filter((o) => o.activo !== false).map(({ id, titulo, texto }) => ({ id, titulo, texto }))],
   ["GET", "niveles", () => ({ niveles: db.niveles, ...db.nivelesTexto })],
 
   /* ---------- Vuelos y configuración ---------- */
@@ -311,23 +313,6 @@ const customerRoutes: Route[] = [
     db.favoritos = db.favoritos.includes(id) ? db.favoritos.filter((f) => f !== id) : [...db.favoritos, id];
     return db.favoritos;
   }],
-  /**
-   * Dispositivos de la participante para los avisos push (token de Firebase). Se guarda uno por token; el backend real usa esta lista
-   * para enviar los avisos por FCM. La app lo registra al ingresar y lo quita al cerrar sesión.
-   */
-  ["POST", "me/dispositivos", ({ body }) => {
-    const token = String(body?.token ?? "").trim();
-    if (token.length < 20 || token.length > 4096) throw new ApiError(422, "El token del dispositivo no es válido.", "token_invalido");
-    const lista = ((db as any).dispositivos ??= []) as { token: string; plataforma: string; registrado: string }[];
-    const i = lista.findIndex((d) => d.token === token);
-    const fila = { token, plataforma: body?.plataforma === "ios" ? "ios" : "android", registrado: new Date().toISOString() };
-    if (i >= 0) lista[i] = fila; else lista.push(fila);
-    return { ok: true };
-  }],
-  ["DELETE", "me/dispositivos/:token", ({ params }) => {
-    (db as any).dispositivos = (((db as any).dispositivos ?? []) as { token: string }[]).filter((d) => d.token !== params["token"]);
-    return { ok: true };
-  }],
   ["GET", "me/cupones", () => db.cupones],
   /** Si este participante puede generar el cupón ahora y, si no, por qué (vigencia, provincia, límite y espera). */
   ["GET", "me/cupones/estado/:id", ({ params }) => estadoCanje(params["id"]!)],
@@ -375,6 +360,38 @@ const customerRoutes: Route[] = [
     const ben = (db.admin.beneficios as any[]).find((b) => b.id === body.beneficioId);
     enviarCorreo("cupon-generado", db.perfil.correo, { beneficio: ben?.nombre ?? "tu beneficio", codigo: cupon.codigo, horas: est.regla.horas }, { destinatario: nombreParticipante(), participanteId: "p1", referencia: cupon.codigo });
     return cupon;
+  }],
+  /** Solicitud abierta de eliminación de la cuenta (o null). */
+  ["GET", "me/eliminar-cuenta", () => solicitudAbierta()],
+  /** Paso 1: se envía un código de verificación al correo de la cuenta. */
+  ["POST", "me/eliminar-cuenta/codigo", () => {
+    if (solicitudAbierta()) throw new ApiError(409, "Ya tienes una solicitud de eliminación en curso.", "solicitud_en_curso");
+    enviarCorreo("otp", db.perfil.correo, { codigo: String(Math.floor(100000 + Math.random() * 900000)), minutos: 10 }, { destinatario: nombreParticipante(), participanteId: "p1" });
+    return { enviado: true, correo: db.perfil.correo };
+  }],
+  /** Paso 2: con el código se crea la solicitud (queda «Pendiente» en el panel) y la sesión puede cerrarse. */
+  ["POST", "me/eliminar-cuenta", ({ body }) => {
+    if (!Array.isArray(body?.codigo) || body.codigo.length !== 6 || body.codigo.some((c: string) => !/^\d$/.test(c))) {
+      throw new ApiError(422, "Ingresa los 6 dígitos del código.", "codigo_invalido");
+    }
+    if (solicitudAbierta()) throw new ApiError(409, "Ya tienes una solicitud de eliminación en curso.", "solicitud_en_curso");
+    const ahora = new Date();
+    const p2 = (n: number) => String(n).padStart(2, "0");
+    const s = {
+      id: `ELI-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+      participanteId: "p1",
+      nombre: nombreParticipante(),
+      email: db.perfil.correo,
+      cedula: (db.perfil as any).codigoParticipante ?? "",
+      puntos: db.usuario.puntos,
+      fecha: `${p2(ahora.getDate())}/${p2(ahora.getMonth() + 1)}/${ahora.getFullYear()}`,
+      hora: `${p2(ahora.getHours())}:${p2(ahora.getMinutes())}`,
+      estado: "Pendiente",
+      motivo: "",
+    };
+    solicitudesEliminacion().unshift(s);
+    enviarCorreo("cuenta-eliminacion", db.perfil.correo, { codigo: s.id, mensaje: "Recibimos tu solicitud para eliminar tu cuenta. Te avisaremos cuando la hayamos revisado; mientras tanto puedes seguir usando tu cuenta." }, { destinatario: nombreParticipante(), participanteId: "p1", referencia: s.id });
+    return s;
   }],
   ["GET", "me/movimientos", () => db.movimientos],
   /** Historial de compras de puntos de la participante (las más recientes primero), con su estado y, si falló, el motivo. */

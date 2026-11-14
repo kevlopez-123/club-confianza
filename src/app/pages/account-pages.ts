@@ -13,8 +13,12 @@ import { descargarBlob } from "../core/pdf-cotizacion";
 import { pdfEstadoCuenta } from "../core/pdf-estado-cuenta";
 import { ToastService } from "../shared/toast";
 import { ICONO_NOTIFICACION } from "../shared/notificaciones";
+import { Countdown } from "../shared/countdown";
+import { QrCodeComponent } from "../shared/qr-code";
+import { descargarCuponPdf, imprimirCuponPdf, type DatosCupon } from "../core/pdf-cupon";
 import { IconComponent } from "../shared/icon.component";
 import { LimpiarFiltrosComponent } from "../shared/limpiar-filtros";
+import { ModalComponent } from "../shared/ui";
 import { NivelResumenCardComponent } from "../shared/widgets";
 
 /* ------------------------------------------------------------------ */
@@ -85,7 +89,7 @@ export class MiNivelPage {
 /* ------------------------------------------------------------------ */
 @Component({
   selector: "app-mis-beneficios-page",
-  imports: [RouterLink, IconComponent, LimpiarFiltrosComponent],
+  imports: [RouterLink, IconComponent, LimpiarFiltrosComponent, Countdown, ModalComponent, QrCodeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="bg-surface py-10 lg:py-14">
@@ -114,33 +118,84 @@ export class MiNivelPage {
           </div>
         </div>
 
-        <div class="mt-6 grid gap-4">
+        <p class="mt-5 text-sm text-muted-foreground" aria-live="polite">{{ lista().length === todos().length ? todos().length : lista().length + " de " + todos().length }} {{ todos().length === 1 ? "cupón" : "cupones" }}</p>
+        <div class="mt-3 grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-2">
           @for (x of lista(); track x.mb.id) {
-            <article class="grid gap-4 rounded-2xl bg-card p-4 shadow-[var(--shadow-card)] sm:grid-cols-[96px_minmax(0,1fr)_auto] sm:items-center">
-              <img [src]="x.b.imagen" [alt]="x.b.marca" class="h-24 w-full rounded-xl object-cover sm:h-24 sm:w-24" loading="lazy" />
-              <div class="min-w-0">
-                <p class="text-sm uppercase tracking-wide text-muted-foreground">{{ x.b.marca }}</p>
-                <h2 class="text-base font-extrabold text-ink">{{ x.b.nombre }}</h2>
-                <p class="mt-1 text-base text-muted-foreground">Código {{ x.mb.codigo }} · Generado el {{ x.mb.fecha }}</p>
-                <p class="text-base text-muted-foreground">Vence: {{ x.mb.vence }}</p>
+            <article class="flex flex-col rounded-2xl bg-card p-4 shadow-[var(--shadow-card)] sm:p-5">
+              <div class="flex gap-4">
+                <img [src]="x.b.imagen" [alt]="x.b.marca" class="h-20 w-20 shrink-0 rounded-xl object-cover sm:h-24 sm:w-24" loading="lazy" />
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm uppercase tracking-wide text-muted-foreground">{{ x.b.marca }}</p>
+                  <h2 class="text-base font-extrabold text-ink">{{ x.b.nombre }}</h2>
+                  <span [class]="'mt-2 inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-bold ' + estadoClase[x.vencido && x.mb.estado === 'activo' ? 'vencido' : x.mb.estado]">
+                    <app-icon name="Ticket" class="h-4 w-4" />
+                    {{ estadoLabels[x.vencido && x.mb.estado === 'activo' ? 'vencido' : x.mb.estado] }}
+                  </span>
+                </div>
               </div>
-              <div class="flex flex-col items-start gap-3 sm:items-end">
-                <span [class]="'inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold ' + estadoClase[x.mb.estado]">
-                  <app-icon name="Ticket" class="h-4 w-4" />
-                  {{ estadoLabels[x.mb.estado] }}
-                </span>
+
+              <!-- El código en grande y con botón para copiarlo: es lo que se muestra en el comercio -->
+              <div class="mt-4 flex items-center justify-between gap-3 rounded-xl bg-surface px-4 py-3">
+                <div class="min-w-0">
+                  <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Código</p>
+                  <p class="break-all font-mono text-lg font-extrabold tracking-wide text-ink">{{ x.mb.codigo }}</p>
+                </div>
+                <button type="button" (click)="copiar(x.mb.codigo)" [attr.aria-label]="'Copiar código ' + x.mb.codigo"
+                  class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-secondary text-primary transition-colors hover:bg-primary hover:text-primary-foreground">
+                  <app-icon name="Copy" class="h-5 w-5" />
+                </button>
+              </div>
+
+              <dl class="mt-3 grid grid-cols-2 gap-3 text-sm">
+                <div><dt class="text-muted-foreground">Generado</dt><dd class="font-semibold text-ink">{{ x.mb.fecha }}</dd></div>
+                <div><dt class="text-muted-foreground">{{ x.vencido ? "Venció" : "Vence" }}</dt><dd class="font-semibold text-ink">{{ x.mb.vence }}</dd></div>
+              </dl>
+              @if (x.vigente) {
+                <p class="mt-3 flex items-center gap-2 text-sm text-muted-foreground"><app-icon name="Clock" class="h-4 w-4 text-primary" /> Te quedan <app-countdown [expira]="x.expira" [compacto]="true" /></p>
+              }
+
+              <div class="mt-auto flex flex-wrap gap-3 pt-4 sm:justify-end">
+                @if (x.vigente) {
+                  <button type="button" (click)="verQr.set(x.mb.id)"
+                    class="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-primary px-6 text-base font-bold text-primary-foreground sm:flex-none lg:min-h-14">
+                    <app-icon name="QrCode" class="h-4 w-4" />
+                    Ver QR
+                  </button>
+                }
                 <a [routerLink]="['/beneficios', x.b.id]"
-                  class="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-6 text-base font-bold text-primary-foreground lg:min-h-14">
-                  <app-icon name="QrCode" class="h-4 w-4" />
+                  [class]="'inline-flex min-h-11 flex-1 items-center justify-center rounded-full px-6 text-base font-bold sm:flex-none lg:min-h-14 ' + (x.vigente ? 'border border-border text-ink hover:border-primary hover:text-primary' : 'bg-primary text-primary-foreground')">
                   Ver detalles
                 </a>
               </div>
             </article>
           }
           @if (lista().length === 0) {
-            <p class="rounded-2xl bg-card p-8 text-center text-base text-muted-foreground shadow-[var(--shadow-card)]">No hay beneficios con ese criterio.</p>
+            <p class="rounded-2xl bg-card p-8 text-center text-base text-muted-foreground shadow-[var(--shadow-card)] lg:col-span-2">No hay beneficios con ese criterio.</p>
           }
         </div>
+
+        <app-modal [open]="!!qr()" title="Tu cupón" (closed)="verQr.set(null)">
+          @if (qr(); as q) {
+            <div class="text-center">
+              <p class="text-sm text-muted-foreground">{{ q.b.marca }} · {{ q.b.nombre }}</p>
+              <p class="mt-3 text-sm text-ink">Presenta este QR a un encargado del local.</p>
+              <div class="mt-3"><app-countdown [expira]="q.expira" /></div>
+              <app-qr [valor]="q.mb.codigo" clase="mx-auto mt-4 h-48 w-48" />
+              <p class="mt-2 break-all font-mono text-lg font-extrabold text-ink">{{ q.mb.codigo }}</p>
+              <div class="mt-4 flex flex-wrap justify-center gap-3">
+                <button type="button" (click)="copiar(q.mb.codigo)" class="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-5 text-base font-bold text-ink hover:border-primary hover:text-primary">
+                  <app-icon name="Copy" class="h-4 w-4" /> Copiar código
+                </button>
+                <button type="button" (click)="descargarPdf(q)" class="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 text-base font-bold text-primary-foreground">
+                  <app-icon name="Download" class="h-4 w-4" /> Descargar PDF
+                </button>
+                <button type="button" (click)="imprimir(q)" class="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-5 text-base font-bold text-ink hover:border-primary hover:text-primary">
+                  <app-icon name="Printer" class="h-4 w-4" /> Imprimir
+                </button>
+              </div>
+            </div>
+          }
+        </app-modal>
       </div>
     </div>
   `,
@@ -148,6 +203,8 @@ export class MiNivelPage {
 export class MisBeneficiosPage {
   private readonly api = inject(ApiService);
   private readonly catalog = inject(CatalogService);
+  private readonly toast = inject(ToastService);
+  private readonly brand = inject(BrandService);
   private readonly mis = leer(this.api.get<BeneficioUsuario[]>("me/beneficios"), [] as BeneficioUsuario[]);
 
   protected readonly estadoLabels = estadoLabels;
@@ -165,18 +222,56 @@ export class MisBeneficiosPage {
 
   protected readonly q = signal("");
   protected readonly estado = signal<EstadoBeneficio | "todos">("todos");
+  protected readonly verQr = signal<string | null>(null);
+
+  /** «dd/mm/aaaa hh:mm» → milisegundos (0 si no se puede leer). */
+  private static aMs(vence: string): number {
+    const m = /^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?/.exec(vence);
+    return m ? new Date(+m[3]!, +m[2]! - 1, +m[1]!, +(m[4] ?? 23), +(m[5] ?? 59)).getTime() : 0;
+  }
+
+  /** Cada cupón con su vencimiento: los que se pueden usar ahora van primero (el que vence antes, arriba) y luego el resto, del más reciente al más antiguo. */
+  private readonly todos = computed(() => {
+    const ahora = Date.now();
+    return this.mis()
+      .map((mb) => {
+        const expira = MisBeneficiosPage.aMs(mb.vence);
+        return { mb, b: this.catalog.beneficioPorId(mb.beneficioId), expira, vigente: mb.estado === "activo" && expira > ahora, vencido: mb.estado === "vencido" || (mb.estado !== "usado" && expira <= ahora) };
+      })
+      .filter((x): x is typeof x & { b: NonNullable<typeof x.b> } => !!x.b)
+      .sort((p, q) => (p.vigente !== q.vigente ? (p.vigente ? -1 : 1) : p.vigente ? p.expira - q.expira : q.expira - p.expira));
+  });
 
   protected readonly lista = computed(() => {
     const t = this.q().trim().toLowerCase();
     const estado = this.estado();
-    return this.mis()
-      .map((mb) => ({ mb, b: this.catalog.beneficioPorId(mb.beneficioId) }))
-      .filter((x): x is { mb: BeneficioUsuario; b: NonNullable<typeof x.b> } => {
-        if (!x.b) return false;
-        if (estado !== "todos" && x.mb.estado !== estado) return false;
-        return !t || `${x.b.nombre} ${x.b.marca} ${x.mb.codigo}`.toLowerCase().includes(t);
-      });
+    return this.todos().filter((x) => {
+      // El filtro usa el estado que ve la persona: un cupón «activo» cuya fecha ya pasó se muestra (y se filtra) como vencido.
+      const efectivo = x.vigente ? "activo" : x.vencido ? "vencido" : x.mb.estado;
+      if (estado !== "todos" && efectivo !== estado) return false;
+      return !t || `${x.b.nombre} ${x.b.marca} ${x.mb.codigo}`.toLowerCase().includes(t);
+    });
   });
+  protected readonly qr = computed(() => this.todos().find((x) => x.mb.id === this.verQr()) ?? null);
+
+  private datos(x: { mb: BeneficioUsuario; b: { marca: string; nombre: string } }): DatosCupon {
+    return { programa: this.brand.programa(), marca: x.b.marca, beneficio: x.b.nombre, codigo: x.mb.codigo, generado: x.mb.fecha, vence: x.mb.vence, color: this.brand.tenant().tema.primario };
+  }
+  protected descargarPdf(x: { mb: BeneficioUsuario; b: { marca: string; nombre: string } }) {
+    descargarCuponPdf(this.datos(x)).catch(() => this.toast.error("No se pudo generar el PDF del cupón."));
+  }
+  protected imprimir(x: { mb: BeneficioUsuario; b: { marca: string; nombre: string } }) {
+    imprimirCuponPdf(this.datos(x)).catch(() => this.toast.error("No se pudo preparar el cupón para imprimir."));
+  }
+
+  protected async copiar(codigo: string) {
+    try {
+      await navigator.clipboard.writeText(codigo);
+      this.toast.show("Código copiado");
+    } catch {
+      this.toast.error("No se pudo copiar. Selecciona el código y cópialo manualmente.");
+    }
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -184,7 +279,7 @@ export class MisBeneficiosPage {
 /* ------------------------------------------------------------------ */
 @Component({
   selector: "app-mis-compras-page",
-  imports: [RouterLink, IconComponent],
+  imports: [RouterLink, IconComponent, LimpiarFiltrosComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="bg-surface py-10 lg:py-14">
@@ -192,20 +287,34 @@ export class MisBeneficiosPage {
         <h1 class="text-2xl font-extrabold text-ink lg:text-3xl">Historial de compras y canjes</h1>
         <p class="mt-2 max-w-2xl text-base text-muted-foreground">Revisa el detalle de cada pedido, su estado y la forma de pago utilizada.</p>
 
-        <div class="relative mt-7 max-w-xl">
-          <label for="buscar-compras" class="sr-only">Buscar compra</label>
-          <input id="buscar-compras" type="search" [value]="q()" (input)="q.set($any($event.target).value)" placeholder="Buscar por código o producto"
-            class="h-12 w-full rounded-full bg-card pl-5 pr-12 text-base text-ink shadow-[var(--shadow-card)] outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/50" />
-          <app-icon name="Search" class="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink" />
+        <div class="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_11rem_11rem_auto] lg:items-end">
+          <div class="relative sm:col-span-2 lg:col-span-1">
+            <label for="buscar-compras" class="sr-only">Buscar compra</label>
+            <input id="buscar-compras" type="search" [value]="q()" (input)="q.set($any($event.target).value)" placeholder="Buscar por código o producto"
+              class="h-12 w-full rounded-full bg-card pl-5 pr-12 text-base text-ink shadow-[var(--shadow-card)] outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/50" />
+            <app-icon name="Search" class="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink" />
+          </div>
+          <label class="text-sm font-semibold text-ink">
+            Desde
+            <input type="date" [value]="desde()" [max]="hasta() || null" (input)="desde.set($any($event.target).value)"
+              class="mt-1 h-12 w-full rounded-xl border border-border bg-card px-4 text-base text-ink focus:ring-2 focus:ring-primary/50" />
+          </label>
+          <label class="text-sm font-semibold text-ink">
+            Hasta
+            <input type="date" [value]="hasta()" [min]="desde() || null" (input)="hasta.set($any($event.target).value)"
+              class="mt-1 h-12 w-full rounded-xl border border-border bg-card px-4 text-base text-ink focus:ring-2 focus:ring-primary/50" />
+          </label>
+          <app-limpiar-filtros [activo]="!!q() || !!desde() || !!hasta()" (limpiar)="q.set(''); desde.set(''); hasta.set('')" />
         </div>
 
-        <div class="mt-6 grid gap-4">
+        <p class="mt-5 text-sm text-muted-foreground" aria-live="polite">{{ lista().length === compras().length ? compras().length : lista().length + " de " + compras().length }} {{ compras().length === 1 ? "pedido" : "pedidos" }}</p>
+        <div class="mt-3 grid gap-4">
           @for (c of lista(); track c.codigo) {
             <article class="rounded-2xl bg-card p-5 shadow-[var(--shadow-card)]">
               <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                 <div class="min-w-0">
-                  <p class="text-base text-muted-foreground">Pedido {{ c.codigo }} · {{ c.fecha }}@if (c.hora) { · {{ c.hora }} }</p>
-                  <h2 class="truncate text-base font-extrabold text-ink">{{ nombres(c) }}</h2>
+                  <p class="text-base text-muted-foreground"><span class="whitespace-nowrap">Pedido {{ c.codigo }}</span> · <span class="whitespace-nowrap">{{ c.fecha }}@if (c.hora) { · {{ c.hora }} }</span></p>
+                  <h2 class="break-words text-base font-extrabold text-ink">{{ resumen(c) }}</h2>
                   <p class="text-base text-muted-foreground">{{ puntos(c.puntosUsados) }} puntos{{ c.montoUSD > 0 ? ' + ' + usd(c.montoUSD) : '' }}</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
@@ -214,8 +323,14 @@ export class MisBeneficiosPage {
                     class="inline-flex min-h-11 items-center rounded-full bg-primary px-6 text-base font-bold text-primary-foreground lg:min-h-14">Ver detalles</a>
                 </div>
               </div>
-              <div class="mt-4 flex gap-2">
-                @for (i of c.items; track i.nombre) { <img [src]="i.imagen" alt="" class="h-14 w-14 rounded-xl object-cover" /> }
+              <!-- Fotos superpuestas: con muchos productos solo se ven las primeras y un «+N» -->
+              <div class="mt-4 flex items-center">
+                @for (i of c.items.slice(0, 4); track i.nombre; let primero = $first) {
+                  <img [src]="i.imagen" alt="" [class]="'h-14 w-14 rounded-xl border-2 border-card object-cover ' + (primero ? '' : '-ml-3')" />
+                }
+                @if (c.items.length > 4) {
+                  <span class="-ml-3 grid h-14 w-14 place-items-center rounded-xl border-2 border-card bg-secondary text-sm font-bold text-primary" [attr.aria-label]="(c.items.length - 4) + ' productos más'">+{{ c.items.length - 4 }}</span>
+                }
               </div>
             </article>
           }
@@ -233,13 +348,24 @@ export class MisComprasPage {
   protected readonly usd = formatUSD;
   protected readonly q = signal("");
 
-  protected nombres(c: Compra) {
-    return c.items.map((i) => i.nombre).join(", ");
+  /** «Primer producto» o «Primer producto y N productos más»: una línea aunque el pedido tenga muchos. */
+  protected resumen(c: Compra) {
+    const n = c.items.length - 1;
+    return n > 0 ? c.items[0]!.nombre + " y " + n + (n === 1 ? " producto más" : " productos más") : (c.items[0]?.nombre ?? "");
   }
+  protected readonly desde = signal("");
+  protected readonly hasta = signal("");
   protected readonly lista = computed(() => {
     const t = this.q().trim().toLowerCase();
-    if (!t) return this.compras();
-    return this.compras().filter((c) => c.codigo.toLowerCase().includes(t) || c.items.some((i) => `${i.nombre} ${i.marca}`.toLowerCase().includes(t)));
+    const d = this.desde();
+    const h = this.hasta();
+    return this.compras().filter((c) => {
+      // La fecha del pedido viene como dd/mm/aaaa; se compara como aaaa-mm-dd (ambos extremos incluidos).
+      const iso = c.fecha.split("/").reverse().join("-");
+      if (d && iso < d) return false;
+      if (h && iso > h) return false;
+      return !t || c.codigo.toLowerCase().includes(t) || c.items.some((i) => `${i.nombre} ${i.marca}`.toLowerCase().includes(t));
+    });
   });
 }
 
@@ -255,33 +381,75 @@ export class MisComprasPage {
         </a>
 
         @if (compra(); as compra) {
-          <div class="mt-4 rounded-3xl bg-card p-6 shadow-[var(--shadow-card)] lg:p-8">
-            <div class="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h1 class="text-2xl font-extrabold text-ink">Pedido {{ compra.codigo }}</h1>
-                <p class="mt-1 text-base text-muted-foreground">Realizado el {{ compra.fecha }}@if (compra.hora) { a las {{ compra.hora }} }</p>
-              </div>
-              <span class="rounded-full bg-secondary px-5 py-2 text-base font-bold text-secondary-foreground">{{ compra.estado }}</span>
-            </div>
-
-            <div class="mt-6 grid gap-4">
-              @for (i of compra.items; track i.nombre) {
-                <div class="flex items-center gap-4 rounded-2xl bg-surface p-4">
-                  <img [src]="i.imagen" alt="" class="h-20 w-20 rounded-xl object-cover" />
+          <!-- Cuatro tarjetas, como en la app: estado y seguimiento, productos, entrega y resumen de pago -->
+          <div class="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:items-start">
+            <div class="grid gap-5">
+              <section class="rounded-3xl bg-card p-5 shadow-[var(--shadow-card)] sm:p-6" aria-labelledby="pedido-titulo">
+                <div class="flex flex-wrap items-start justify-between gap-3">
                   <div class="min-w-0">
-                    <p class="text-sm uppercase tracking-wide text-muted-foreground">{{ i.marca }}</p>
-                    <p class="text-base font-extrabold text-ink">{{ i.nombre }}</p>
-                    <p class="text-base text-muted-foreground">Cantidad: {{ i.cantidad }} · {{ puntos(i.puntos * i.cantidad) }} puntos</p>
+                    <h1 id="pedido-titulo" class="text-2xl font-extrabold text-ink">Pedido {{ compra.codigo }}</h1>
+                    <p class="mt-1 text-base text-muted-foreground">Realizado el {{ compra.fecha }}@if (compra.hora) { a las {{ compra.hora }} }</p>
                   </div>
+                  <span [class]="'rounded-full px-4 py-1.5 text-sm font-bold ' + (compra.estado === 'Cancelado' ? 'bg-destructive/10 text-destructive' : 'bg-secondary text-secondary-foreground')">{{ compra.estado }}</span>
                 </div>
-              }
+
+                @if (compra.estado === 'Cancelado') {
+                  <p role="status" class="mt-5 flex items-start gap-2 rounded-2xl bg-destructive/10 p-4 text-sm font-semibold text-destructive">
+                    <app-icon name="AlertCircle" class="mt-0.5 h-5 w-5 shrink-0" />
+                    <span>Este pedido fue cancelado. Los puntos que usaste volvieron a tu saldo.</span>
+                  </p>
+                } @else {
+                  <ol class="mt-5" aria-label="Seguimiento del pedido">
+                    @for (p of pasos; track p; let i = $index; let ultimo = $last) {
+                      <li class="relative flex gap-3 pb-5 last:pb-0">
+                        @if (!ultimo) { <span aria-hidden="true" [class]="'absolute left-[15px] top-8 bottom-0 w-0.5 ' + (i < avance(compra.estado) ? 'bg-primary' : 'bg-border')"></span> }
+                        <span [class]="'relative grid h-8 w-8 shrink-0 place-items-center rounded-full ' + (i <= avance(compra.estado) ? 'bg-primary text-primary-foreground' : 'border-2 border-border bg-card text-muted-foreground')">
+                          @if (i <= avance(compra.estado)) { <app-icon name="Check" class="h-4 w-4" /> } @else { <span class="h-2 w-2 rounded-full bg-border"></span> }
+                        </span>
+                        <div class="min-w-0 pt-0.5">
+                          <p [class]="'text-base ' + (i <= avance(compra.estado) ? 'font-bold text-ink' : 'text-muted-foreground')">{{ p.titulo }}</p>
+                          <p class="text-sm text-muted-foreground">{{ p.detalle }}</p>
+                        </div>
+                      </li>
+                    }
+                  </ol>
+                }
+              </section>
+
+              <section class="rounded-3xl bg-card p-5 shadow-[var(--shadow-card)] sm:p-6" aria-labelledby="productos-titulo">
+                <h2 id="productos-titulo" class="text-lg font-extrabold text-ink">Productos</h2>
+                <div class="mt-4 grid gap-3">
+                  @for (i of compra.items; track i.nombre) {
+                    <div class="flex items-center gap-4 rounded-2xl bg-surface p-3 sm:p-4">
+                      <img [src]="i.imagen" alt="" class="h-16 w-16 shrink-0 rounded-xl object-cover sm:h-20 sm:w-20" />
+                      <div class="min-w-0 flex-1">
+                        <p class="text-sm uppercase tracking-wide text-muted-foreground">{{ i.marca }}</p>
+                        <p class="text-base font-extrabold text-ink">{{ i.nombre }}</p>
+                        <p class="text-sm text-muted-foreground">Cantidad: {{ i.cantidad }}</p>
+                      </div>
+                      <p class="shrink-0 text-right text-base font-extrabold text-ink">{{ puntos(i.puntos * i.cantidad) }}<span class="block text-xs font-medium text-muted-foreground">puntos</span></p>
+                    </div>
+                  }
+                </div>
+              </section>
             </div>
 
-            <dl class="mt-6 space-y-3 border-t border-border pt-6 text-base">
-              <div class="flex justify-between gap-4"><dt class="text-muted-foreground">Entrega</dt><dd class="text-right font-semibold text-ink">{{ compra.entrega }}</dd></div>
-              <div class="flex justify-between gap-4"><dt class="text-muted-foreground">Puntos utilizados</dt><dd class="font-semibold text-ink">{{ puntos(compra.puntosUsados) }} puntos</dd></div>
-              <div class="flex justify-between gap-4"><dt class="text-muted-foreground">Pagado con tarjeta</dt><dd class="font-semibold text-ink">{{ usd(compra.montoUSD) }}</dd></div>
-            </dl>
+            <div class="grid gap-5">
+              <section class="rounded-3xl bg-card p-5 shadow-[var(--shadow-card)] sm:p-6" aria-labelledby="entrega-titulo">
+                <h2 id="entrega-titulo" class="text-lg font-extrabold text-ink">Entrega</h2>
+                <p class="mt-3 flex items-start gap-3 text-base text-ink">
+                  <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-secondary text-primary"><app-icon [name]="entregaDigital(compra.entrega) ? 'Mail' : 'MapPin'" class="h-5 w-5" /></span>
+                  <span class="min-w-0 pt-2 font-semibold">{{ compra.entrega }}</span>
+                </p>
+              </section>
+
+              <section class="rounded-3xl bg-card p-5 shadow-[var(--shadow-card)] sm:p-6" aria-labelledby="pago-titulo">
+                <h2 id="pago-titulo" class="text-lg font-extrabold text-ink">Resumen de pago</h2>
+                <dl class="mt-4 space-y-3 text-base">
+                  <div class="flex justify-between gap-4"><dt class="text-muted-foreground">Puntos utilizados</dt><dd class="font-semibold text-ink">{{ puntos(compra.puntosUsados) }} puntos</dd></div>
+                </dl>
+              </section>
+            </div>
           </div>
         } @else if (compras()) {
           <p class="mt-6 rounded-2xl bg-card p-8 text-center text-base text-muted-foreground shadow-[var(--shadow-card)]">No encontramos ese pedido.</p>
@@ -292,6 +460,20 @@ export class MisComprasPage {
 })
 export class DetalleCompraPage {
   readonly codigo = input.required<string>();
+  /** Etapas del pedido, de la confirmación a la entrega. */
+  protected readonly pasos = [
+    { titulo: "Pedido confirmado", detalle: "Recibimos tu pedido y descontamos tus puntos." },
+    { titulo: "Preparando tu pedido", detalle: "Estamos alistando tus productos." },
+    { titulo: "Pedido enviado", detalle: "Va rumbo a tu dirección o a tu correo." },
+    { titulo: "Pedido entregado", detalle: "Ya lo tienes contigo." },
+  ];
+  /** Última etapa alcanzada (posición en `pasos`). */
+  protected avance(estado: Compra["estado"]): number {
+    return estado === "Entregado" ? 3 : estado === "En camino" ? 2 : estado === "Procesando" ? 1 : 0;
+  }
+  protected entregaDigital(entrega: string): boolean {
+    return /correo|digital|email/i.test(entrega);
+  }
   protected readonly compras = leer(inject(ApiService).get<Compra[] | undefined>("me/compras"), undefined);
   protected readonly compra = computed(() => this.compras()?.find((c) => c.codigo === this.codigo()));
   protected readonly puntos = formatPuntos;
@@ -451,7 +633,7 @@ export class HistorialPuntosPage {
           programa: this.brand.programa(),
           participante: this.store.usuario().nombre,
           periodo: `${f(this.desde())} al ${f(this.hasta())}${this.tipo() !== "todos" ? ` - ${tipoLabels[this.tipo() as TipoMovimiento]}` : ""}`,
-          generado: new Date().toLocaleDateString("es-EC", { day: "2-digit", month: "long", year: "numeric" }),
+          generado: new Date().toLocaleDateString("es-PE", { day: "2-digit", month: "long", year: "numeric" }),
           color: /^#[0-9a-f]{6}$/i.test(color) ? color : "#00bdd2",
           saldo: formatPuntos(this.store.puntos()),
           ganados: formatPuntos(this.ganados()),

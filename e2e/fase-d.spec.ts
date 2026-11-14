@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { pngValido, xlsxDeExcel, zipDe } from "./archivos";
 import { entrarAdmin, esperarCarga, textoDeArchivo } from "./helpers";
 
-const K = "bancosolidario_mockdb_v11";
+const K = "confianza_mockdb_v1";
 const PNG = pngValido();
 const XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
@@ -23,8 +23,8 @@ async function datos(page: Page) {
 }
 const leerDb = (page: Page, ruta: string) => page.evaluate(([k, r]) => { let v: any = JSON.parse(localStorage.getItem(k!)!); for (const p of r!.split(".")) v = v?.[p]; return v; }, [K, ruta]);
 
-const ENC_PRODUCTOS = ["CÓDIGO *", "NOMBRE *", "MARCA *", "CATEGORÍA *", "SUBCATEGORÍA", "PUNTOS *", "PRECIO US$", "TIPO", "DESCRIPCIÓN", "CONSIDERACIONES", "ESPECIFICACIONES", "IMÁGENES", "ACTIVO"];
-const ENC_BENEFICIOS = ["CÓDIGO *", "NOMBRE *", "COMERCIO *", "CATEGORÍA *", "DESCUENTO *", "MODALIDAD", "PUNTOS", "PRECIO US$", "SOLO DINERO", "DESCRIPCIÓN", "PASOS", "TÉRMINOS", "DESDE", "HASTA", "PROVINCIAS", "CÓDIGO COMPARTIDO", "USOS MÁXIMOS", "DURACIÓN (HORAS)", "LÍMITE DE CANJES", "ESPERA (MESES)", "IMÁGENES", "ACTIVO"];
+const ENC_PRODUCTOS = ["CÓDIGO *", "NOMBRE *", "MARCA *", "CATEGORÍA *", "SUBCATEGORÍA", "PUNTOS *", "PRECIO S/", "TIPO", "DESCRIPCIÓN", "CONSIDERACIONES", "ESPECIFICACIONES", "IMÁGENES", "ACTIVO"];
+const ENC_BENEFICIOS = ["CÓDIGO *", "NOMBRE *", "COMERCIO *", "CATEGORÍA *", "DESCUENTO *", "MODALIDAD", "PUNTOS", "PRECIO S/", "SOLO DINERO", "DESCRIPCIÓN", "PASOS", "TÉRMINOS", "DESDE", "HASTA", "PROVINCIAS", "CÓDIGO COMPARTIDO", "USOS MÁXIMOS", "DURACIÓN (HORAS)", "LÍMITE DE CANJES", "ESPERA (MESES)", "IMÁGENES", "ACTIVO"];
 const ENC_MARCAS = ["NOMBRE *", "SITIO WEB", "DESCRIPCIÓN", "LOGO", "ACTIVO"];
 const ENC_AJUSTES = ["DOCUMENTO *", "PUNTOS *", "MOTIVO *"];
 const fila = (n: number, o: Record<number, string>) => Array.from({ length: n }, (_, i) => o[i] ?? "");
@@ -118,7 +118,7 @@ test.describe("Fase D: cargas masivas", () => {
     await esperarCarga(page);
     await page.getByRole("button", { name: "Carga masiva" }).click();
     const m = page.getByRole("dialog", { name: "Carga masiva de beneficios" });
-    const bien = fila(22, { 0: "TEST-BEN-1", 1: "2x1 de prueba", 2: d.marca, 3: d.catBeneficio, 4: "2x1", 12: "01/12/2026", 13: "2027-03-31", 14: "pichincha; Guayas", 15: "verano26", 16: "50", 17: "24", 18: "1", 19: "3", 21: "Sí" });
+    const bien = fila(22, { 0: "TEST-BEN-1", 1: "2x1 de prueba", 2: d.marca, 3: d.catBeneficio, 4: "2x1", 12: "01/12/2026", 13: "2027-03-31", 14: "lima; Arequipa", 15: "verano26", 16: "50", 17: "24", 18: "1", 19: "3", 21: "Sí" });
     const mal = fila(22, { 0: "TEST-BEN-2", 1: "Fechas al revés", 2: d.marca, 3: d.catBeneficio, 4: "10%", 12: "2027-02-01", 13: "2027-01-01" });
     const provMala = fila(22, { 0: "TEST-BEN-3", 1: "Provincia falsa", 2: d.marca, 3: d.catBeneficio, 4: "5%", 14: "Narnia" });
     await subir(page, "beneficios.xlsx", xlsxDeExcel([ENC_BENEFICIOS, bien, mal, provMala]));
@@ -128,7 +128,7 @@ test.describe("Fase D: cargas masivas", () => {
     await m.getByRole("button", { name: "Cargar 1 fila" }).click();
     await expect(m.getByText("1 creados · 0 actualizados · 2 filas omitidas")).toBeVisible();
     const b = await leerDb(page, "admin.beneficios").then((l: any[]) => l.find((x) => x.id === "TEST-BEN-1"));
-    expect(b).toMatchObject({ desde: "2026-12-01", hasta: "2027-03-31", provincias: ["Pichincha", "Guayas"], cupon: { horas: 24, limite: 1, meses: 3 }, modoCodigo: "compartido", codigoCompartido: "VERANO26", usosMaximos: 50, tipo: "cupon" });
+    expect(b).toMatchObject({ desde: "2026-12-01", hasta: "2027-03-31", provincias: ["Lima", "Arequipa"], cupon: { horas: 24, limite: 1, meses: 3 }, modoCodigo: "compartido", codigoCompartido: "VERANO26", usosMaximos: 50, tipo: "cupon" });
     // Ya aparece en la lista del panel con su vigencia.
     await m.getByRole("button", { name: "Cerrar" }).last().click();
     await page.getByPlaceholder("Buscar beneficio o comercio").fill("2x1 de prueba");
@@ -172,9 +172,9 @@ test.describe("Fase D: cargas masivas", () => {
       ENC_AJUSTES,
       [d.p1.cedula, "500", "Premio de prueba"],
       [d.otro.cedula, String(-(d.otro.puntos + 1)), "Dejaría saldo negativo"],
-      ["0000000001", "10", "Documento inexistente"],
+      ["00000000", "10", "Documento inexistente"],
       [d.p1.cedula, "5", "Repetido"],
-      ["1700000000", "0", "Cero"],
+      ["17000000", "0", "Cero"],
     ];
     await subir(page, "ajustes.xlsx", xlsxDeExcel(filas));
     await expect(m.getByText("1 válidas")).toBeVisible();
@@ -182,7 +182,7 @@ test.describe("Fase D: cargas masivas", () => {
     await expect(m.getByText("+500", { exact: true }).first()).toBeVisible(); // se suman
     await expect(m.getByRole("row", { name: new RegExp(`2 ${d.p1.cedula}`) })).toContainText(`Saldo ${d.p1.puntos.toLocaleString("es")} → ${(d.p1.puntos + 500).toLocaleString("es")}`);
     await expect(m.getByRole("row", { name: /3 / }).first()).toContainText("negativo");
-    await expect(m.getByText(/No hay un participante con el documento 0000000001/)).toBeVisible();
+    await expect(m.getByText(/No hay un participante con el documento 00000000/)).toBeVisible();
     await expect(m.getByText(/ya aparece en la fila 2/)).toBeVisible();
     // Simular no cambia nada.
     expect(await leerDb(page, "admin.participantes").then((l: any[]) => l.find((p) => p.id === "p1").puntos)).toBe(d.p1.puntos);
@@ -209,8 +209,8 @@ test.describe("Fase D: cargas masivas", () => {
     expect(pl.suggestedFilename()).toBe("plantilla_participantes.xlsx");
     const filas = [
       ["DOCUMENTO *", "NOMBRE *", "CORREO *", "PUNTOS *"],
-      ["1790000011", "Nueva Persona", "nueva.persona@correo.com", "100"],
-      ["1790000012", "Otro Nuevo", "otro.nuevo@correo.com", "200"],
+      ["17900011", "Nueva Persona", "nueva.persona@correo.com", "100"],
+      ["17900012", "Otro Nuevo", "otro.nuevo@correo.com", "200"],
     ];
     await subir(page, "participantes.xlsx", xlsxDeExcel(filas));
     await expect(m.getByText("2 por crear")).toBeVisible();
@@ -221,7 +221,7 @@ test.describe("Fase D: cargas masivas", () => {
 
     // Quien ya existe (mismo documento) se rechaza en el servidor y se avisa.
     await page.getByRole("button", { name: "Carga masiva", exact: true }).click();
-    await subir(page, "repetido.xlsx", xlsxDeExcel([filas[0]!, ["1790000011", "Nueva Persona", "nueva.persona@correo.com", "100"], ["1790000013", "Tercera", "tercera@correo.com", "5"]]));
+    await subir(page, "repetido.xlsx", xlsxDeExcel([filas[0]!, ["17900011", "Nueva Persona", "nueva.persona@correo.com", "100"], ["17900013", "Tercera", "tercera@correo.com", "5"]]));
     await page.getByRole("dialog").getByRole("button", { name: "Importar 2 participantes" }).click();
     await expect(page.getByText(/1 participantes agregados.*1 ya existían/)).toBeVisible();
     expect(await leerDb(page, "admin.participantes").then((l: any[]) => l.length)).toBe(antes + 3);

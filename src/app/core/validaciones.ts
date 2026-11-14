@@ -50,7 +50,7 @@ export function validarNombrePersona(v: string, etiqueta: string, obligatorio = 
   return "";
 }
 
-/** Teléfono: se aceptan espacios, guiones y paréntesis, el prefijo del país (+593) y el 0 inicial local; deben quedar `digitos` dígitos. */
+/** Teléfono: se aceptan espacios, guiones y paréntesis, el prefijo del país (+51) y el 0 inicial local; deben quedar `digitos` dígitos. */
 export function digitosTelefono(v: string, prefijo = "", digitos = 9): string {
   let d = v.replace(/\D/g, "");
   const pre = prefijo.replace(/\D/g, "");

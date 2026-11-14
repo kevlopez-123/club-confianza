@@ -5,7 +5,7 @@ async function comprarDigital(page: Page) {
   await page.goto("/canjea/p14");
   await page.getByRole("button", { name: "Agregar al carrito" }).first().click();
   await page.getByRole("dialog").getByRole("link", { name: "Ver carrito" }).click();
-  await page.getByRole("button", { name: "Finalizar compra" }).click();
+  await page.getByRole("button", { name: "Finalizar canje" }).click();
   await expect(page).toHaveURL(/gracias$/);
 }
 
@@ -44,15 +44,6 @@ test.describe("Acceso y roles", () => {
     });
   }
 
-  test("Atención solo ve mensajes, cotizaciones y participantes", async ({ page }) => {
-    await entrarAdmin(page, "Atención");
-    const nav = page.getByLabel("Navegación principal");
-    for (const l of ["Atención", "Cotizaciones de vuelos", "Participantes"]) await expect(nav.getByRole("link", { name: l, exact: true })).toBeVisible();
-    for (const l of ["Productos", "Pedidos", "Configuración"]) await expect(nav.getByRole("link", { name: l, exact: true })).toHaveCount(0);
-    await page.goto("/admin/pedidos");
-    await expect(page.getByText("Sin acceso a esta sección")).toBeVisible();
-  });
-
   test("recuperación de contraseña responde igual exista o no el correo", async ({ page }) => {
     await page.goto("/admin");
     await page.getByRole("button", { name: "¿Olvidaste tu contraseña?" }).click();
@@ -66,10 +57,10 @@ test.describe("Lo que se administra se refleja en el sitio", () => {
   test("desactivar un producto lo quita del catálogo público", async ({ page }) => {
     await entrarAdmin(page);
     await page.goto("/admin/productos");
-    await expect(page.locator("tbody tr")).toHaveCount(24);
+    await expect(page.locator("tbody tr")).toHaveCount(20);
     await page.locator("tbody tr").first().getByRole("switch").click();
     await page.goto("/canjea");
-    await expect(page.getByText("23 productos disponibles")).toBeVisible();
+    await expect(page.getByText("19 productos disponibles")).toBeVisible();
   });
 
   test("crear un producto lo publica en el catálogo", async ({ page }) => {
@@ -135,14 +126,6 @@ test.describe("Lo que se administra se refleja en el sitio", () => {
     await expect(page.getByRole("button", { name: "Siguiente", exact: true })).toHaveCount(0);
   });
 
-  test("destinos: desactivar uno lo quita de Vuelos", async ({ page }) => {
-    await entrarAdmin(page);
-    await page.goto("/admin/destinos");
-    await page.locator("article").first().getByRole("switch").click();
-    await page.goto("/vuelos");
-    await expect(page.getByRole("heading", { name: "Destinos recomendados" })).toBeVisible();
-    await expect(page.locator("section article")).toHaveCount(3);
-  });
 });
 
 test.describe("Operación", () => {
@@ -171,7 +154,7 @@ test.describe("Operación", () => {
   test("participantes: buscar, ajustar puntos y bloquear", async ({ page }) => {
     await entrarAdmin(page);
     await page.goto("/admin/participantes");
-    await page.getByPlaceholder("Buscar por nombre o cédula").fill("Ana Torres");
+    await page.getByPlaceholder("Buscar por nombre o DNI").fill("Ana Torres");
     await expect(page.locator("tbody tr")).toHaveCount(1);
     await page.getByRole("link", { name: "Ver ficha" }).click();
     await expect(page).toHaveURL(/\/admin\/participantes\/p1$/);
@@ -193,12 +176,12 @@ test.describe("Operación", () => {
     await page.getByRole("button", { name: "Carga masiva" }).click();
     const csv = [
       "documento,nombre,correo,puntos",
-      "1718293045,Rosa Benítez,rosa.benitez@correo.com,1500",
-      "0923456781,Pedro Guamán,pedro.guaman@correo.com,800",
+      "17182930,Rosa Benítez,rosa.benitez@correo.com,1500",
+      "09234567,Pedro Guamán,pedro.guaman@correo.com,800",
       "17182,Mónica Vélez,monica.velez@correo.com,1200", // documento corto
-      "1104567893,Iván Cárdenas,ivan.cardenas,300", // correo inválido
-      "1709876543,Sofía Herrera,sofia.herrera@correo.com,abc", // puntos no numéricos
-      "1311111111,Luis Mora,luis.mora@correo.com,500",
+      "11045678,Iván Cárdenas,ivan.cardenas,300", // correo inválido
+      "17098765,Sofía Herrera,sofia.herrera@correo.com,abc", // puntos no numéricos
+      "13111111,Luis Mora,luis.mora@correo.com,500",
     ].join("\n");
     await page.getByRole("dialog").locator('input[type="file"]').setInputFiles({ name: "participantes.csv", mimeType: "text/csv", buffer: Buffer.from(csv, "utf8") });
     await expect(page.getByText(/3 con errores/)).toBeVisible();
@@ -218,16 +201,6 @@ test.describe("Operación", () => {
     await page.getByRole("button", { name: "Responder" }).click();
     await expect(page.getByText("Respuesta enviada por correo")).toBeVisible();
     await expect(fila).toContainText("Respondido");
-  });
-
-  test("cotizaciones: tomar, cotizar y cerrar", async ({ page }) => {
-    await entrarAdmin(page);
-    await page.goto("/admin/cotizaciones");
-    await page.getByRole("button", { name: "Gestionar" }).nth(1).click(); // COT-100455 (En revisión)
-    await page.getByPlaceholder("Ej. 850.00").fill("850");
-    await page.locator('input[type="file"]').setInputFiles({ name: "cotizacion.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4") });
-    await page.getByRole("button", { name: "Enviar cotización" }).click();
-    await expect(page.getByText(/→ Cotizada/)).toBeVisible();
   });
 
   test("usuarios: invitar valida duplicados y registra el cambio", async ({ page }) => {
@@ -257,88 +230,6 @@ test.describe("Catálogos y contenido", () => {
     await page.getByRole("dialog").locator('input[type="file"]').setInputFiles({ name: "codigos.csv", mimeType: "text/csv", buffer: Buffer.from(csv) });
     await page.getByRole("button", { name: /Cargar 250 códigos/ }).click();
     await expect(page.locator("tbody tr")).toHaveCount(4);
-  });
-
-  test("ciudades: autocompletado con la lista oficial; solo se ofrecen las que aún no están agregadas", async ({ page }) => {
-    await entrarAdmin(page);
-    await page.goto("/admin/destinos");
-    await page.getByRole("button", { name: "Ciudades del buscador" }).click();
-    await page.getByRole("button", { name: "Nueva ciudad" }).click();
-    await expect(page.getByLabel("IATA", { exact: true })).toHaveCount(0); // sin campos de texto para código, ciudad ni país
-    const combo = page.getByRole("combobox", { name: "Ciudad o aeropuerto" });
-    const lista = page.getByRole("listbox", { name: "Ciudades disponibles" });
-    await combo.focus();
-    await expect(lista.getByRole("option").first()).toBeVisible(); // sugerencias al enfocar
-    await expect(lista.getByRole("option")).toHaveCount(8);
-    await combo.fill("UIO"); // Quito (UIO) ya está agregada: no se ofrece
-    await expect(lista).toContainText("No hay ciudades disponibles que coincidan");
-    await combo.fill("madrid"); // MAD también está en la base
-    await expect(lista.getByRole("option")).toHaveCount(0);
-    await combo.fill("Bogota"); // BOG está agregada
-    await expect(lista.getByRole("option")).toHaveCount(0);
-    await combo.fill("Londres"); // sin tildes ni mayúsculas; Heathrow y Gatwick
-    await expect(lista.getByRole("option")).toHaveCount(2);
-    await expect(lista.locator("mark").first()).toContainText(/londres/i); // coincidencia resaltada
-  });
-
-  test("ciudades: el autocompletado se maneja con el teclado", async ({ page }) => {
-    await entrarAdmin(page);
-    await page.goto("/admin/destinos");
-    await page.getByRole("button", { name: "Ciudades del buscador" }).click();
-    await page.getByRole("button", { name: "Nueva ciudad" }).click();
-    const combo = page.getByRole("combobox", { name: "Ciudad o aeropuerto" });
-    await combo.fill("sant");
-    const lista = page.getByRole("listbox", { name: "Ciudades disponibles" });
-    await expect(combo).toHaveAttribute("aria-expanded", "true");
-    await expect(lista.getByRole("option", { selected: true })).toHaveCount(1);
-    const primero = await lista.getByRole("option").first().innerText();
-    await combo.press("ArrowDown");
-    await expect(lista.getByRole("option").nth(1)).toHaveAttribute("aria-selected", "true");
-    await combo.press("ArrowUp");
-    await combo.press("Escape"); // cierra la lista, no el modal
-    await expect(lista).toHaveCount(0);
-    await expect(page.getByRole("dialog", { name: "Nueva ciudad" })).toBeVisible();
-    await combo.press("ArrowDown"); // vuelve a abrir
-    await combo.press("Enter");
-    const codigo = primero.split("\n")[0]!.trim();
-    await expect(page.getByRole("dialog")).toContainText(codigo);
-    await expect(page.getByRole("button", { name: "Cambiar", exact: true })).toBeVisible();
-    await expect(page.getByRole("dialog").getByRole("button", { name: "Guardar", exact: true })).toBeEnabled();
-  });
-
-  test("cards de ciudades: orden alfabético por defecto, orden por columna y acciones con ícono y nombre accesible", async ({ page }) => {
-    await entrarAdmin(page);
-    await page.goto("/admin/destinos");
-    await page.getByRole("button", { name: "Ciudades del buscador" }).click();
-    const filas = page.locator("tbody tr");
-    await filas.first().waitFor();
-    await expect(filas.first()).toContainText("Baltra"); // ordenadas por ciudad
-    await expect(filas.nth(1)).toContainText("Bogotá");
-    await expect(page.getByRole("button", { name: "Editar Bogotá" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Eliminar Bogotá" })).toBeVisible();
-    const rotulo = await filas.first().locator("td").nth(3).evaluate((td) => getComputedStyle(td, "::before").content);
-    expect(rotulo).toContain("En buscador"); // el interruptor lleva su nombre
-    await page.locator("th", { hasText: "País" }).getByRole("button").click();
-    await expect(page.locator("th", { hasText: "País" })).toHaveAttribute("aria-sort", "ascending");
-  });
-  test("ciudades: elegir un aeropuerto la agrega con su código, ciudad y país, y sale en el buscador de vuelos", async ({ page }) => {
-    await entrarAdmin(page);
-    await page.goto("/admin/destinos");
-    await page.getByRole("button", { name: "Ciudades del buscador" }).click();
-    await page.getByRole("button", { name: "Nueva ciudad" }).click();
-    await page.getByRole("combobox", { name: "Ciudad o aeropuerto" }).fill("Lisboa");
-    await page.getByRole("option", { name: /LIS/ }).getByRole("button").click();
-    const modal = page.getByRole("dialog");
-    await expect(modal).toContainText("LIS");
-    await expect(modal).toContainText("Lisboa");
-    await expect(modal).toContainText("Portugal");
-    await modal.getByRole("button", { name: "Guardar", exact: true }).click();
-    await expect(page.getByText("Ciudad guardada")).toBeVisible();
-    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11") ?? "{}").vuelos?.ciudades?.some((c: any) => c.codigo === "LIS" && c.ciudad === "Lisboa" && c.pais === "Portugal"))).toBe(true);
-    await page.goto("/vuelos");
-    await page.getByRole("combobox", { name: "Ciudad de destino" }).click();
-    await page.getByRole("combobox", { name: "Ciudad de destino" }).fill("Lisboa");
-    await expect(page.getByRole("option", { name: /Lisboa/ })).toBeVisible();
   });
 
   test("formulario de datos: agregar y eliminar un campo", async ({ page }) => {

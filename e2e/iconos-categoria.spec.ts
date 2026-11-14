@@ -23,7 +23,7 @@ test.describe("Ícono de las categorías", () => {
     await modal.getByRole("button", { name: "Guardar", exact: true }).click();
     await expect(page.getByText("Categoría guardada")).toBeVisible();
     // el aviso sale antes de que el servidor simulado termine de guardar: se espera a que quede persistido
-    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11") ?? "{}").catalogo?.categoriasProducto?.some((c: any) => c.imagen || c.icon === "Coffee") ?? false)).toBe(true);
+    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("confianza_mockdb_v1") ?? "{}").catalogo?.categoriasProducto?.some((c: any) => c.imagen || c.icon === "Coffee") ?? false)).toBe(true);
     await page.goto("/canjea");
     const btn = page.getByRole("button", { name: "Tecnología" }).first();
     await expect(btn.locator("svg").first()).toBeVisible();
@@ -44,7 +44,7 @@ test.describe("Ícono de las categorías", () => {
     await modal.getByRole("button", { name: "Guardar", exact: true }).click();
     await expect(page.getByText("Categoría guardada")).toBeVisible();
     // el aviso sale antes de que el servidor simulado termine de guardar: se espera a que quede persistido
-    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("bancosolidario_mockdb_v11") ?? "{}").catalogo?.categoriasProducto?.some((c: any) => c.imagen || c.icon === "Coffee") ?? false)).toBe(true);
+    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("confianza_mockdb_v1") ?? "{}").catalogo?.categoriasProducto?.some((c: any) => c.imagen || c.icon === "Coffee") ?? false)).toBe(true);
     await page.goto("/canjea");    const rail = page.locator("button", { hasText: "Hogar" });
     await expect(rail.first().locator("img[src^='data:image/svg+xml']")).toBeVisible();
   });

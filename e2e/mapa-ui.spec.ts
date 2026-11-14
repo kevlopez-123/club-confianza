@@ -5,7 +5,7 @@ async function simularOsm(page: Page) {
   const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
   await page.route("**/tile.openstreetmap.org/**", (r) => r.fulfill({ status: 200, contentType: "image/png", body: png }));
   await page.route("**/nominatim.openstreetmap.org/reverse*", (r) =>
-    r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ display_name: "Av. Simulada 123, Quito", address: { road: "Av. Simulada", house_number: "123", city: "Quito", state: "Pichincha" } }) }),
+    r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ display_name: "Av. Simulada 123, Miraflores", address: { road: "Av. Simulada", house_number: "123", city: "Miraflores", state: "Lima" } }) }),
   );
   await page.route("**/nominatim.openstreetmap.org/search*", (r) => r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([{ lat: "-0.2", lon: "-78.5" }]) }));
 }
@@ -14,7 +14,7 @@ test.describe("Dirección con mapa de OpenStreetMap (Leaflet)", () => {
   test("marcar un punto completa la dirección y se guarda con su ubicación", async ({ page }) => {
     await simularOsm(page);
     await page.goto("/perfil");
-    await page.getByRole("tab", { name: "Direcciones de envío" }).click();
+    await page.getByRole("tab", { name: "Direcciones" }).click();
     await page.getByRole("button", { name: "Agregar nueva dirección" }).click();
     const mapa = page.getByRole("application", { name: /Mapa para ubicar tu dirección/ });
     await expect(mapa).toBeVisible();
@@ -23,8 +23,8 @@ test.describe("Dirección con mapa de OpenStreetMap (Leaflet)", () => {
     await expect(page.getByText(/Ubicación marcada: -?\d+\.\d+, -?\d+\.\d+/)).toBeVisible();
     await expect(page.locator(".leaflet-marker-icon")).toBeVisible();
     await expect(page.getByLabel("Dirección", { exact: true })).toHaveValue("Av. Simulada 123");
-    await expect(page.getByLabel("Ciudad", { exact: true })).toHaveValue("Quito");
-    await expect(page.getByLabel("Provincia")).toHaveValue("Pichincha");
+    await expect(page.getByLabel("Ciudad", { exact: true })).toHaveValue("Miraflores");
+    await expect(page.getByLabel("Provincia")).toHaveValue("Lima");
 
     // lo escrito a mano no se pisa con una nueva sugerencia
     await page.getByLabel("Dirección", { exact: true }).fill("Mi calle exacta 45");
@@ -43,7 +43,7 @@ test.describe("Dirección con mapa de OpenStreetMap (Leaflet)", () => {
   test("buscar un lugar centra el mapa y la dirección es opcional", async ({ page }) => {
     await simularOsm(page);
     await page.goto("/perfil");
-    await page.getByRole("tab", { name: "Direcciones de envío" }).click();
+    await page.getByRole("tab", { name: "Direcciones" }).click();
     await page.getByRole("button", { name: "Agregar nueva dirección" }).click();
     await page.getByLabel("Buscar dirección en el mapa").fill("Plaza Foch");
     await page.getByRole("dialog").getByRole("button", { name: "Buscar", exact: true }).click();
@@ -54,8 +54,8 @@ test.describe("Dirección con mapa de OpenStreetMap (Leaflet)", () => {
     await d.getByLabel("¿Quién recibe?").fill("Ana");
     await d.getByLabel("Teléfono de contacto").fill("996543210");
     await d.getByLabel("Dirección", { exact: true }).fill("Calle Sin Pin 1");
-    await d.getByLabel("Provincia").selectOption("Pichincha");
-    await d.getByLabel("Ciudad", { exact: true }).selectOption("Quito");
+    await d.getByLabel("Provincia").selectOption("Lima");
+    await d.getByLabel("Ciudad", { exact: true }).selectOption("Miraflores");
     await d.getByRole("button", { name: "Guardar dirección" }).click();
     await expect(page.locator("li", { hasText: "Calle Sin Pin 1" })).toBeVisible();
   });

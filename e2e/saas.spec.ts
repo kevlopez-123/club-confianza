@@ -77,12 +77,12 @@ test.describe("Interfaz SaaS del admin", () => {
   test("el logo de la marca está arriba de la barra lateral y no hay selector de workspaces", async ({ page }) => {
     await entrarAdmin(page);
     const aside = page.getByLabel("Navegación principal");
-    await expect(aside.locator("img[alt='Banco Solidario']").first()).toBeVisible();
+    await expect(aside.locator("img[alt='Financiera Confianza']").first()).toBeVisible();
     await expect(page.getByRole("button", { name: "Cambiar de workspace" })).toHaveCount(0);
     await expect(page.getByText("Workspace")).toHaveCount(0);
     // con la barra contraída queda la inicial de la marca
     await page.getByRole("button", { name: "Contraer barra lateral" }).click();
-    await expect(aside.getByText("B", { exact: true }).first()).toBeVisible();
+    await expect(aside.getByText("F", { exact: true }).first()).toBeVisible();
   });
   test("responsive: en móvil la barra superior y el menú funcionan", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 800 });

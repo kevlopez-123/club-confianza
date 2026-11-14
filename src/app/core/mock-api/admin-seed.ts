@@ -18,7 +18,7 @@ import { PRECIO_POR_PUNTO, PUNTOS_POR_DOLAR } from "../format";
 import { AJUSTES_BASE, DISENO_BASE, PLANTILLAS_BASE } from "../correos";
 
 const clone = <T>(v: T): T => structuredClone(v);
-const ahora = () => new Date().toLocaleString("es-EC", { dateStyle: "short", timeStyle: "short" });
+const ahora = () => new Date().toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" });
 
 const flujoFisico = ["Confirmado", "Preparando", "Enviado", "Entregado"];
 const flujoDigital = ["Confirmado", "Digital enviado"];
@@ -91,7 +91,7 @@ export const adminSeed = () => {
   const banners = [...slides, ...slidesProductos, ...slidesBeneficios].map((s, i) => ({
     ...s,
     key: s.id + i,
-    canal: i % 2 ? "App" : "Web",
+    canal: "Web",
     ubicacion: i < slides.length ? "Home" : i < slides.length + slidesProductos.length ? "Canjea" : "Beneficios",
     activo: true,
     inicio: i % 5 === 3 ? "2026-11-20" : "2026-10-01",
@@ -163,9 +163,9 @@ export const adminSeed = () => {
     onboarding: clone(onboarding) as any[],
     campos: clone(camposIniciales) as any[],
     lotes: [
-      { id: "l1", beneficioId: "b7", comercio: "Cinemark", beneficio: "2x1 en entradas 2D", archivo: "cinemark_oct.csv", total: 500, usados: 180, vence: "2026-12-31", fecha: "2026-10-02" },
+      { id: "l1", beneficioId: "b7", comercio: "Cineplanet", beneficio: "2x1 en entradas 2D", archivo: "cinemark_oct.csv", total: 500, usados: 180, vence: "2026-12-31", fecha: "2026-10-02" },
       { id: "l2", beneficioId: "", comercio: "Juan Valdez", beneficio: "Café gratis", archivo: "jv_q4.xlsx", total: 200, usados: 52, vence: "2026-11-30", fecha: "2026-10-10" },
-      { id: "l3", beneficioId: "b8", comercio: "Supermaxi", beneficio: "US$ 10 de descuento", archivo: "supermaxi.csv", total: 100, usados: 88, vence: "2026-11-15", fecha: "2026-09-20" },
+      { id: "l3", beneficioId: "b8", comercio: "Plaza Vea", beneficio: "S/ 10 de descuento", archivo: "supermaxi.csv", total: 100, usados: 88, vence: "2026-11-15", fecha: "2026-09-20" },
     ] as any[],
     /** Plantillas de correo editables desde el panel y registro de lo enviado. */
     plantillasCorreo: clone(PLANTILLAS_BASE) as any[],
@@ -188,7 +188,6 @@ export const adminSeed = () => {
       { id: "productos", s: "Productos destacados", on: true },
       { id: "categorias", s: "Categorías de productos", on: false },
       { id: "beneficios", s: "Beneficios", on: true },
-      { id: "destinos", s: "Destinos recomendados", on: false },
       { id: "cta-puntos", s: "CTA Compra de puntos", on: false },
       { id: "cta-duo", s: "Canjea y contáctanos", on: true },
     ] as any[],
@@ -210,7 +209,7 @@ export const adminSeed = () => {
       cotizacionValidezHoras: 72,
       paquetes: [2500, 5000, 10000, 25000],
       compraActiva: true,
-      soloDinero: true,
+      soloDinero: false,
     },
 
     // Solo lectura

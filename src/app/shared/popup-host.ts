@@ -7,8 +7,8 @@ import { debeMostrar, type HistorialPopups, type PopupPublico } from "../core/po
 import { SesionService } from "../core/sesion.service";
 import { IconComponent } from "./icon.component";
 
-const LS = "bancosolidario_popups";
-const SS = "bancosolidario_popups_sesion";
+const LS = "confianza_popups";
+const SS = "confianza_popups_sesion";
 
 const leer = <T>(clave: string, def: T, almacen: Storage | undefined): T => {
   try { return JSON.parse(almacen?.getItem(clave) ?? "null") ?? def; } catch { return def; }
@@ -31,7 +31,7 @@ const almacen = (tipo: "local" | "session"): Storage | undefined => {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (actual(); as p) {
-      <div class="fixed inset-0 z-[90] flex items-center justify-center bg-ink/60 p-4" (keydown)="atrapar($event)">
+      <div class="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 p-4" (keydown)="atrapar($event)">
         <div #caja role="dialog" aria-modal="true" [attr.aria-labelledby]="p.formato === 'imagen' ? null : 'popup-t-' + p.id" [attr.aria-label]="p.formato === 'imagen' ? p.titulo : null" tabindex="-1"
           class="animate-fade-up relative flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-3xl bg-card shadow-2xl outline-none">
           <button type="button" aria-label="Cerrar" (click)="cerrar(p)"

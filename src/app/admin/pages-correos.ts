@@ -17,7 +17,7 @@ import {
   PageHeaderComponent, PagerComponent, Paginado, PanelComponent, PillComponent, ToastService, ToggleComponent,
 } from "./kit";
 
-const GRUPOS: PlantillaCorreo["grupo"][] = ["Seguridad y acceso", "Compras y puntos", "Beneficios y vuelos", "Alertas internas"];
+const GRUPOS: PlantillaCorreo["grupo"][] = ["Seguridad y acceso", "Compras y puntos", "Beneficios y atención", "Alertas internas"];
 const TIPOS: { t: TipoBloque; l: string; icon: string }[] = [
   { t: "titulo", l: "Título", icon: "AlignLeft" },
   { t: "texto", l: "Texto", icon: "FileText" },

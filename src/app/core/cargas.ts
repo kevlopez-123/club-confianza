@@ -70,7 +70,7 @@ export const COLUMNAS: Record<TipoCarga, ColCarga[]> = {
     { clave: "categoria", titulo: "Categoría", tipo: "texto", obligatoria: true, limite: "nombre", ayuda: "Nombre de una categoría de productos existente.", ejemplo: "Tecnología" },
     { clave: "subcategoria", titulo: "Subcategoría", tipo: "texto", limite: "nombre", ayuda: "Subcategoría de esa categoría (opcional).", ejemplo: "Computadores" },
     { clave: "puntos", titulo: "Puntos", tipo: "entero", obligatoria: true, min: 0, max: 100000000, ayuda: "Costo en puntos: número entero.", ejemplo: 25000 },
-    { clave: "precio", titulo: "Precio US$", tipo: "decimal", min: 0, max: 1000000, ayuda: "Precio en dólares para pagar con tarjeta (opcional). Usa punto decimal.", ejemplo: 850, alias: ["precio", "precio usd"] },
+    { clave: "precio", titulo: "Precio S/", tipo: "decimal", min: 0, max: 1000000, ayuda: "Precio de referencia en soles (opcional). Usa punto decimal.", ejemplo: 850, alias: ["precio", "precio usd", "precio us$", "precio s/"] },
     { clave: "tipo", titulo: "Tipo", tipo: "opcion", opciones: ["Físico", "Digital"], ayuda: "Físico (se envía) o Digital (se entrega por correo). Vacío: Físico.", ejemplo: "Físico" },
     { clave: "descripcion", titulo: "Descripción", tipo: "texto", limite: "descripcion", ayuda: "Texto de la ficha.", ejemplo: "Laptop de 15 pulgadas, Core i5, 8 GB de RAM." },
     { clave: "consideraciones", titulo: "Consideraciones", tipo: "lista", limite: "breve", ayuda: "Una o varias, separadas por punto y coma.", ejemplo: "No acumulable con otras promociones; Válido hasta el 31/12/2026" },
@@ -86,7 +86,7 @@ export const COLUMNAS: Record<TipoCarga, ColCarga[]> = {
     { clave: "descuento", titulo: "Descuento", tipo: "texto", obligatoria: true, limite: "etiqueta", ayuda: "Texto corto del descuento.", ejemplo: "30%" },
     { clave: "modalidad", titulo: "Modalidad", tipo: "opcion", opciones: ["Cupón", "Compra"], ayuda: "Cupón: se genera un código para el comercio. Compra: se agrega al carrito. Vacío: Cupón.", ejemplo: "Cupón" },
     { clave: "puntos", titulo: "Puntos", tipo: "entero", min: 0, max: 100000000, ayuda: "Costo en puntos (solo si tiene costo).", ejemplo: 0 },
-    { clave: "precio", titulo: "Precio US$", tipo: "decimal", min: 0, max: 1000000, ayuda: "Precio en dólares (solo si tiene costo).", ejemplo: 0, alias: ["precio", "precio usd"] },
+    { clave: "precio", titulo: "Precio S/", tipo: "decimal", min: 0, max: 1000000, ayuda: "Precio en soles (solo si tiene costo).", ejemplo: 0, alias: ["precio", "precio usd", "precio us$", "precio s/"] },
     { clave: "solodinero", titulo: "Solo dinero", tipo: "sino", ayuda: "Sí si no se puede pagar con puntos.", ejemplo: "No", alias: ["solo dinero"] },
     { clave: "descripcion", titulo: "Descripción", tipo: "texto", limite: "descripcion", ayuda: "Texto de la ficha.", ejemplo: "Combo familiar de pollo asado con papas y ensalada." },
     { clave: "pasos", titulo: "Pasos", tipo: "lista", limite: "breve", ayuda: "Pasos para usarlo, separados por punto y coma. Vacío: los pasos estándar.", ejemplo: "Genera el cupón; Preséntalo en el local" },
@@ -110,7 +110,7 @@ export const COLUMNAS: Record<TipoCarga, ColCarga[]> = {
     ACTIVO,
   ],
   participantes: [
-    { clave: "documento", titulo: "Documento", tipo: "codigo", obligatoria: true, limite: "codigo", texto: true, ayuda: "Cédula o documento: solo letras y números, con los caracteres que define el país (en Ecuador, 10). No puede repetirse con un participante que ya exista.", ejemplo: "1712345678", alias: ["cedula"] },
+    { clave: "documento", titulo: "Documento", tipo: "codigo", obligatoria: true, limite: "codigo", texto: true, ayuda: "DNI o documento: solo letras y números, con los caracteres que define el país (en Ecuador, 10). No puede repetirse con un participante que ya exista.", ejemplo: "1712345678", alias: ["cedula"] },
     { clave: "nombre", titulo: "Nombre", tipo: "texto", obligatoria: true, limite: "persona", ayuda: "Nombres y apellidos.", ejemplo: "Ana Torres" },
     { clave: "correo", titulo: "Correo", tipo: "correo", obligatoria: true, limite: "correo", ayuda: "Correo electrónico válido; ahí recibe su código de acceso y el correo de bienvenida.", ejemplo: "ana.torres@correo.com", alias: ["email"] },
     { clave: "puntos", titulo: "Puntos", tipo: "entero", obligatoria: true, min: 0, max: 100000000, ayuda: "Puntos iniciales: número entero, 0 o más, sin puntos ni comas.", ejemplo: 1000 },
@@ -119,7 +119,7 @@ export const COLUMNAS: Record<TipoCarga, ColCarga[]> = {
     { clave: "codigo", titulo: "Código", tipo: "codigo", obligatoria: true, limite: "codigo", texto: true, ayuda: "Un código por fila (letras, números y guiones). Si ya está cargado en otro lote del mismo beneficio, se omite.", ejemplo: "ABC-0001" },
   ],
   ajustes: [
-    { clave: "documento", titulo: "Documento", tipo: "codigo", obligatoria: true, limite: "codigo", texto: true, ayuda: "Cédula o documento del participante; debe estar registrado.", ejemplo: "1712345678", alias: ["cedula"] },
+    { clave: "documento", titulo: "Documento", tipo: "codigo", obligatoria: true, limite: "codigo", texto: true, ayuda: "DNI o documento del participante; debe estar registrado.", ejemplo: "1712345678", alias: ["cedula"] },
     { clave: "puntos", titulo: "Puntos", tipo: "entero", obligatoria: true, noCero: true, min: -1000000, max: 1000000, ayuda: "Positivo suma, negativo resta (por ejemplo -500). No puede dejar el saldo por debajo de 0 ni ser 0.", ejemplo: 500 },
     { clave: "motivo", titulo: "Motivo", tipo: "texto", obligatoria: true, limite: "motivo", ayuda: "Por qué se ajusta; queda en el historial del participante.", ejemplo: "Compensación por pedido demorado" },
   ],
@@ -284,7 +284,7 @@ function construirBeneficio(v: Valores, ctx: CtxCarga, previo: any): { entidad?:
   }
   const base = previo ?? {
     id: String(v["codigo"]), marca: "", marcaUrl: "", nombre: "", descuento: "", categoria: "", categoriaSlug: "", imagen: "", galeria: [], imagenes: [], descripcion: "",
-    pasos: ["Genera el cupón para reservar", "Acércate al local con tu cédula de identidad en físico.", "Presenta el cupón", "¡Disfruta!"], especificaciones: [], terminos: "",
+    pasos: ["Genera el cupón para reservar", "Acércate al local con tu DNI en físico.", "Presenta el cupón", "¡Disfruta!"], especificaciones: [], terminos: "",
     tipo: "cupon", activo: true, exclusivo: false, promoTipo: "", promoDesde: "", promoHasta: "", etiqueta: "", etiquetaColor: "marca", modoCodigo: "unico", provincias: [], usos: 0,
   };
   const modalidad = v["modalidad"] === undefined ? undefined : v["modalidad"] === "Compra" ? "compra" : "cupon";
@@ -339,7 +339,7 @@ export function prepararCarga(tipo: TipoCarga, matriz: string[][], ctx: CtxCarga
         const doc = String(f.valores["documento"]);
         if (ctx.digitosDocumento && doc.length !== ctx.digitosDocumento) return { ...f, error: `El documento debe tener ${ctx.digitosDocumento} caracteres.` };
         const id = `imp-${Date.now().toString(36)}-${f.fila}-${Math.random().toString(36).slice(2, 6)}`;
-        const entidad = { id, nombre: f.valores["nombre"], cedula: doc, email: f.valores["correo"], celular: "—", puntos: f.valores["puntos"], acumulados12m: f.valores["puntos"], estado: "Activo", canal: "Web + App", alta: new Date().toLocaleDateString("es-EC"), direcciones: [], ajustes: [] };
+        const entidad = { id, nombre: f.valores["nombre"], cedula: doc, email: f.valores["correo"], celular: "—", puntos: f.valores["puntos"], acumulados12m: f.valores["puntos"], estado: "Activo", canal: "Web + App", alta: new Date().toLocaleDateString("es-PE"), direcciones: [], ajustes: [] };
         return { ...f, accion: "crear" as const, entidad };
       }
       if (tipo === "codigos") {

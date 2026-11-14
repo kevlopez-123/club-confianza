@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { entrarAdmin, esperarCarga } from "./helpers";
 
-const K = "bancosolidario_mockdb_v11";
+const K = "confianza_mockdb_v1";
 
 test.describe("El estado del pedido llega al participante", () => {
   test("al marcarlo como entregado en el panel, Mis compras lo muestra entregado", async ({ page }) => {

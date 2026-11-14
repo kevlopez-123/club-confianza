@@ -22,7 +22,7 @@ const FRECUENCIAS = Object.entries(ETIQUETA_FRECUENCIA) as [FrecuenciaPopup, str
   imports: [PageHeaderComponent, PanelComponent, BtnDirective, PillComponent, ToggleComponent, FieldComponent, ImageUploadComponent, DrawerComponent, DrawerTitleComponent, ConfirmComponent, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <a-header title="Pop-ups" [desc]="lista().length + (lista().length === 1 ? ' pop-up' : ' pop-ups') + ' · mensajes por encima del contenido, con vigencia y distintos para web y app'">
+    <a-header title="Pop-ups" [desc]="lista().length + (lista().length === 1 ? ' pop-up' : ' pop-ups') + ' · mensajes por encima del contenido, con vigencia y frecuencia'">
       <button aBtn (click)="nuevo()"><app-icon name="Plus" class="h-4 w-4" /> Nuevo pop-up</button>
     </a-header>
 
@@ -30,9 +30,6 @@ const FRECUENCIAS = Object.entries(ETIQUETA_FRECUENCIA) as [FrecuenciaPopup, str
       <select aria-label="Estado" [class]="input + ' w-auto'" (change)="filtro.set($any($event.target).value)">
         <option value="">Todos los estados</option>
         <option value="vigente">Vigentes</option><option value="programado">Programados</option><option value="vencido">Vencidos</option><option value="pausado">Pausados</option>
-      </select>
-      <select aria-label="Canal" [class]="input + ' w-auto'" (change)="canalFiltro.set($any($event.target).value)">
-        <option value="">Web y app</option><option value="web">Solo web</option><option value="app">Solo app</option>
       </select>
     </div>
 
@@ -48,7 +45,6 @@ const FRECUENCIAS = Object.entries(ETIQUETA_FRECUENCIA) as [FrecuenciaPopup, str
               <div class="mt-1 flex flex-wrap gap-1">
                 <a-pill [tone]="estado(p).t">{{ estado(p).l }}</a-pill>
                 @if (p.web?.activo) { <a-pill tone="info">Web</a-pill> }
-                @if (p.app?.activo) { <a-pill tone="info">App</a-pill> }
               </div>
             </div>
             <a-toggle label="Activo" [on]="p.activo" (onChange)="alternar(p, $event)" />
@@ -59,8 +55,8 @@ const FRECUENCIAS = Object.entries(ETIQUETA_FRECUENCIA) as [FrecuenciaPopup, str
             <div><dt class="font-semibold uppercase">Frecuencia</dt><dd class="text-foreground">{{ frecuencia(p) }}</dd></div>
             <div><dt class="font-semibold uppercase">Sale en</dt><dd class="text-foreground">{{ p.paginas === 'inicio' ? 'Solo el inicio' : 'Todas las páginas' }}</dd></div>
             <div><dt class="font-semibold uppercase">Prioridad</dt><dd class="text-foreground">{{ p.prioridad }}</dd></div>
-            <div><dt class="font-semibold uppercase">Vistas</dt><dd class="text-foreground">Web {{ p.vistas?.web ?? 0 }} · App {{ p.vistas?.app ?? 0 }}</dd></div>
-            <div><dt class="font-semibold uppercase">Clics</dt><dd class="text-foreground">Web {{ p.clics?.web ?? 0 }} · App {{ p.clics?.app ?? 0 }}</dd></div>
+            <div><dt class="font-semibold uppercase">Vistas</dt><dd class="text-foreground">Web {{ p.vistas?.web ?? 0 }}</dd></div>
+            <div><dt class="font-semibold uppercase">Clics</dt><dd class="text-foreground">Web {{ p.clics?.web ?? 0 }}</dd></div>
           </dl>
           <div class="mt-4 flex flex-wrap items-center gap-1">
             <button aBtn variant="ghost" (click)="editar(p)">Editar</button>
@@ -103,6 +99,7 @@ const FRECUENCIAS = Object.entries(ETIQUETA_FRECUENCIA) as [FrecuenciaPopup, str
             <p class="mt-2 text-xs text-muted-foreground">Si hay varios pop-ups vigentes a la vez, sale primero el de mayor prioridad y los demás esperan su turno.</p>
           </fieldset>
 
+          @if (canales.length > 1) {
           <div class="flex gap-1 rounded-xl border border-border bg-card p-1" role="tablist" aria-label="Canal">
             @for (c of canales; track c.k) {
               <button type="button" role="tab" [attr.aria-selected]="canal() === c.k" (click)="canal.set(c.k)"
@@ -111,6 +108,7 @@ const FRECUENCIAS = Object.entries(ETIQUETA_FRECUENCIA) as [FrecuenciaPopup, str
               </button>
             }
           </div>
+          }
 
           @if (variante(); as v) {
             <div class="flex items-center justify-between gap-3">
@@ -123,8 +121,6 @@ const FRECUENCIAS = Object.entries(ETIQUETA_FRECUENCIA) as [FrecuenciaPopup, str
           @if (variante(); as v) {
             @if (v.activo) {
               <div class="space-y-4">
-                @if (canal() === 'app' && e.web) { <button aBtn variant="ghost" (click)="copiarDeWeb()">Copiar el contenido de la web</button> }
-                @if (canal() === 'web' && e.app) { <button aBtn variant="ghost" (click)="copiarDeApp()">Copiar el contenido de la app</button> }
                 <a-field label="Formato">
                   <select [class]="input" aria-label="Formato" (change)="setVariante({ formato: $any($event.target).value })">
                     <option value="mixto" [selected]="v.formato !== 'imagen'">Imagen, texto y botón</option>
@@ -182,7 +178,7 @@ export class PopupsPage {
   private readonly toast = inject(ToastService);
   protected readonly input = INPUT_CLS;
   protected readonly frecuencias = FRECUENCIAS;
-  protected readonly canales = [{ k: "web" as CanalPopup, l: "Web" }, { k: "app" as CanalPopup, l: "App" }];
+  protected readonly canales = [{ k: "web" as CanalPopup, l: "Web" }];
 
   protected readonly lista = signal<Popup[]>([]);
   protected readonly cargado = signal(false);

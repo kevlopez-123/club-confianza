@@ -4,7 +4,7 @@ import { entrarAdmin } from "./helpers";
 test.describe("Direcciones de envío: validaciones y ciudad en cascada", () => {
   test("no guarda con datos inválidos y marca cada campo", async ({ page }) => {
     await page.goto("/perfil");
-    await page.getByRole("tab", { name: "Direcciones de envío" }).click();
+    await page.getByRole("tab", { name: "Direcciones" }).click();
     await page.getByRole("button", { name: "Agregar nueva dirección" }).click();
     const d = page.getByRole("dialog");
     await d.getByRole("button", { name: "Guardar dirección" }).click();
@@ -22,17 +22,17 @@ test.describe("Direcciones de envío: validaciones y ciudad en cascada", () => {
 
   test("la ciudad depende de la provincia y se borra al cambiarla", async ({ page }) => {
     await page.goto("/perfil");
-    await page.getByRole("tab", { name: "Direcciones de envío" }).click();
+    await page.getByRole("tab", { name: "Direcciones" }).click();
     await page.getByRole("button", { name: "Agregar nueva dirección" }).click();
     const d = page.getByRole("dialog");
     const ciudad = d.getByLabel("Ciudad", { exact: true });
     await expect(ciudad).toBeDisabled();
-    await d.getByLabel("Provincia").selectOption("Guayas");
-    expect(await ciudad.locator("option").allTextContents()).toContain("Guayaquil");
-    await ciudad.selectOption("Guayaquil");
-    await d.getByLabel("Provincia").selectOption("Pichincha");
+    await d.getByLabel("Provincia").selectOption("Arequipa");
+    expect(await ciudad.locator("option").allTextContents()).toContain("Mollendo");
+    await ciudad.selectOption("Mollendo");
+    await d.getByLabel("Provincia").selectOption("Lima");
     await expect(ciudad).toHaveValue("");
-    expect(await ciudad.locator("option").allTextContents()).not.toContain("Guayaquil");
+    expect(await ciudad.locator("option").allTextContents()).not.toContain("Mollendo");
   });
 });
 
@@ -59,8 +59,8 @@ test.describe("El panel refleja el formulario y la ficha", () => {
     await page.getByLabel("Género").selectOption("Femenino");
     await page.getByLabel("Correo electrónico *").fill("ana@correo.com");
     await page.getByLabel("N.º de celular").fill("996543210");
-    await page.locator("#pf-f7").selectOption("Pichincha");
-    await page.locator("#pf-f8").selectOption("Quito");
+    await page.locator("#pf-f7").selectOption("Lima");
+    await page.locator("#pf-f8").selectOption("Miraflores");
     await page.getByLabel("Fecha de nacimiento").fill("1990-05-05");
     await page.getByRole("button", { name: "Guardar cambios" }).click();
     await expect(page.getByText("Tus cambios se guardaron correctamente.")).toBeVisible();
@@ -70,8 +70,8 @@ test.describe("El panel refleja el formulario y la ficha", () => {
     await admin.goto("/admin/participantes/p1?tab=datos");
     const form = admin.getByRole("region", { name: "Datos del formulario" }).or(admin.locator("section[aria-labelledby='form-datos']"));
     await expect(form).toContainText("05/05/1990");
-    await expect(form).toContainText("Pichincha");
-    await expect(form).toContainText("Quito");
+    await expect(form).toContainText("Lima");
+    await expect(form).toContainText("Miraflores");
     await expect(form.getByText("Datos personales", { exact: true })).toBeVisible();
     await expect(form.getByText("Ubicación", { exact: true })).toBeVisible();
 
@@ -132,16 +132,16 @@ test.describe("Calendario de nacimiento y mapa por zona", () => {
       return r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([{ lat: "-2.17", lon: "-79.92" }]) });
     });
     await page.goto("/perfil");
-    await page.getByRole("tab", { name: "Direcciones de envío" }).click();
+    await page.getByRole("tab", { name: "Direcciones" }).click();
     await page.getByRole("button", { name: "Agregar nueva dirección" }).click();
     const d = page.getByRole("dialog");
-    await d.getByLabel("Provincia").selectOption("Guayas");
-    await expect.poll(() => consultas.some((c) => /^Guayas, Ecuador$/.test(c))).toBe(true);
-    await d.getByLabel("Ciudad", { exact: true }).selectOption("Guayaquil");
-    await expect.poll(() => consultas.some((c) => /^Guayaquil, Guayas, Ecuador$/.test(c))).toBe(true);
-    await expect(d.getByText(/Mapa centrado en Guayaquil/)).toBeVisible();
+    await d.getByLabel("Provincia").selectOption("Arequipa");
+    await expect.poll(() => consultas.some((c) => /^Arequipa, Perú$/.test(c))).toBe(true);
+    await d.getByLabel("Ciudad", { exact: true }).selectOption("Mollendo");
+    await expect.poll(() => consultas.some((c) => /^Mollendo, Arequipa, Perú$/.test(c))).toBe(true);
+    await expect(d.getByText(/Mapa centrado en Mollendo/)).toBeVisible();
     await d.getByLabel("Buscar dirección en el mapa").fill("Av. 9 de Octubre");
     await d.getByRole("button", { name: "Buscar", exact: true }).click();
-    await expect.poll(() => consultas.some((c) => c === "Av. 9 de Octubre, Guayaquil, Guayas, Ecuador")).toBe(true);
+    await expect.poll(() => consultas.some((c) => c === "Av. 9 de Octubre, Mollendo, Arequipa, Perú")).toBe(true);
   });
 });

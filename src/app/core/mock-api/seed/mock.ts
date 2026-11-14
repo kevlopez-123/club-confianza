@@ -1,6 +1,5 @@
 const bannerTarjeta = "img/banner-tarjeta.jpg";
 const bannerCompras = "img/banner-compras.jpg";
-const bannerViajes = "img/banner-viajes.jpg";
 const pSmartphone = "img/p-smartphone.jpg";
 const pSmartwatch = "img/p-smartwatch.jpg";
 const pPerfume = "img/p-perfume.jpg";
@@ -9,13 +8,11 @@ const pLicuadora = "img/p-licuadora.jpg";
 const pMochila = "img/p-mochila.jpg";
 const pLaptop = "img/p-laptop.jpg";
 const pFreidora = "img/p-freidora.jpg";
-const pMaleta = "img/p-maleta.jpg";
 const bPolleria = "img/b-polleria.jpg";
 const bCafe = "img/b-cafe.jpg";
 const bGym = "img/b-gym.jpg";
 const bFarmacia = "img/b-farmacia.jpg";
 const bModa = "img/b-moda.jpg";
-const bHotel = "img/b-hotel.jpg";
 const pTv = "img/p-tv.jpg";
 const pCafetera = "img/p-cafetera.jpg";
 const pBicicleta = "img/p-bicicleta.jpg";
@@ -24,7 +21,6 @@ const bCine = "img/b-cine.jpg";
 const bSuper = "img/b-super.jpg";
 const bSushi = "img/b-sushi.jpg";
 const bAuto = "img/b-auto.jpg";
-const heroViajes = "img/hero-viajes.jpg";
 
 export const user = {
   nombre: "Ana",
@@ -35,10 +31,10 @@ export const user = {
   carrito: 2,
 };
 
-/** Equivalencia usada en todo el prototipo: 70 puntos = $1.00 */
-export const PUNTOS_POR_DOLAR = 70;
-/** Precio de compra de puntos: $0.02 por punto */
-export const PRECIO_POR_PUNTO = 0.02;
+/** Equivalencia usada en todo el prototipo: 20 puntos = S/ 1.00 */
+export const PUNTOS_POR_DOLAR = 20;
+/** Precio de compra de puntos: S/ 0.07 por punto */
+export const PRECIO_POR_PUNTO = 0.07;
 
 export type NavItem = {
   label: string;
@@ -65,13 +61,6 @@ export const navItems: NavItem[] = [
     ],
   },
   { label: "Mis compras", to: "/mis-compras" },
-  {
-    label: "Vuelos",
-    children: [
-      { label: "Cotizar vuelo", to: "/vuelos" },
-      { label: "Mis cotizaciones", to: "/vuelos/cotizaciones" },
-    ],
-  },
   { label: "Contáctanos", to: "/contacto" },
 ];
 
@@ -86,19 +75,17 @@ export type Slide = {
 };
 
 export const slides: Slide[] = [
-  { id: "tarjeta", imagen: bannerTarjeta, alt: "Clientes pagando con su tarjeta Banco Solidario", to: "/canjea" },
+  { id: "tarjeta", imagen: bannerTarjeta, alt: "Clientes pagando con su tarjeta de Financiera Confianza", to: "/canjea" },
   { id: "compras", imagen: bannerCompras, alt: "Familia acumulando puntos con sus compras", to: "/mi-nivel" },
-  { id: "viajes", imagen: bannerViajes, alt: "Viaja canjeando tus puntos Banco Solidario", to: "/canjea" },
 ];
 
 export const slidesBeneficios: Slide[] = [
-  { id: "ben-tarjeta", imagen: bannerTarjeta, alt: "Beneficios con tu tarjeta Banco Solidario", to: "/beneficios" },
+  { id: "ben-tarjeta", imagen: bannerTarjeta, alt: "Beneficios con tu tarjeta de Financiera Confianza", to: "/beneficios" },
   { id: "ben-compras", imagen: bannerCompras, alt: "Descuentos en tus tiendas favoritas", to: "/beneficios" },
 ];
 
 export const slidesProductos: Slide[] = [
-  { id: "prod-viajes", imagen: bannerViajes, alt: "Canjea tus puntos por viajes", to: "/canjea" },
-  { id: "prod-compras", imagen: bannerCompras, alt: "Canjea tus puntos Banco Solidario", to: "/canjea" },
+  { id: "prod-compras", imagen: bannerCompras, alt: "Canjea tus puntos Club Confianza", to: "/canjea" },
 ];
 
 export type Subcategoria = { slug: string; label: string };
@@ -170,15 +157,6 @@ export const categoriasProducto: CategoriaProducto[] = [
     ],
   },
   {
-    slug: "viajes",
-    label: "Viajes",
-    icon: "Plane",
-    subcategorias: [
-      { slug: "hoteles", label: "Hoteles" },
-      { slug: "escapadas", label: "Escapadas" },
-    ],
-  },
-  {
     slug: "jardin",
     label: "Jardín y exteriores",
     icon: "Trees",
@@ -233,7 +211,6 @@ export const categoriasBeneficio = [
   { slug: "fitness", label: "Fitness", icon: "Dumbbell" },
   { slug: "salud", label: "Salud", icon: "HeartPulse" },
   { slug: "moda", label: "Moda", icon: "Shirt" },
-  { slug: "viajes", label: "Viajes", icon: "Plane" },
   { slug: "supermercado", label: "Supermercado", icon: "ShoppingBasket" },
   { slug: "automotriz", label: "Automotriz", icon: "Car" },
   { slug: "tecnologia", label: "Tecnología", icon: "Laptop" },
@@ -275,13 +252,12 @@ const consideracionesBase = [
   "No acumulable con otras promociones.",
   "Válido hasta el 31/12/2026.",
   "El canje se procesa en un máximo de 72 horas hábiles.",
-  "Puedes completar el canje con cualquier tarjeta de débito o crédito.",
 ];
 
 const especificacionesBase = [
-  "Producto nuevo, con garantía oficial de marca en Ecuador.",
+  "Producto nuevo, con garantía oficial de marca en Perú.",
   "Incluye caja, manual y accesorios originales.",
-  "Envío a todo el país o retiro en tu agencia Banco Solidario más cercana.",
+  "Envío a todo el país o retiro en tu agencia de Financiera Confianza más cercana.",
   "Cambios y devoluciones dentro de los 7 días.",
 ];
 
@@ -301,7 +277,7 @@ const p = (
 ): Producto => ({
   id,
   marca,
-  marcaUrl: `https://www.${marca.toLowerCase().replace(/[^a-z]/g, "")}.com.ec`,
+  marcaUrl: `https://www.${marca.toLowerCase().replace(/[^a-z]/g, "")}.com.pe`,
   nombre,
   puntos: Math.round(precio * PUNTOS_POR_DOLAR),
   precio,
@@ -322,7 +298,7 @@ export const productos: Producto[] = [
     "p1",
     "HP",
     "Laptop Pavilion 15 Core i5",
-    649,
+    2399,
     pLaptop,
     "tecnologia",
     "celulares",
@@ -334,7 +310,7 @@ export const productos: Producto[] = [
     "p2",
     "Oster",
     "Freidora de aire digital 5.5L",
-    119,
+    439,
     pFreidora,
     "hogar",
     "electrodomesticos",
@@ -343,22 +319,10 @@ export const productos: Producto[] = [
     [pLicuadora],
   ),
   p(
-    "p3",
-    "Samsonite",
-    'Maleta rígida de viaje 24"',
-    189,
-    pMaleta,
-    "viajes",
-    "escapadas",
-    "Maleta de policarbonato con ruedas 360°, candado TSA y compartimentos internos.",
-    false,
-    [pMochila],
-  ),
-  p(
     "p4",
     "Xiaomi",
     "Parlante Bluetooth portátil",
-    59,
+    219,
     pAudifonos,
     "tecnologia",
     "tv-audio",
@@ -367,22 +331,10 @@ export const productos: Producto[] = [
     [pSmartphone],
   ),
   p(
-    "p5",
-    "Totto",
-    "Set de viaje organizadores",
-    39,
-    pMochila,
-    "viajes",
-    "escapadas",
-    "Kit de organizadores de equipaje con estuche para artículos personales.",
-    false,
-    [pMaleta],
-  ),
-  p(
     "p6",
     "Philips",
     "Cepillo dental eléctrico Sonicare",
-    89,
+    329,
     pPerfume,
     "bienestar",
     "cuidado-personal",
@@ -394,7 +346,7 @@ export const productos: Producto[] = [
     "p7",
     "Samsung",
     "Galaxy A56 128GB",
-    329,
+    1199,
     pSmartphone,
     "tecnologia",
     "celulares",
@@ -406,7 +358,7 @@ export const productos: Producto[] = [
     "p8",
     "LG",
     'Smart TV UHD 55" ThinQ',
-    479,
+    1799,
     pTv,
     "tecnologia",
     "tv-audio",
@@ -418,7 +370,7 @@ export const productos: Producto[] = [
     "p9",
     "Sony",
     "Audífonos WH-CH720N",
-    109,
+    399,
     pAudifonos,
     "tecnologia",
     "tv-audio",
@@ -430,7 +382,7 @@ export const productos: Producto[] = [
     "p10",
     "Huawei",
     "Watch GT 5 Active",
-    199,
+    729,
     pSmartwatch,
     "tecnologia",
     "wearables",
@@ -442,7 +394,7 @@ export const productos: Producto[] = [
     "p11",
     "Oster",
     "Licuadora Pro 1200W",
-    69,
+    259,
     pLicuadora,
     "hogar",
     "cocina",
@@ -454,7 +406,7 @@ export const productos: Producto[] = [
     "p12",
     "Oster",
     "Cafetera espresso Prima",
-    89,
+    329,
     pCafetera,
     "hogar",
     "cocina",
@@ -464,9 +416,9 @@ export const productos: Producto[] = [
   ),
   p(
     "p13",
-    "Indurama",
+    "Mabe",
     "Cocina de inducción 4 zonas",
-    399,
+    1499,
     pLicuadora,
     "hogar",
     "electrodomesticos",
@@ -476,33 +428,33 @@ export const productos: Producto[] = [
   ),
   p(
     "p14",
-    "KFC",
-    "Gift Card restaurantes $100",
+    "Bembos",
+    "Gift Card Bembos S/ 100",
     100,
     bPolleria,
     "gift-cards",
     "restaurantes",
-    "Saldo digital para disfrutar en los restaurantes afiliados al programa Banco Solidario.",
+    "Saldo digital para disfrutar en los restaurantes afiliados al programa Club Confianza.",
     true,
     [bSushi],
   ),
   p(
     "p15",
-    "Supermaxi",
-    "Gift Card $50",
-    50,
+    "Plaza Vea",
+    "Gift Card S/ 100",
+    100,
     bSuper,
     "gift-cards",
     "supermercados",
-    "Tarjeta de regalo digital válida en locales Supermaxi y Megamaxi a nivel nacional.",
+    "Tarjeta de regalo digital válida en locales Plaza Vea y Vivanda a nivel nacional.",
     true,
     [bSuper],
   ),
   p(
     "p16",
-    "De Prati",
-    "Gift Card moda $75",
-    75,
+    "Saga Falabella",
+    "Gift Card moda S/ 200",
+    200,
     bModa,
     "gift-cards",
     "moda-gc",
@@ -512,9 +464,9 @@ export const productos: Producto[] = [
   ),
   p(
     "p17",
-    "GW",
+    "Oxford",
     "Bicicleta montañera aro 29",
-    349,
+    1299,
     pBicicleta,
     "movilidad",
     "bicicletas",
@@ -526,7 +478,7 @@ export const productos: Producto[] = [
     "p18",
     "Totto",
     "Mochila urbana 25L",
-    59,
+    219,
     pMochila,
     "movilidad",
     "accesorios",
@@ -538,7 +490,7 @@ export const productos: Producto[] = [
     "p19",
     "Sony",
     "Consola PlayStation 5 Slim",
-    649,
+    2399,
     pConsola,
     "entretenimiento",
     "gaming",
@@ -548,9 +500,9 @@ export const productos: Producto[] = [
   ),
   p(
     "p20",
-    "Cinemark",
+    "Cineplanet",
     "Gift Card 2 entradas 2D",
-    16,
+    44,
     bCine,
     "entretenimiento",
     "cine",
@@ -562,11 +514,11 @@ export const productos: Producto[] = [
     "p21",
     "Smart Fit",
     "Membresía Black 3 meses",
-    89,
+    329,
     bGym,
     "bienestar",
     "gimnasio",
-    "Acceso ilimitado a todas las sedes, clases y app de entrenamiento.",
+    "Acceso ilimitado a todas las sedes, clases y entrenamientos.",
     true,
     [bGym],
   ),
@@ -574,7 +526,7 @@ export const productos: Producto[] = [
     "p22",
     "Carolina Herrera",
     "212 VIP Men 100ml",
-    95,
+    349,
     pPerfume,
     "bienestar",
     "cuidado-personal",
@@ -582,33 +534,10 @@ export const productos: Producto[] = [
     false,
     [bModa],
   ),
-  p(
-    "p23",
-    "Decameron",
-    "Noche doble en Punta Centinela",
-    180,
-    bHotel,
-    "viajes",
-    "hoteles",
-    "Alojamiento para dos personas con desayuno buffet incluido frente al mar.",
-    false,
-    [heroViajes],
-  ),
-  p(
-    "p24",
-    "Metropolitan Touring",
-    "Escapada a Baños 2D/1N",
-    240,
-    heroViajes,
-    "viajes",
-    "escapadas",
-    "Paquete para dos personas con transporte, hospedaje y tour de cascadas.",
-    false,
-    [bHotel],
-  ),
 ];
 
-const pick = (order: number[]) => order.map((i) => productos[i]!);
+/** Selecciona por posición original del catálogo (p1 = 0, p2 = 1…); los productos retirados se omiten. */
+const pick = (order: number[]) => order.map((i) => productos.find((x) => x.id === `p${i + 1}`)).filter((x): x is (typeof productos)[number] => !!x);
 
 export const productosPorTab: Record<string, Producto[]> = {
   Destacados: productos.slice(0, 10),
@@ -664,19 +593,18 @@ export type Beneficio = {
 
 const pasosBase = [
   "Genera el cupón para reservar",
-  "Acércate al local con tu cédula de identidad en físico.",
+  "Acércate al local con tu DNI en físico.",
   "Presenta el cupón",
   "¡Disfruta!",
 ];
 
 const terminosBase =
-  "Promoción válida del 01/01/2026 al 31/12/2026 en todos los locales participantes en Ecuador. El descuento aplica sobre el precio regular y no es acumulable con otras promociones, descuentos o cupones vigentes. El cliente deberá presentar el cupón digital generado a través de la plataforma Banco Solidario Puntos antes de efectuar el pago. Cada cupón tiene una validez de 3 horas desde su generación y puede utilizarse una sola vez. El cupón debe presentarse junto con un documento de identidad vigente. Limitado a un cupón por persona por día. El comercio se reserva el derecho de modificar o cancelar la promoción sin previo aviso.";
+  "Promoción válida del 01/01/2026 al 31/12/2026 en todos los locales participantes en Perú. El descuento aplica sobre el precio regular y no es acumulable con otras promociones, descuentos o cupones vigentes. El cliente deberá presentar el cupón digital generado a través de la plataforma Club Confianza antes de efectuar el pago. Cada cupón tiene una validez de 3 horas desde su generación y puede utilizarse una sola vez. El cupón debe presentarse junto con un documento de identidad vigente. Limitado a un cupón por persona por día. El comercio se reserva el derecho de modificar o cancelar la promoción sin previo aviso.";
 
 const especBase = [
   "No acumulable con otras promociones.",
-  "Local: Av. Amazonas N39-123 y Gaspar de Villarroel, Quito.",
+  "Local: Av. Javier Prado Este 1234, San Isidro, Lima.",
   "Válido hasta el 31/12/2026.",
-  "Puedes pagar con cualquier tarjeta de débito o crédito.",
   "Válido para consumo en local y para llevar.",
 ];
 
@@ -697,7 +625,7 @@ const b = (
 ): Beneficio => ({
   id,
   marca,
-  marcaUrl: `https://www.${marca.toLowerCase().replace(/[^a-z]/g, "")}.com.ec`,
+  marcaUrl: `https://www.${marca.toLowerCase().replace(/[^a-z]/g, "")}.com.pe`,
   nombre,
   descuento,
   categoria,
@@ -717,7 +645,7 @@ const b = (
 export const beneficios: Beneficio[] = [
   b(
     "b1",
-    "Pollo Gus",
+    "Norky's",
     "30% dscto. en combo familiar",
     "30%",
     "Restaurante",
@@ -731,7 +659,7 @@ export const beneficios: Beneficio[] = [
   ),
   b(
     "b2",
-    "Sweet & Coffee",
+    "Juan Valdez",
     "2x1 en bebidas grandes de lunes a jueves",
     "2x1",
     "Cafetería",
@@ -751,7 +679,7 @@ export const beneficios: Beneficio[] = [
   ),
   b(
     "b4",
-    "Fybeca",
+    "Inkafarma",
     "25% dscto. en cuidado personal",
     "25%",
     "Salud",
@@ -761,7 +689,7 @@ export const beneficios: Beneficio[] = [
   ),
   b(
     "b5",
-    "De Prati",
+    "Saga Falabella",
     "20% dscto. en moda de temporada",
     "20%",
     "Moda",
@@ -770,22 +698,8 @@ export const beneficios: Beneficio[] = [
     "Renueva tu clóset con descuento en las marcas de la nueva colección.",
   ),
   b(
-    "b6",
-    "Decameron",
-    "15% dscto. en estadías en Punta Centinela",
-    "15%",
-    "Viajes",
-    "viajes",
-    bHotel,
-    "Escápate un fin de semana con tarifa preferencial y desayuno incluido.",
-    "compra",
-    8400,
-    120,
-    [heroViajes],
-  ),
-  b(
     "b7",
-    "Cinemark",
+    "Cineplanet",
     "2x1 en entradas 2D de lunes a miércoles",
     "2x1",
     "Entretenimiento",
@@ -793,13 +707,13 @@ export const beneficios: Beneficio[] = [
     bCine,
     "Dos entradas al precio de una en funciones 2D de inicio de semana.",
     "compra",
-    1120,
-    16,
+    880,
+    44,
     [bCine],
   ),
   b(
     "b8",
-    "Supermaxi",
+    "Plaza Vea",
     "15% dscto. en frutas y verduras los viernes",
     "15%",
     "Supermercado",
@@ -809,7 +723,7 @@ export const beneficios: Beneficio[] = [
   ),
   b(
     "b9",
-    "Noe Sushi Bar",
+    "Edo Sushi Bar",
     "35% dscto. en tablas para compartir",
     "35%",
     "Restaurante",
@@ -823,7 +737,7 @@ export const beneficios: Beneficio[] = [
   ),
   b(
     "b10",
-    "Autolimpio",
+    "Lavauto Express",
     "40% dscto. en lavado premium de tu auto",
     "40%",
     "Automotriz",
@@ -833,7 +747,7 @@ export const beneficios: Beneficio[] = [
   ),
   b(
     "b11",
-    "Casa Grande",
+    "La Mar",
     "15% dscto. en cena gourmet para 2",
     "15%",
     "Restaurante",
@@ -847,7 +761,7 @@ export const beneficios: Beneficio[] = [
   ),
   b(
     "b13",
-    "Computron",
+    "Hiraoka",
     "20% dscto. en accesorios tecnológicos",
     "20%",
     "Tecnología",
@@ -857,7 +771,7 @@ export const beneficios: Beneficio[] = [
   ),
   b(
     "b14",
-    "Spa Quito",
+    "Spa Miraflores",
     "30% dscto. en spa y masajes",
     "30%",
     "Belleza y spa",
@@ -867,7 +781,7 @@ export const beneficios: Beneficio[] = [
   ),
   b(
     "b15",
-    "Benedict School",
+    "ICPNA",
     "25% dscto. en cursos de inglés",
     "25%",
     "Educación",
@@ -877,7 +791,7 @@ export const beneficios: Beneficio[] = [
   ),
   b(
     "b16",
-    "Kiwi Pet",
+    "Kivet",
     "15% dscto. en alimento para mascotas",
     "15%",
     "Mascotas",
@@ -887,7 +801,7 @@ export const beneficios: Beneficio[] = [
   ),
   b(
     "b17",
-    "Kywi",
+    "Maestro",
     "10% dscto. en decoración del hogar",
     "10%",
     "Hogar",
@@ -897,17 +811,17 @@ export const beneficios: Beneficio[] = [
   ),
   b(
     "b18",
-    "PedidosYa",
-    "$5 de dscto. en tu primer pedido",
-    "$5",
+    "Rappi",
+    "S/ 15 de dscto. en tu primer pedido",
+    "S/ 15",
     "Delivery",
     "delivery",
     bPolleria,
-    "Cupón de descuento en restaurantes afiliados a PedidosYa.",
+    "Cupón de descuento en restaurantes afiliados a Rappi.",
   ),
   b(
     "b19",
-    "Seguros Equinoccial",
+    "Rímac Seguros",
     "20% dscto. en seguro vehicular",
     "20%",
     "Seguros",
@@ -917,7 +831,7 @@ export const beneficios: Beneficio[] = [
   ),
   b(
     "b20",
-    "Cinemark",
+    "Cineplanet",
     "Gift Card canguil + gaseosa",
     "2x1",
     "Gift Cards",
@@ -925,68 +839,9 @@ export const beneficios: Beneficio[] = [
     bCine,
     "Combo dulce para dos personas al canjear tu gift card digital.",
     "compra",
-    700,
-    10,
+    740,
+    37,
     [bCine],
-  ),
-  b(
-    "b12",
-    "Metropolitan Touring",
-    "20% dscto. en paquetes nacionales",
-    "20%",
-    "Viajes",
-    "viajes",
-    bHotel,
-    "Paquetes turísticos a Galápagos, Baños y Cuenca con descuento.",
-    "compra",
-    7000,
-    100,
-    [bHotel],
-  ),
-  b(
-    "b21",
-    "Teatro Sánchez Aguilar",
-    "Entrada VIP show en Guayaquil",
-    "VIP",
-    "Entretenimiento",
-    "entretenimiento",
-    bCine,
-    "Entrada preferencial al show internacional en Guayaquil. Beneficio de pago con tarjeta, no canjeable con puntos.",
-    "compra",
-    undefined,
-    65,
-    [bCine],
-    true,
-  ),
-  b(
-    "b22",
-    "Casa Grande",
-    "Cena maridaje para 2 en Cumbayá",
-    "Exclusivo",
-    "Restaurante",
-    "restaurantes",
-    bSushi,
-    "Cena de 5 tiempos con maridaje para dos personas. Disponible solo con pago con tarjeta.",
-    "compra",
-    undefined,
-    90,
-    [bSushi],
-    true,
-  ),
-  b(
-    "b23",
-    "Metropolitan Touring",
-    "Escapada a Cuenca 3D/2N",
-    "Exclusivo",
-    "Viajes",
-    "viajes",
-    bHotel,
-    "Paquete con vuelos y hotel para dos personas. Beneficio exclusivo pagando con tarjeta.",
-    "compra",
-    undefined,
-    320,
-    [heroViajes],
-    true,
   ),
 ];
 
@@ -1009,26 +864,26 @@ export const direccionesIniciales: Direccion[] = [
     id: "d1",
     alias: "Casa",
     recibe: "Ana Torres",
-    telefono: "099 654 3210",
-    direccion: "Av. Amazonas N39-123 y Gaspar de Villarroel, Dpto. 501",
-    distrito: "Quito, Pichincha",
+    telefono: "999 654 321",
+    direccion: "Av. Javier Prado Este 1234, Dpto. 501",
+    distrito: "San Isidro, Lima",
   },
   {
     id: "d2",
     alias: "Obra",
     recibe: "Ana Torres",
-    telefono: "099 654 3210",
-    direccion: "Av. Francisco de Orellana 236, Piso 8",
-    distrito: "Guayaquil, Guayas",
+    telefono: "999 654 321",
+    direccion: "Av. Ejército 236, Piso 8",
+    distrito: "Yanahuara, Arequipa",
   },
 ];
 
-export const correosIniciales = ["ana.torres@dominio.com", "atorres@empresa.com.ec"];
+export const correosIniciales = ["ana.torres@dominio.com", "atorres@empresa.com.pe"];
 
-export const formatPuntos = (n: number) => Math.round(n).toLocaleString("es-EC").replace(/,/g, " ");
+export const formatPuntos = (n: number) => Math.round(n).toLocaleString("es-PE").replace(/,/g, " ");
 
 export const formatUSD = (n: number) =>
-  `$${n.toLocaleString("es-EC", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  `S/ ${n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export const puntosADolares = (puntos: number) => puntos / PUNTOS_POR_DOLAR;
 

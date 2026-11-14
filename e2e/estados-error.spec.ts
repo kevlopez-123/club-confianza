@@ -30,7 +30,7 @@ test.describe("Estados de error y reintento", () => {
     page.on("pageerror", (e) => errores.push(e.message));
     await page.goto("/");
     await fallo(page, "503");
-    for (const ruta of ["/mis-compras", "/mis-puntos/historial", "/mis-beneficios", "/vuelos/cotizaciones"]) {
+    for (const ruta of ["/mis-compras", "/mis-puntos/historial", "/mis-beneficios"]) {
       await page.goto(ruta);
       await expect(page.getByRole("alert").filter({ hasText: "problema con el servidor" })).toBeVisible({ timeout: 10_000 });
     }
@@ -42,7 +42,7 @@ test.describe("Estados de error y reintento", () => {
     await page.goto("/admin/participantes");
     await expect(page.locator("tbody tr").first()).toBeVisible();
     await fallo(page, "503");
-    await page.getByPlaceholder("Buscar por nombre o cédula").fill("ana");
+    await page.getByPlaceholder("Buscar por nombre o DNI").fill("ana");
     const error = page.getByRole("alert").filter({ hasText: "No pudimos cargar los datos" });
     await expect(error).toBeVisible({ timeout: 10_000 });
     await expect(page.locator(".adm-empty")).toBeHidden();

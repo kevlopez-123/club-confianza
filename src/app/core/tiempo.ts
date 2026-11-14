@@ -10,5 +10,5 @@ export function haceTiempo(iso: string, ahora = Date.now()): string {
   const d = Math.round(h / 24);
   if (d === 1) return "ayer";
   if (d < 7) return `hace ${d} días`;
-  return new Date(t).toLocaleDateString("es-EC", { day: "2-digit", month: "short" });
+  return new Date(t).toLocaleDateString("es-PE", { day: "2-digit", month: "short" });
 }

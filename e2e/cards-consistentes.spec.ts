@@ -3,7 +3,7 @@ import { entrarAdmin, esperarCarga } from "./helpers";
 
 /** Listas del panel que se muestran como tarjetas: todas siguen la misma anatomía. */
 const LISTAS: [string, string][] = [
-  ["Pedidos", "/admin/pedidos"], ["Cotizaciones", "/admin/cotizaciones"], ["Compras de puntos", "/admin/compras-puntos"],
+  ["Pedidos", "/admin/pedidos"], ["Compras de puntos", "/admin/compras-puntos"],
   ["Movimientos", "/admin/movimientos"], ["Atención", "/admin/atencion"], ["Registro de cambios", "/admin/auditoria"],
   ["Importaciones", "/admin/importaciones"], ["Participantes", "/admin/participantes"], ["Productos", "/admin/productos"],
   ["Usuarios", "/admin/usuarios"], ["Reportes · pedidos", "/admin/reportes?tipo=canjes"], ["Reportes · participantes", "/admin/reportes?tipo=participantes"],
