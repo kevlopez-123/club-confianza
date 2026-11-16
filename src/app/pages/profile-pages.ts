@@ -524,7 +524,7 @@ export class ContactoPage {
   template: `
     <div class="grid min-h-screen bg-surface font-sans lg:grid-cols-2">
       <!-- Banner lateral -->
-      <aside class="relative hidden overflow-hidden bg-brand-dark lg:block">
+      <aside class="relative hidden overflow-hidden bg-brand-dark lg:sticky lg:top-0 lg:block lg:h-[100dvh] lg:self-start">
         <img [src]="brand.imagenes().login" [alt]="'Clientes de ' + brand.marca().nombre + ' disfrutando sus beneficios'" width="900" height="1200" class="h-full w-full object-cover" />
         <div class="absolute inset-0 bg-header-gradient opacity-80"></div>
         <div class="absolute inset-x-0 bottom-0 p-10 text-white">

@@ -21,7 +21,7 @@ export class SesionService {
   salir() {
     this.tokens.set(null, "participante");
     this._logged.set(false);
-    location.assign("/login");
+    location.assign(new URL("login", document.baseURI).href); // respeta el base href (GitHub Pages sirve el sitio en /club-confianza/)
   }
   /** Lleva al ingreso recordando a dónde volver. */
   irAIngresar(volver?: string) {
