@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { esperarCarga } from "./helpers";
+import { conCompraDePuntos, esperarCarga } from "./helpers";
 
 const saldo = (page: Page) => page.locator("header").getByText(/Tienes/).first();
 
@@ -175,6 +175,7 @@ test.describe("Beneficios", () => {
 
 test.describe("Puntos", () => {
   test("comprar puntos suma al saldo", async ({ page }) => {
+    await conCompraDePuntos(page);
     await page.goto("/mis-puntos/compra");
     await page.getByRole("button", { name: "Comprar puntos" }).click();
     await page.getByRole("button", { name: "Pagar ahora" }).click();

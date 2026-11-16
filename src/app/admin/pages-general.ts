@@ -37,7 +37,7 @@ import {
   imports: [AdminModalComponent, OrdenColumnaComponent, FilaEsqueletoComponent, LimpiarFiltrosComponent, PageHeaderComponent, PillComponent, BtnDirective, IconComponent, PagerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <a-header vista="movimientos" title="Movimientos de puntos" desc="Acumulación por compras, canjes y compra de puntos.">
+    <a-header vista="movimientos" title="Movimientos de puntos" desc="Acumulación por compras y canjes.">
       <button aBtn variant="outline" (click)="exportar()"><app-icon name="Download" class="h-4 w-4" /> Descargar</button>
     </a-header>
     <div class="adm-filtros">

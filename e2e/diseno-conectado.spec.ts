@@ -15,9 +15,9 @@ test.describe("Diseño conectado: tema claro y oscuro", () => {
   test("la paleta de comandos ofrece cada tipo de reporte y lleva a él", async ({ page }) => {
     await entrarAdmin(page);
     await page.getByRole("button", { name: "Buscar y ejecutar comandos" }).click();
-    await page.getByLabel("Buscar comandos").fill("Reporte: Ventas");
-    await page.getByRole("option", { name: /Reporte: Ventas de puntos/ }).or(page.getByText("Reporte: Ventas de puntos")).first().click();
-    await expect(page).toHaveURL(/\/admin\/reportes\?tipo=ventas/);
+    await page.getByLabel("Buscar comandos").fill("Reporte: Correos");
+    await page.getByRole("option", { name: /Reporte: Correos/ }).or(page.getByText("Reporte: Correos")).first().click();
+    await expect(page).toHaveURL(/\/admin\/reportes\?tipo=correos/);
   });
 
   test("en tema oscuro ninguna pantalla del panel falla ni se desborda", async ({ page }) => {

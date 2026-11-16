@@ -114,7 +114,7 @@ type Modo = "puntos" | "mixto" | "dinero";
               </div>
 
               @if (puntosInsuficientes()) {
-                <p class="mt-3 rounded-xl bg-aviso-fondo p-3 text-xs text-aviso">No te alcanzan los puntos para este canje. Compra más puntos o quita productos del carrito.</p>
+                <p class="mt-3 rounded-xl bg-aviso-fondo p-3 text-xs text-aviso">No te alcanzan los puntos para este canje. Quita productos del carrito para continuar.</p>
               }
 
               @if (error()) {
@@ -318,27 +318,29 @@ export class CarritoPage {
           </div>
         </div>
 
-        <section class="mx-auto mt-8 max-w-3xl rounded-3xl bg-card p-6 shadow-[var(--shadow-card)] sm:p-10">
-          <h2 class="flex items-center gap-2 text-xl font-extrabold text-ink"><app-icon name="Sparkles" class="h-5 w-5 text-primary" /> ¿Te faltan puntos? Cómpralos aquí</h2>
-          <p class="mt-2 text-sm text-muted-foreground">Cada punto cuesta {{ usd(reglas().precio) }} y se acredita al instante.</p>
-          <div class="mt-5 grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-            <label class="text-sm font-medium text-ink">
-              Cantidad de puntos (entre {{ puntos(reglas().min) }} y {{ puntos(reglas().max) }})
-              <input type="number" [min]="reglas().min" step="500" [value]="cantidad()" (input)="cantidad.set(max0($any($event.target).value))" class="mt-1 w-full rounded-xl border border-border px-4 py-3 text-sm" />
-            </label>
-            <div class="text-right">
-              <p class="text-xs text-muted-foreground">Total a pagar</p>
-              <p class="text-2xl font-extrabold text-ink">{{ usd(monto()) }}</p>
+        @if (reglas().compraActiva) {
+          <section class="mx-auto mt-8 max-w-3xl rounded-3xl bg-card p-6 shadow-[var(--shadow-card)] sm:p-10">
+            <h2 class="flex items-center gap-2 text-xl font-extrabold text-ink"><app-icon name="Sparkles" class="h-5 w-5 text-primary" /> ¿Te faltan puntos? Cómpralos aquí</h2>
+            <p class="mt-2 text-sm text-muted-foreground">Cada punto cuesta {{ usd(reglas().precio) }} y se acredita al instante.</p>
+            <div class="mt-5 grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+              <label class="text-sm font-medium text-ink">
+                Cantidad de puntos (entre {{ puntos(reglas().min) }} y {{ puntos(reglas().max) }})
+                <input type="number" [min]="reglas().min" step="500" [value]="cantidad()" (input)="cantidad.set(max0($any($event.target).value))" class="mt-1 w-full rounded-xl border border-border px-4 py-3 text-sm" />
+              </label>
+              <div class="text-right">
+                <p class="text-xs text-muted-foreground">Total a pagar</p>
+                <p class="text-2xl font-extrabold text-ink">{{ usd(monto()) }}</p>
+              </div>
             </div>
-          </div>
-          <button type="button" [disabled]="!valida()" (click)="comprar()"
-            class="mt-5 w-full rounded-full bg-primary py-3.5 text-base font-bold uppercase tracking-wide text-primary-foreground transition-transform hover:scale-[1.02] disabled:opacity-50">
-            Comprar puntos
-          </button>
-          <p class="mt-3 text-center text-xs text-muted-foreground">
-            ¿Prefieres el módulo completo? <a routerLink="/mis-puntos/compra" class="font-semibold text-primary hover:underline">Ir a compra de puntos</a>
-          </p>
-        </section>
+            <button type="button" [disabled]="!valida()" (click)="comprar()"
+              class="mt-5 w-full rounded-full bg-primary py-3.5 text-base font-bold uppercase tracking-wide text-primary-foreground transition-transform hover:scale-[1.02] disabled:opacity-50">
+              Comprar puntos
+            </button>
+            <p class="mt-3 text-center text-xs text-muted-foreground">
+              ¿Prefieres el módulo completo? <a routerLink="/mis-puntos/compra" class="font-semibold text-primary hover:underline">Ir a compra de puntos</a>
+            </p>
+          </section>
+        }
       </div>
     </div>
 

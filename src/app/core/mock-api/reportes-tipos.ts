@@ -77,7 +77,6 @@ const DEFS: Def[] = [
       { id: "emitidos", etiqueta: "Puntos emitidos", icono: "Coins", formato: "n" },
       { id: "canjeados", etiqueta: "Puntos canjeados", icono: "Gift", formato: "n" },
       { id: "tasaCanje", etiqueta: "Tasa de canje", icono: "BarChart3", formato: "pct" },
-      { id: "comprasPuntosUSD", etiqueta: "Ventas de puntos", icono: "DollarSign", formato: "usd" },
       { id: "pedidos", etiqueta: "Pedidos", icono: "ShoppingBag", formato: "n" },
     ],
     metricas: (d, h) => ({ ...metricasGenerales(d, h) }),
@@ -128,40 +127,6 @@ const DEFS: Def[] = [
     ],
     filtros: () => [{ k: "tipo", l: "Tipo", opciones: Object.entries(ETIQUETA_MOV).map(([v, l]) => ({ v, l })) }],
     gestion: { ruta: "/admin/movimientos", etiqueta: "Ver en Movimientos de puntos" },
-  },
-  {
-    id: "ventas", titulo: "Ventas de puntos", icono: "DollarSign", descripcion: "Compras de puntos con tarjeta: aprobadas, pendientes y fallidas.",
-    kpis: [
-      { id: "aprobadas", etiqueta: "Compras aprobadas", icono: "CheckCircle2", formato: "n" },
-      { id: "ventasUSD", etiqueta: "Ventas aprobadas", icono: "DollarSign", formato: "usd" },
-      { id: "puntosVendidos", etiqueta: "Puntos vendidos", icono: "Coins", formato: "n" },
-      { id: "ticket", etiqueta: "Ticket promedio", icono: "Receipt", formato: "usd" },
-      { id: "tasaAprobacion", etiqueta: "Tasa de aprobación", icono: "Percent", formato: "pct" },
-      { id: "sinCompletar", etiqueta: "Sin completar (pendientes o fallidas)", icono: "AlertCircle", formato: "n" },
-    ],
-    metricas: (d, h) => {
-      const c = compras(d, h);
-      const ok = c.filter((x) => x.estado === "Aprobada");
-      const usd = redondear(suma(ok.map((x) => x.monto ?? 0)));
-      return { aprobadas: ok.length, ventasUSD: usd, puntosVendidos: suma(ok.map((x) => x.cantidad ?? 0)), ticket: ok.length ? redondear(usd / ok.length) : 0, tasaAprobacion: pct(ok.length, c.length), sinCompletar: c.length - ok.length };
-    },
-    graficos: (c) => {
-      const cs = compras(c.desde, c.hasta);
-      const estados = contar(cs, (x) => x.estado);
-      return [
-        { id: "serie", titulo: "Ventas aprobadas (S/)", tipo: "bar", etiquetas: tramos(c).map((t) => t.x), series: [{ label: "US$", color: "--primary", data: serie(c, cs.filter((x) => x.estado === "Aprobada"), (f) => f.fechaISO, (fs) => redondear(suma(fs.map((x) => x.monto ?? 0)))) }] },
-        { id: "estado", titulo: "Compras por estado", tipo: "doughnut", etiquetas: estados.map(([k]) => k), series: [{ label: "Compras", data: estados.map(([, v]) => v) }] },
-      ];
-    },
-    coleccion: "comprasPuntos", tablaTitulo: "Compras de puntos", tablaPorRango: true, orden: { k: "fechaISO", dir: "desc" },
-    // Tarjeta: código y estado arriba, luego fecha con hora y participante, y al final puntos y monto.
-    columnas: [
-      { k: "codigo", l: "Código" }, { k: "estado", l: "Estado", tipo: "estado", ancho: "completo", sinEtiqueta: true },
-      { k: "fecha", l: "Fecha", ancho: "mitad", ordenPor: "fechaISO" }, { k: "cliente", l: "Participante", ancho: "mitad" },
-      { k: "cantidad", l: "Puntos", tipo: "n" }, { k: "monto", l: "Monto", tipo: "usd" },
-    ],
-    filtros: () => [{ k: "estado", l: "Estado", opciones: opciones(A(db.admin.comprasPuntos).map((x) => x.estado)) }],
-    gestion: { ruta: "/admin/compras-puntos", etiqueta: "Gestionar en Compras de puntos" },
   },
   {
     id: "canjes", titulo: "Pedidos y canjes", icono: "ShoppingBag", descripcion: "Pedidos de productos y beneficios: volumen, estado de entrega y lo más canjeado.",

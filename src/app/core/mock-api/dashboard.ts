@@ -8,7 +8,7 @@ const A = (x: unknown): any[] => (Array.isArray(x) ? x : []);
 
 /** A qué reporte lleva cada indicador del Dashboard. */
 const ENLACES: Record<string, string> = {
-  emitidos: "puntos", canjeados: "puntos", pedidos: "canjes", comprasPuntosUSD: "ventas", activos: "participantes", altas: "participantes",
+  emitidos: "puntos", canjeados: "puntos", pedidos: "canjes", activos: "participantes", altas: "participantes",
   tasaCanje: "resumen", conversion: "embudo",
 };
 
@@ -22,7 +22,7 @@ export function dashboard(desde: string, hasta: string): Dashboard {
   const participantes = reporteTipo("participantes", desde, hasta);
   const emb = reporteTipo("embudo", desde, hasta);
   const kpis: KpiReporte[] = [
-    de(resumen, "emitidos"), de(resumen, "canjeados"), de(resumen, "pedidos"), de(resumen, "comprasPuntosUSD"),
+    de(resumen, "emitidos"), de(resumen, "canjeados"), de(resumen, "pedidos"),
     de(participantes, "activos"), de(participantes, "altas"), de(resumen, "tasaCanje"), de(emb, "conversion"),
   ];
   const r = reporteResumen(desde, hasta);
@@ -33,7 +33,6 @@ export function dashboard(desde: string, hasta: string): Dashboard {
   const correosConProblema = A(db.admin.correosEnviados).filter((c) => c.estado === "Fallido" || c.estado === "Rebotado").length;
   const lotesCasiAgotados = A(db.admin.lotes).filter((l) => l.total > 0 && l.usados / l.total >= 0.8).length;
   const alertas: AlertaDashboard[] = [
-    { id: "compras", nivel: "media", titulo: "Compras de puntos pendientes", detalle: "Pagos que el banco aún no confirma.", cantidad: A(db.admin.comprasPuntos).filter((c) => c.estado === "Pendiente").length, enlace: "/admin/compras-puntos" },
     { id: "pedidos", nivel: "alta", titulo: "Pedidos por atender", detalle: "Confirmados o en preparación.", cantidad: pedidosPorAtender, enlace: "/admin/pedidos" },
     { id: "mensajes", nivel: "alta", titulo: "Mensajes sin atender", detalle: "Consultas nuevas de participantes.", cantidad: A(db.admin.mensajes).filter((m) => m.estado === "Nuevo").length, enlace: "/admin/atencion" },
     { id: "correos", nivel: "media", titulo: "Correos con problemas", detalle: "Rebotados o fallidos tras los reintentos.", cantidad: correosConProblema, enlace: "/admin/correos" },

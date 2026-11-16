@@ -125,7 +125,7 @@ const semilla = () => {
       ] },
       { id: "puntos", label: "Mis puntos", activo: true, children: [
         { label: "Historial de puntos", to: "/mis-puntos/historial", activo: true },
-        { label: "Compra de puntos", to: "/mis-puntos/compra", activo: true },
+        { label: "Compra de puntos", to: "/mis-puntos/compra", activo: typeof sessionStorage !== "undefined" && sessionStorage.getItem("bs_compra_puntos") === "1" },
         { label: "Mi nivel", to: "/mi-nivel", activo: true },
       ] },
       { id: "compras", label: "Mis compras", to: "/mis-compras", activo: true },

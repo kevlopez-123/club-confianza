@@ -1,5 +1,8 @@
 import { expect, type Page } from "@playwright/test";
 
+/** La compra de puntos arranca oculta: las pruebas que la usan la activan antes de cargar la app. */
+export const conCompraDePuntos = (page: Page) => page.addInitScript(() => sessionStorage.setItem("bs_compra_puntos", "1"));
+
 /** Origen de la app bajo prueba (ver E2E_PORT en playwright.config.ts). */
 export const ORIGEN = `http://localhost:${process.env["E2E_PORT"] ?? "4200"}`;
 

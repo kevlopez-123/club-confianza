@@ -26,7 +26,6 @@ const grupos = [
   { label: "General", items: [{ to: "/admin", label: "Dashboard", icon: "LayoutDashboard" }, { to: "/admin/reportes", label: "Reportes", icon: "BarChart3" }] },
   { label: "Participantes", items: [
     { to: "/admin/participantes", label: "Participantes", icon: "Users" },
-    { to: "/admin/compras-puntos", label: "Compras de puntos", icon: "Coins" },
     { to: "/admin/formulario", label: "Formulario de datos", icon: "FormInput" },
     { to: "/admin/movimientos", label: "Movimientos de puntos", icon: "ArrowLeftRight" },
     { to: "/admin/importaciones", label: "Importaciones", icon: "FileSpreadsheet" },

@@ -95,7 +95,7 @@ test.describe("Enlaces", () => {
     }
     for (const [grupo, hijo, ruta] of [
       ["Beneficios", "Catálogo de beneficios", "/beneficios"], ["Beneficios", "Mis beneficios", "/mis-beneficios"],
-      ["Mis puntos", "Historial de puntos", "/mis-puntos/historial"], ["Mis puntos", "Compra de puntos", "/mis-puntos/compra"], ["Mis puntos", "Mi nivel", "/mi-nivel"],
+      ["Mis puntos", "Historial de puntos", "/mis-puntos/historial"], ["Mis puntos", "Mi nivel", "/mi-nivel"],
     ] as const) {
       await nav.getByRole("button", { name: grupo }).hover();
       await nav.getByRole("link", { name: hijo }).click();

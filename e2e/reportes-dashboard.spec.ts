@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
-import { descargarListado, entrarAdmin, textoDeArchivo } from "./helpers";
+import { conCompraDePuntos, descargarListado, entrarAdmin, textoDeArchivo } from "./helpers";
 
-const TIPOS = ["Resumen", "Puntos", "Ventas de puntos", "Pedidos y canjes", "Participantes", "Catálogo", "Correos", "Embudo de canje"];
+const TIPOS = ["Resumen", "Puntos", "Pedidos y canjes", "Participantes", "Catálogo", "Correos", "Embudo de canje"];
 const kpis = (page: Page) => page.getByLabel("Indicadores del período");
 const sinHorizontal = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1);
 
@@ -146,7 +146,7 @@ test.describe("Reportes por tipo", () => {
 test.describe("Dashboard", () => {
   test("muestra indicadores reales, alertas y los widgets", async ({ page }) => {
     await entrarAdmin(page);
-    await expect(kpis(page).locator("a-stat")).toHaveCount(8);
+    await expect(kpis(page).locator("a-stat")).toHaveCount(7);
     await expect(page.getByText("Requiere atención")).toBeVisible();
     await expect(page.getByRole("link", { name: /Pedidos por atender/ })).toBeVisible();
     for (const w of ["Puntos emitidos y canjeados", "Embudo de canje", "Últimos pedidos", "Mensajes sin atender", "Más canjeados", "Más vistos"]) await expect(page.getByText(w, { exact: true }).first()).toBeVisible();
@@ -188,7 +188,7 @@ test.describe("Dashboard", () => {
     await expect(page.getByRole("alert")).toContainText("anterior a la final");
     await page.getByLabel("Hasta").fill("2026-10-28");
     await expect(page.getByRole("alert")).toHaveCount(0);
-    await expect(kpis(page).locator("a-stat")).toHaveCount(8);
+    await expect(kpis(page).locator("a-stat")).toHaveCount(7);
   });
 
   test("los últimos pedidos y los mensajes abren su detalle", async ({ page }) => {
@@ -232,6 +232,7 @@ test.describe("Modales de detalle", () => {
   });
 
   test("compras de puntos: la operación abre su detalle con el enlace a la ficha", async ({ page }) => {
+    await conCompraDePuntos(page);
     await page.goto("/mis-puntos/compra");
     await page.getByRole("button", { name: "Comprar puntos" }).click();
     await page.getByRole("button", { name: "Pagar ahora" }).click();

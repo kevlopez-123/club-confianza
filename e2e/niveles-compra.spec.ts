@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { entrarAdmin } from "./helpers";
+import { conCompraDePuntos, entrarAdmin } from "./helpers";
 
 test.describe("Niveles", () => {
   test("no hay multiplicadores: ni en Mi nivel ni en el modal", async ({ page }) => {
@@ -51,6 +51,7 @@ test.describe("Niveles", () => {
 });
 
 test.describe("Compra de puntos", () => {
+  test.beforeEach(({ page }) => conCompraDePuntos(page));
   test("opciones rápidas, mínimo, máximo y tope mensual se configuran en Reglas de puntos", async ({ page }) => {
     await entrarAdmin(page);
     await page.goto("/admin/reglas");

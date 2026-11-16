@@ -44,8 +44,8 @@ test.describe("Responsive: comportamiento de la cabecera", () => {
     await page.goto("/");
     await page.getByRole("button", { name: "Abrir menú" }).click();
     await page.getByRole("button", { name: "Mis puntos" }).click();
-    await page.getByRole("link", { name: "Compra de puntos" }).click();
-    await expect(page).toHaveURL(/mis-puntos\/compra$/);
+    await page.getByRole("link", { name: "Mi nivel" }).click();
+    await expect(page).toHaveURL(/mi-nivel$/);
     await expect(page.getByRole("button", { name: "Cerrar menú" })).toHaveCount(0);
   });
 

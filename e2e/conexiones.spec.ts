@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { entrarAdmin, esperarCarga, publicarLegal } from "./helpers";
+import { conCompraDePuntos, entrarAdmin, esperarCarga, publicarLegal } from "./helpers";
 
 /** Todo lo que se configura en el panel debe tener efecto en el sitio del participante. */
 
@@ -9,6 +9,7 @@ async function abrirContenido(page: Page, tab: string) {
 }
 
 test.describe("Reglas de puntos", () => {
+  test.beforeEach(({ page }) => conCompraDePuntos(page));
   test("precio por punto, mínimos y máximos gobiernan la compra de puntos", async ({ page }) => {
     await entrarAdmin(page);
     await page.goto("/admin/reglas");

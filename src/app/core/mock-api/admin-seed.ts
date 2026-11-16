@@ -18,6 +18,8 @@ import { PRECIO_POR_PUNTO, PUNTOS_POR_DOLAR } from "../format";
 import { AJUSTES_BASE, DISENO_BASE, PLANTILLAS_BASE } from "../correos";
 
 const clone = <T>(v: T): T => structuredClone(v);
+/** Fecha AAAA-MM-DD dentro de n días: los lotes de ejemplo siempre están vigentes. */
+const enDias = (n: number) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
 const ahora = () => new Date().toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" });
 
 const flujoFisico = ["Confirmado", "Preparando", "Enviado", "Entregado"];
@@ -163,9 +165,9 @@ export const adminSeed = () => {
     onboarding: clone(onboarding) as any[],
     campos: clone(camposIniciales) as any[],
     lotes: [
-      { id: "l1", beneficioId: "b7", comercio: "Cineplanet", beneficio: "2x1 en entradas 2D", archivo: "cinemark_oct.csv", total: 500, usados: 180, vence: "2026-12-31", fecha: "2026-10-02" },
-      { id: "l2", beneficioId: "", comercio: "Juan Valdez", beneficio: "Café gratis", archivo: "jv_q4.xlsx", total: 200, usados: 52, vence: "2026-11-30", fecha: "2026-10-10" },
-      { id: "l3", beneficioId: "b8", comercio: "Plaza Vea", beneficio: "S/ 10 de descuento", archivo: "supermaxi.csv", total: 100, usados: 88, vence: "2026-11-15", fecha: "2026-09-20" },
+      { id: "l1", beneficioId: "b7", comercio: "Cineplanet", beneficio: "2x1 en entradas 2D", archivo: "cinemark_oct.csv", total: 500, usados: 180, vence: enDias(60), fecha: "2026-10-02" },
+      { id: "l2", beneficioId: "", comercio: "Juan Valdez", beneficio: "Café gratis", archivo: "jv_q4.xlsx", total: 200, usados: 52, vence: enDias(30), fecha: "2026-10-10" },
+      { id: "l3", beneficioId: "b8", comercio: "Plaza Vea", beneficio: "S/ 10 de descuento", archivo: "supermaxi.csv", total: 100, usados: 88, vence: enDias(30), fecha: "2026-09-20" },
     ] as any[],
     /** Plantillas de correo editables desde el panel y registro de lo enviado. */
     plantillasCorreo: clone(PLANTILLAS_BASE) as any[],
@@ -208,7 +210,8 @@ export const adminSeed = () => {
       cotizacionRespuestaHoras: 48,
       cotizacionValidezHoras: 72,
       paquetes: [2500, 5000, 10000, 25000],
-      compraActiva: true,
+      // Oculta por defecto; las pruebas la activan con sessionStorage.bs_compra_puntos = "1" antes de cargar.
+      compraActiva: typeof sessionStorage !== "undefined" && sessionStorage.getItem("bs_compra_puntos") === "1",
       soloDinero: false,
     },
 

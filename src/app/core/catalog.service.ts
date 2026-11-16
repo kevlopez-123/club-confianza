@@ -97,7 +97,7 @@ export type ConfigApp = {
   tiposDocumento: string[];
 };
 
-const REGLAS_POR_DEFECTO: Reglas = { porDolar: PUNTOS_POR_DOLAR, precio: PRECIO_POR_PUNTO, min: 500, max: 50000, mensual: 100000, paquetes: [2500, 5000, 10000, 25000], compraActiva: true, soloDinero: false, vigenciaMeses: 24, avisoVencimientoDias: 30 };
+const REGLAS_POR_DEFECTO: Reglas = { porDolar: PUNTOS_POR_DOLAR, precio: PRECIO_POR_PUNTO, min: 500, max: 50000, mensual: 100000, paquetes: [2500, 5000, 10000, 25000], compraActiva: false, soloDinero: false, vigenciaMeses: 24, avisoVencimientoDias: 30 };
 
 /**
  * Catálogo y configuración de solo lectura que publica el panel de administración

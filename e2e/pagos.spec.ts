@@ -1,5 +1,5 @@
 ﻿import { expect, test, type Page } from "@playwright/test";
-import { entrarAdmin } from "./helpers";
+import { conCompraDePuntos, entrarAdmin } from "./helpers";
 
 const comprar = async (page: Page, tarjeta?: string) => {
   await page.goto("/mis-puntos/compra");
@@ -10,6 +10,7 @@ const comprar = async (page: Page, tarjeta?: string) => {
 const saldo = (page: Page) => page.getByText(/Tienes .* puntos/).first();
 
 test.describe("Pagos de la compra de puntos: aprobado, rechazado, pendiente y reintento", () => {
+  test.beforeEach(({ page }) => conCompraDePuntos(page));
   test("pago aprobado acredita los puntos y deja el recibo", async ({ page }) => {
     await comprar(page);
     await expect(page.getByText("¡Tus puntos ya están acreditados!")).toBeVisible({ timeout: 10_000 });

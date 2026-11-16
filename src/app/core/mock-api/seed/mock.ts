@@ -56,7 +56,6 @@ export const navItems: NavItem[] = [
     label: "Mis puntos",
     children: [
       { label: "Historial de puntos", to: "/mis-puntos/historial" },
-      { label: "Compra de puntos", to: "/mis-puntos/compra" },
       { label: "Mi nivel", to: "/mi-nivel" },
     ],
   },
