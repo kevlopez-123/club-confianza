@@ -71,7 +71,7 @@ const semilla = () => {
   /** Eventos anónimos del embudo (solo de quienes aceptaron cookies de analítica). */
   analitica: analiticaSemilla(admin.hoy, (admin.productos as any[]).map((p) => p.id), (admin.beneficios as any[]).map((b) => b.id)) as EventoGuardado[],
   favoritos: [] as string[],
-  cupones: {} as Record<string, { codigo: string; expira: number }>,
+  cupones: {} as Record<string, { codigo: string; expira: number; documento?: string }>,
   movimientos: clone(movimientos),
   compras: clone(compras),
   misBeneficios: clone(misBeneficios),

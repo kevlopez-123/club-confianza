@@ -7,7 +7,7 @@ import { StoreService } from "../core/store.service";
 import { BrandService } from "../core/brand.service";
 import { estadoLabels, tipoLabels } from "../core/labels";
 import { formatPuntos, formatUSD, nivelPorPuntos } from "../core/format";
-import type { BeneficioUsuario, Compra, EstadoBeneficio, Movimiento, Notificacion, TipoMovimiento } from "../core/models";
+import type { Beneficio, BeneficioUsuario, Compra, EstadoBeneficio, Movimiento, Notificacion, TipoMovimiento } from "../core/models";
 import { haceTiempo } from "../core/tiempo";
 import { descargarBlob } from "../core/pdf-cotizacion";
 import { pdfEstadoCuenta } from "../core/pdf-estado-cuenta";
@@ -15,7 +15,12 @@ import { ToastService } from "../shared/toast";
 import { ICONO_NOTIFICACION } from "../shared/notificaciones";
 import { Countdown } from "../shared/countdown";
 import { QrCodeComponent } from "../shared/qr-code";
-import { descargarCuponPdf, imprimirCuponPdf, type DatosCupon } from "../core/pdf-cupon";
+import { cuponComoPdf } from "../core/cupon-pdf";
+import { cuponComoPng } from "../core/cupon-imagen";
+import type { DatosCupon } from "../core/cupon-datos";
+import { ofuscarDocumento } from "../core/documento";
+import { fechaLarga } from "../core/cupones";
+import { cargarQr } from "../core/qr";
 import { IconComponent } from "../shared/icon.component";
 import { LimpiarFiltrosComponent } from "../shared/limpiar-filtros";
 import { ModalComponent } from "../shared/ui";
@@ -189,8 +194,8 @@ export class MiNivelPage {
                 <button type="button" (click)="descargarPdf(q)" class="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 text-base font-bold text-primary-foreground">
                   <app-icon name="Download" class="h-4 w-4" /> Descargar PDF
                 </button>
-                <button type="button" (click)="imprimir(q)" class="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-5 text-base font-bold text-ink hover:border-primary hover:text-primary">
-                  <app-icon name="Printer" class="h-4 w-4" /> Imprimir
+                <button type="button" (click)="descargarImagen(q)" class="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-5 text-base font-bold text-ink hover:border-primary hover:text-primary">
+                  <app-icon name="Image" class="h-4 w-4" /> Descargar imagen
                 </button>
               </div>
             </div>
@@ -205,6 +210,7 @@ export class MisBeneficiosPage {
   private readonly catalog = inject(CatalogService);
   private readonly toast = inject(ToastService);
   private readonly brand = inject(BrandService);
+  private readonly store = inject(StoreService);
   private readonly mis = leer(this.api.get<BeneficioUsuario[]>("me/beneficios"), [] as BeneficioUsuario[]);
 
   protected readonly estadoLabels = estadoLabels;
@@ -254,14 +260,42 @@ export class MisBeneficiosPage {
   });
   protected readonly qr = computed(() => this.todos().find((x) => x.mb.id === this.verQr()) ?? null);
 
-  private datos(x: { mb: BeneficioUsuario; b: { marca: string; nombre: string } }): DatosCupon {
-    return { programa: this.brand.programa(), marca: x.b.marca, beneficio: x.b.nombre, codigo: x.mb.codigo, generado: x.mb.fecha, vence: x.mb.vence, color: this.brand.tenant().tema.primario };
+  /** Datos del cupón para guardarlo como imagen o PDF (documento ofuscado, QR, vencimiento y locales de canje). */
+  private async datos(x: { mb: BeneficioUsuario; b: Beneficio }): Promise<DatosCupon> {
+    const logo = this.brand.marca().logoOscuro;
+    const qr = await cargarQr().then((m) => m.toDataURL(x.mb.codigo, { width: 220, margin: 1, errorCorrectionLevel: "M" })).catch(() => undefined);
+    const perfil = this.store.perfil();
+    return {
+      programa: this.brand.programa(),
+      color: this.brand.tenant().tema.primario,
+      banco: this.brand.marca().nombre,
+      logo: logo ? new URL(logo, document.baseURI).href : undefined,
+      beneficio: x.b.nombre,
+      comercio: x.b.marca,
+      descuento: x.b.descuento,
+      codigo: x.mb.codigo,
+      qr,
+      documentoEtiqueta: perfil?.tipoDocumento || this.brand.pais().documentos[0]?.label || "Documento",
+      documento: ofuscarDocumento(perfil?.codigoParticipante),
+      venceEl: x.mb.vence,
+      vigenciaHasta: x.b.hasta ? fechaLarga(x.b.hasta) : undefined,
+      locales: this.catalog.localesDeBeneficio(x.b).map((l) => ({ nombre: l.nombre, direccion: l.direccion, distrito: l.distrito, horario: l.horario })),
+      terminos: x.b.terminos,
+    };
   }
-  protected descargarPdf(x: { mb: BeneficioUsuario; b: { marca: string; nombre: string } }) {
-    descargarCuponPdf(this.datos(x)).catch(() => this.toast.error("No se pudo generar el PDF del cupón."));
+  protected async descargarPdf(x: { mb: BeneficioUsuario; b: Beneficio }) {
+    try {
+      descargarBlob(await cuponComoPdf(await this.datos(x)), `cupon-${x.mb.codigo}.pdf`);
+    } catch {
+      this.toast.error("No se pudo generar el PDF del cupón.");
+    }
   }
-  protected imprimir(x: { mb: BeneficioUsuario; b: { marca: string; nombre: string } }) {
-    imprimirCuponPdf(this.datos(x)).catch(() => this.toast.error("No se pudo preparar el cupón para imprimir."));
+  protected async descargarImagen(x: { mb: BeneficioUsuario; b: Beneficio }) {
+    try {
+      descargarBlob(await cuponComoPng(await this.datos(x)), `cupon-${x.mb.codigo}.png`);
+    } catch {
+      this.toast.error("No se pudo generar la imagen del cupón.");
+    }
   }
 
   protected async copiar(codigo: string) {

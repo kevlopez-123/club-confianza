@@ -1,4 +1,5 @@
 import { HttpErrorResponse, HttpInterceptorFn, HttpRequest, HttpResponse } from "@angular/common/http";
+import { ofuscarDocumento } from "../documento";
 import { Observable, of, throwError, timer } from "rxjs";
 import { mergeMap } from "rxjs/operators";
 import { db, persistDb } from "./db";
@@ -345,7 +346,7 @@ const customerRoutes: Route[] = [
     } else if (lotes.length) {
       throw new ApiError(409, "Los códigos de este beneficio vencieron. Intenta más tarde.", "codigos_vencidos");
     }
-    const cupon = { codigo, expira: Date.now() + est.regla.horas * 60 * 60 * 1000 };
+    const cupon = { codigo, expira: Date.now() + est.regla.horas * 60 * 60 * 1000, documento: ofuscarDocumento((db.perfil as any).codigoParticipante) };
     db.cupones[body.beneficioId] = cupon;
     const h = hoy();
     const vence = new Date(cupon.expira);

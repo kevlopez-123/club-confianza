@@ -280,6 +280,8 @@ test.describe("Cupones y pedidos", () => {
     await expect(modal.getByAltText(/Código QR MOT-/)).toBeVisible();
     const [descarga] = await Promise.all([page.waitForEvent("download"), modal.getByRole("button", { name: "Descargar PDF" }).click()]);
     expect(descarga.suggestedFilename()).toMatch(/^cupon-MOT-.+\.pdf$/);
+    const [imagen] = await Promise.all([page.waitForEvent("download"), modal.getByRole("button", { name: "Descargar imagen" }).click()]);
+    expect(imagen.suggestedFilename()).toMatch(/^cupon-MOT-.+\.png$/);
     expect(externas).toEqual([]); // el código del cupón no sale a ningún servicio externo
   });
 

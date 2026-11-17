@@ -26,7 +26,12 @@ import {
 import { Countdown } from "../shared/countdown";
 import { QrCodeComponent } from "../shared/qr-code";
 import { ToastService } from "../shared/toast";
-import { descargarCuponPdf, imprimirCuponPdf, type DatosCupon } from "../core/pdf-cupon";
+import { cuponComoPdf } from "../core/cupon-pdf";
+import { cuponComoPng } from "../core/cupon-imagen";
+import type { DatosCupon } from "../core/cupon-datos";
+import { ofuscarDocumento } from "../core/documento";
+import { cargarQr } from "../core/qr";
+import { descargarBlob } from "../core/pdf-base";
 
 /* ------------------------------------------------------------------ */
 /* Inicio                                                              */
@@ -408,7 +413,7 @@ export class ProductoDetallePage {
 /* ------------------------------------------------------------------ */
 @Component({
   selector: "app-beneficios-page",
-  imports: [EstadoErrorComponent, HeroSliderComponent, CategoryStripComponent, BenefitCardComponent, OrdenSelectComponent, SearchFilterBarComponent, SectionTitleComponent],
+  imports: [EstadoErrorComponent, HeroSliderComponent, CategoryStripComponent, BenefitCardComponent, OrdenSelectComponent, SearchFilterBarComponent, SectionTitleComponent, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-hero-slider [items]="catalog.bannersBeneficios()" />
@@ -433,10 +438,12 @@ export class ProductoDetallePage {
       <div class="page-container">
         <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:flex sm:justify-between">
           <h1 class="min-w-0 text-xl font-extrabold text-ink sm:text-2xl">Disfruta de grandiosos beneficios</h1>
-          <app-orden-select [(value)]="orden" />
+          <!-- En celular el orden va dentro de Filtros (abajo); desde tablet se queda junto al título. -->
+          <app-orden-select class="hidden sm:block" [(value)]="orden" />
         </div>
         <div class="mt-5">
-          <app-search-filter-bar [(query)]="query" [(marca)]="marca" [marcas]="marcas()" [conMapa]="true" [extrasActivos]="!!provincia()" (limpiado)="provincia.set('')">
+          <app-search-filter-bar [conMapa]="true" [mostrarLimpiar]="false" [(query)]="query" [(marca)]="marca" [marcas]="marcas()" [extrasActivos]="!!provincia()" (limpiado)="provincia.set('')">
+            <div class="sm:hidden"><app-orden-select [(value)]="orden" /></div>
             @if (provincias().length > 0) {
               <label class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Provincia
@@ -452,7 +459,14 @@ export class ProductoDetallePage {
           </app-search-filter-bar>
         </div>
 
-        <p class="mt-5 text-sm text-muted-foreground">{{ lista().length }} beneficios disponibles</p>
+        <div class="mt-5 flex h-7 items-center justify-between gap-3">
+          <p class="text-sm text-muted-foreground">{{ lista().length }} beneficios disponibles</p>
+          @if (hayFiltros()) {
+            <button type="button" data-compact (click)="limpiarFiltros()" class="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-sm font-semibold text-primary hover:bg-primary/10">
+              <app-icon name="X" class="h-3.5 w-3.5" /> Limpiar filtros
+            </button>
+          }
+        </div>
 
         <div class="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           @if (!catalog.cargado() && !catalog.errorCarga()) { <p role="status" class="sr-only">Cargando…</p> @for (n of [1, 2, 3, 4, 5, 6, 7, 8]; track n) { <div class="skeleton h-[26rem] rounded-2xl" aria-hidden="true"></div> } }
@@ -475,6 +489,12 @@ export class BeneficiosPage {
   protected readonly marca = signal("");
   /** Provincia elegida en los filtros: muestra lo que está disponible allí (más lo de todo el país). */
   protected readonly provincia = signal("");
+  protected readonly hayFiltros = computed(() => !!this.query() || !!this.marca() || !!this.provincia());
+  protected limpiarFiltros() {
+    this.query.set("");
+    this.marca.set("");
+    this.provincia.set("");
+  }
 
   protected readonly marcas = computed(() => [...new Set(this.catalog.beneficios().map((b) => b.marca))].sort());
   /** Provincias que aparecen en alguno de los beneficios (los que no indican provincia valen para todo el país). */
@@ -598,8 +618,8 @@ export class BeneficiosPage {
                     </div>
                   </div>
                   <div class="mt-4 flex justify-center gap-3">
-                    <button type="button" aria-label="Descargar cupón" (click)="descargarCupon(cupon)" class="grid h-11 w-11 place-items-center rounded-full bg-secondary text-primary"><app-icon name="Download" class="h-4 w-4" /></button>
-                    <button type="button" aria-label="Imprimir cupón" (click)="imprimirCupon(cupon)" class="grid h-11 w-11 place-items-center rounded-full bg-secondary text-primary"><app-icon name="Printer" class="h-4 w-4" /></button>
+                    <button type="button" aria-label="Descargar cupón" title="Descargar como imagen" (click)="descargarCuponImagen()" class="grid h-11 w-11 place-items-center rounded-full bg-secondary text-primary"><app-icon name="Image" class="h-4 w-4" /></button>
+                    <button type="button" aria-label="Descargar cupón en PDF" title="Descargar en PDF" (click)="descargarCuponPdf()" class="grid h-11 w-11 place-items-center rounded-full bg-secondary text-primary"><app-icon name="Download" class="h-4 w-4" /></button>
                   </div>
                   <p class="mt-4 flex items-center justify-center gap-2 text-sm font-medium text-ink">
                     <app-icon name="CheckCircle2" class="h-4 w-4 text-primary" /> Cupón generado. Este beneficio queda bloqueado hasta que expire.
@@ -707,17 +727,62 @@ export class BeneficioDetallePage {
   private readonly sesion = inject(SesionService);
   private readonly brand = inject(BrandService);
   private readonly toast = inject(ToastService);
-  /** Datos del PDF del cupón: marca del beneficio, código, cuándo se generó y cuándo vence. */
-  private datosCupon(cupon: { codigo: string; expira: number }): DatosCupon {
+  /** Código QR del cupón como imagen (se dibuja en el navegador): lo usan el PDF y la imagen descargables. */
+  protected readonly qrImagen = signal("");
+  private readonly dibujarQr = effect(() => {
+    const codigo = this.cuponActivo()?.codigo;
+    if (!codigo) { this.qrImagen.set(""); return; }
+    void cargarQr().then((m) => m.toDataURL(codigo, { width: 220, margin: 1, errorCorrectionLevel: "M" })).then((u) => this.qrImagen.set(u)).catch(() => this.qrImagen.set(""));
+  });
+  /** Tipo de documento de quien tiene la sesión (DNI, CE…). */
+  protected readonly etiquetaDocumento = computed(() => this.store.perfil()?.tipoDocumento || this.brand.pais().documentos[0]?.label || "Documento");
+  /** Documento ofuscado (solo los 4 últimos): el del cupón o, si es un cupón anterior que no lo guardó, el del participante con sesión. */
+  protected readonly documentoCupon = computed(() => this.cuponActivo()?.documento || ofuscarDocumento(this.store.perfil()?.codigoParticipante));
+  /** Datos del cupón para guardarlo como imagen o PDF: código, QR, documento ofuscado, vencimiento y locales. */
+  private datosCupon(): DatosCupon | null {
     const b = this.beneficio();
-    const txt = (t: number) => { const d = new Date(t); const p = (n: number) => String(n).padStart(2, "0"); return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`; };
-    return { programa: this.brand.programa(), marca: b?.marca ?? "", beneficio: b?.nombre ?? "", codigo: cupon.codigo, generado: txt(cupon.expira - this.horasCupon() * 3_600_000), vence: txt(cupon.expira), color: this.brand.tenant().tema.primario };
+    const c = this.cuponActivo();
+    if (!b || !c) return null;
+    const logo = this.brand.marca().logoOscuro;
+    return {
+      programa: this.brand.programa(),
+      color: this.brand.tenant().tema.primario,
+      banco: this.brand.marca().nombre,
+      logo: logo ? new URL(logo, document.baseURI).href : undefined,
+      beneficio: b.nombre,
+      comercio: b.marca,
+      descuento: b.descuento,
+      codigo: c.codigo,
+      qr: this.qrImagen() || undefined,
+      documentoEtiqueta: this.etiquetaDocumento(),
+      documento: this.documentoCupon(),
+      venceEl: new Date(c.expira).toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" }),
+      vigenciaHasta: b.hasta ? fechaLarga(b.hasta) : undefined,
+      locales: this.locales().map((l) => ({ nombre: l.nombre, direccion: l.direccion, distrito: l.distrito, horario: l.horario })),
+      terminos: b.terminos,
+    };
   }
-  protected descargarCupon(cupon: { codigo: string; expira: number }) {
-    descargarCuponPdf(this.datosCupon(cupon)).catch(() => this.toast.error("No se pudo generar el PDF del cupón."));
+  /** PDF: descarga el cupón directamente como archivo (cupon-<código>.pdf). */
+  protected async descargarCuponPdf() {
+    const d = this.datosCupon();
+    if (!d) return;
+    try {
+      descargarBlob(await cuponComoPdf(d), `cupon-${d.codigo}.pdf`);
+      this.toast.show("Cupón descargado en PDF");
+    } catch {
+      this.toast.error("No pudimos generar el PDF. Prueba con la imagen.");
+    }
   }
-  protected imprimirCupon(cupon: { codigo: string; expira: number }) {
-    imprimirCuponPdf(this.datosCupon(cupon)).catch(() => this.toast.error("No se pudo preparar el cupón para imprimir."));
+  /** Imagen: guarda el cupón como PNG (cupon-<código>.png). */
+  protected async descargarCuponImagen() {
+    const d = this.datosCupon();
+    if (!d) return;
+    try {
+      descargarBlob(await cuponComoPng(d), `cupon-${d.codigo}.png`);
+      this.toast.show("Cupón descargado como imagen");
+    } catch {
+      this.toast.error("No pudimos generar la imagen. Prueba con el PDF.");
+    }
   }
   /** Horas de validez del cupón: las de este beneficio (o las generales del programa si no tiene regla propia). */
   protected readonly horasCupon = computed(() => this.beneficio()?.reglaCupon?.horas || this.catalog.config()?.cupon?.horas || 3);

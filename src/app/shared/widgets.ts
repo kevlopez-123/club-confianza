@@ -132,7 +132,7 @@ export class OrdenSelectComponent {
         }
       </div>
 
-      @if (!!query() || !!marca() || extrasActivos()) {
+      @if (mostrarLimpiar() && (!!query() || !!marca() || extrasActivos())) {
         <div class="mt-2 flex justify-end">
           <app-limpiar-filtros [activo]="true" (limpiar)="query.set(''); marca.set(''); limpiado.emit()" />
         </div>
@@ -159,6 +159,8 @@ export class OrdenSelectComponent {
 export class SearchFilterBarComponent {
   /** La pantalla indica si tiene otros filtros activos (subcategoría, "solo lo que me alcanza"…). */
   readonly extrasActivos = input(false);
+  /** La barra muestra su propio «Limpiar filtros» en una fila aparte. Si es false, la pantalla lo coloca donde mejor le quede. */
+  readonly mostrarLimpiar = input(true);
   /** Muestra el botón que lleva al mapa de establecimientos (catálogo de beneficios). */
   readonly conMapa = input(false);
   /** Se emite al limpiar para que la pantalla restablezca sus propios filtros. */

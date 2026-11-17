@@ -1,3 +1,5 @@
+import type * as QRCode from "qrcode";
+
 /**
  * Código QR dibujado en el propio navegador (sin enviar el código del cupón a ningún servicio externo). La librería se carga
  * solo cuando hace falta (al ver un cupón), para no engordar la carga inicial del sitio.
@@ -31,3 +33,12 @@ export function svgDeQr(m: boolean[][], margen = 2): string {
 }
 
 export const urlDeSvg = (svg: string) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+
+/**
+ * Carga la librería de QR bajo demanda. Es CommonJS: en la compilación de producción la importación dinámica entrega el módulo dentro
+ * de `default`, y en desarrollo con las funciones en la raíz. Aquí se aceptan las dos formas.
+ */
+export async function cargarQr(): Promise<typeof QRCode> {
+  const m = (await import("qrcode")) as unknown as typeof QRCode & { default?: typeof QRCode };
+  return m.default && typeof m.default.toDataURL === "function" ? m.default : m;
+}

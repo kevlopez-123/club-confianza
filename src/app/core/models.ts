@@ -50,7 +50,7 @@ export type CartItem = {
   soloDinero?: boolean;
 };
 
-export type Cupon = { codigo: string; expira: number };
+export type Cupon = { codigo: string; expira: number; documento?: string };
 
 /** Aviso dentro del sitio (campanita). */
 export type Notificacion = {
