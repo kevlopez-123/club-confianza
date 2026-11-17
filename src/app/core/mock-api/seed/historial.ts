@@ -11,6 +11,8 @@ export type BeneficioUsuario = {
   estado: EstadoBeneficio;
   fecha: string;
   vence: string;
+  /** Soles que ahorró la persona al usar el cupón (solo cupones usados). */
+  ahorroSoles?: number;
 };
 
 /** Fecha «dd/mm/aaaa» y «dd/mm/aaaa hh:mm» a partir de ahora (los cupones activos del ejemplo siempre están vigentes). */
@@ -44,6 +46,7 @@ export const misBeneficios: BeneficioUsuario[] = [
     estado: "usado",
     fecha: "18/07/2026",
     vence: "18/07/2026 19:00",
+    ahorroSoles: 18.9,
   },
   {
     id: "mb4",
@@ -52,6 +55,7 @@ export const misBeneficios: BeneficioUsuario[] = [
     estado: "usado",
     fecha: "05/07/2026",
     vence: "05/07/2026 20:15",
+    ahorroSoles: 42.5,
   },
   {
     id: "mb5",

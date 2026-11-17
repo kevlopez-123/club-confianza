@@ -161,6 +161,8 @@ const cargar = (): Db => {
       for (const pb of PLANTILLAS_BASE) if (!(base.admin.plantillasCorreo as any[]).some((x) => x.id === pb.id)) (base.admin.plantillasCorreo as any[]).push(structuredClone(pb));
       (base.admin as any).solicitudesEliminacion ??= [];
   (base.admin as any).locales ??= localesIniciales();
+  // Cupones usados guardados antes de mostrar el ahorro: toman el de los datos de ejemplo.
+  for (const m of base.misBeneficios as any[]) if (m.estado === "usado" && m.ahorroSoles === undefined) m.ahorroSoles = (misBeneficios as any[]).find((x) => x.id === m.id)?.ahorroSoles;
       base.admin.correosEnviados ??= correosEnviados;
       base.admin.disenoCorreo ??= disenoCorreo;
       (base.admin as any).ajustesCorreo ??= structuredClone(AJUSTES_BASE);

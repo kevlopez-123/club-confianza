@@ -292,3 +292,15 @@ test.describe("Cupones y pedidos", () => {
     await expect(page.getByRole("list", { name: "Seguimiento del pedido" }).getByRole("listitem")).toHaveCount(4);
   });
 });
+
+test.describe("Ahorro en Mis beneficios", () => {
+  test("los cupones usados muestran cuánto se ahorró y se suma el total", async ({ page }) => {
+    await page.goto("/mis-beneficios");
+    const chips = page.getByTestId("ahorro");
+    await expect(chips).toHaveCount(2);
+    await expect(chips.first()).toContainText("Ahorraste S/ 18.90");
+    await expect(page.getByTestId("ahorro-total")).toContainText("Has ahorrado S/ 61.40");
+    await page.getByRole("button", { name: "Activos" }).click();
+    await expect(chips).toHaveCount(0); // un cupón activo todavía no ahorró nada
+  });
+});

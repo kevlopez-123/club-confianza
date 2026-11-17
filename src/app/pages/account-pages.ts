@@ -123,7 +123,7 @@ export class MiNivelPage {
           </div>
         </div>
 
-        <p class="mt-5 text-sm text-muted-foreground" aria-live="polite">{{ lista().length === todos().length ? todos().length : lista().length + " de " + todos().length }} {{ todos().length === 1 ? "cupón" : "cupones" }}</p>
+        <p class="mt-5 text-sm text-muted-foreground" aria-live="polite">{{ lista().length === todos().length ? todos().length : lista().length + " de " + todos().length }} {{ todos().length === 1 ? "cupón" : "cupones" }}@if (totalAhorrado() > 0) { · <span class="font-semibold text-primary" data-testid="ahorro-total">Has ahorrado {{ usd(totalAhorrado()) }} con tus cupones</span> }</p>
         <div class="mt-3 grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-2">
           @for (x of lista(); track x.mb.id) {
             <article class="flex flex-col rounded-2xl bg-card p-4 shadow-[var(--shadow-card)] sm:p-5">
@@ -132,10 +132,18 @@ export class MiNivelPage {
                 <div class="min-w-0 flex-1">
                   <p class="text-sm uppercase tracking-wide text-muted-foreground">{{ x.b.marca }}</p>
                   <h2 class="text-base font-extrabold text-ink">{{ x.b.nombre }}</h2>
-                  <span [class]="'mt-2 inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-bold ' + estadoClase[x.vencido && x.mb.estado === 'activo' ? 'vencido' : x.mb.estado]">
-                    <app-icon name="Ticket" class="h-4 w-4" />
-                    {{ estadoLabels[x.vencido && x.mb.estado === 'activo' ? 'vencido' : x.mb.estado] }}
-                  </span>
+                  <div class="mt-2 flex flex-wrap items-center gap-2">
+                    <span [class]="'inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-bold ' + estadoClase[x.vencido && x.mb.estado === 'activo' ? 'vencido' : x.mb.estado]">
+                      <app-icon name="Ticket" class="h-4 w-4" />
+                      {{ estadoLabels[x.vencido && x.mb.estado === 'activo' ? 'vencido' : x.mb.estado] }}
+                    </span>
+                    @if (x.mb.estado === 'usado' && x.mb.ahorroSoles !== undefined) {
+                      <span class="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-bold text-primary" data-testid="ahorro">
+                        <app-icon name="PiggyBank" class="h-4 w-4" />
+                        Ahorraste {{ usd(x.mb.ahorroSoles) }}
+                      </span>
+                    }
+                  </div>
                 </div>
               </div>
 
@@ -259,6 +267,9 @@ export class MisBeneficiosPage {
     });
   });
   protected readonly qr = computed(() => this.todos().find((x) => x.mb.id === this.verQr()) ?? null);
+  protected readonly usd = formatUSD;
+  /** Soles ahorrados en total con los cupones ya usados. */
+  protected readonly totalAhorrado = computed(() => this.todos().reduce((s, x) => s + (x.mb.estado === "usado" ? (x.mb.ahorroSoles ?? 0) : 0), 0));
 
   /** Datos del cupón para guardarlo como imagen o PDF (documento ofuscado, QR, vencimiento y locales de canje). */
   private async datos(x: { mb: BeneficioUsuario; b: Beneficio }): Promise<DatosCupon> {
