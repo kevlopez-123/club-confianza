@@ -21,6 +21,18 @@ test.describe("Locales y mapa de establecimientos", () => {
     await expect(page.getByTestId("donde-canjearlo").getByRole("list", { name: "Locales donde se canjea" }).getByRole("listitem")).toHaveCount(3);
   });
 
+  test("en la ficha del beneficio, Términos y condiciones va antes que Especificaciones y Dónde canjearlo", async ({ page }) => {
+    for (const id of ["b1", "b2"]) {
+      await page.goto("/beneficios/" + id);
+      await expect(page.getByTestId("donde-canjearlo")).toBeVisible();
+      const titulos = await page.locator("main h2").allTextContents();
+      const pos = (t: string) => titulos.findIndex((x) => x.trim() === t);
+      expect(pos("Términos y condiciones")).toBeGreaterThanOrEqual(0);
+      expect(pos("Términos y condiciones")).toBeLessThan(pos("Especificaciones"));
+      expect(pos("Términos y condiciones")).toBeLessThan(pos("Dónde canjearlo"));
+    }
+  });
+
   test("el catálogo de beneficios lleva al mapa", async ({ page }) => {
     await page.goto("/beneficios");
     await page.getByRole("link", { name: "Buscar en el mapa de establecimientos" }).click();

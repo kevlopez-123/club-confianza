@@ -643,6 +643,11 @@ export class BeneficiosPage {
           </article>
 
           <section class="mt-6 rounded-3xl bg-card p-6 shadow-[var(--shadow-card)] lg:p-8">
+            <h2 class="text-lg font-bold text-ink">Términos y condiciones</h2>
+            <p class="mt-4 text-sm leading-relaxed text-ink">{{ beneficio.terminos }}</p>
+          </section>
+
+          <section class="mt-6 rounded-3xl bg-card p-6 shadow-[var(--shadow-card)] lg:p-8">
             <h2 class="text-lg font-bold text-ink">Especificaciones</h2>
             <ul class="mt-4 space-y-1.5 text-sm text-ink">
               @for (e of beneficio.especificaciones; track e) { <li>• {{ e }}</li> }
@@ -680,11 +685,6 @@ export class BeneficiosPage {
               </div>
             </section>
           }
-
-          <section class="mt-6 rounded-3xl bg-card p-6 shadow-[var(--shadow-card)] lg:p-8">
-            <h2 class="text-lg font-bold text-ink">Términos y condiciones</h2>
-            <p class="mt-4 text-sm leading-relaxed text-ink">{{ beneficio.terminos }}</p>
-          </section>
         </div>
       </div>
 
