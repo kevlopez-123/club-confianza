@@ -322,6 +322,7 @@ export class CargaMasivaComponent {
       categoriasProducto: t === "productos" ? await get("categoriasProducto") : [],
       categoriasBeneficio: t === "beneficios" ? await get("categoriasBeneficio") : [],
       provincias: this.brand.tenant().pais.provincias.map((p) => p.nombre),
+      locales: t === "beneficios" ? await get<{ id: string; marca: string }>("locales") : [],
       existentes,
       imagenes: mapaImagenes(this.imagenes()),
       hoyIso: new Date().toISOString().slice(0, 10),

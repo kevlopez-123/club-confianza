@@ -118,6 +118,15 @@ describe("carga de beneficios", () => {
     expect(f.error).toBeUndefined();
     expect(f.entidad).toMatchObject({ id: "CAFE-1", tipo: "cupon", categoriaSlug: "restaurantes", desde: "2026-12-01", hasta: "2027-03-31", provincias: ["Pichincha", "Guayas"], cupon: { horas: 24, limite: 1, meses: 3 }, modoCodigo: "compartido", codigoCompartido: "VERANO26", usosMaximos: 100 });
   });
+  it("Locales: asigna los códigos indicados y rechaza uno inexistente o de otra marca", () => {
+    const locales = [{ id: "pollo-gus-01", marca: "Pollo Gus" }, { id: "pollo-gus-02", marca: "Pollo Gus" }, { id: "hp-01", marca: "HP" }];
+    const ok = prepararCarga("beneficios", [ENC, fila({ ...base, "Locales": "pollo-gus-01; POLLO-GUS-02" })], ctx({ locales })).filas[0]!;
+    expect(ok.error).toBeUndefined();
+    expect(ok.entidad.localesIds).toEqual(["pollo-gus-01", "pollo-gus-02"]);
+    expect(prepararCarga("beneficios", [ENC, fila({ ...base, "Locales": "no-existe" })], ctx({ locales })).filas[0]!.error).toContain("no existe");
+    expect(prepararCarga("beneficios", [ENC, fila({ ...base, "Locales": "hp-01" })], ctx({ locales })).filas[0]!.error).toContain("HP");
+    expect(prepararCarga("beneficios", [ENC, fila(base)], ctx({ locales })).filas[0]!.entidad.localesIds).toBeUndefined();
+  });
   it("«Todo el país» deja la lista vacía y una provincia inexistente se rechaza", () => {
     expect(prepararCarga("beneficios", [ENC, fila({ ...base, "Provincias": "Todo el país" })], ctx()).filas[0]!.entidad.provincias).toEqual([]);
     expect(prepararCarga("beneficios", [ENC, fila({ ...base, "Provincias": "Narnia" })], ctx()).filas[0]!.error).toContain("Narnia");

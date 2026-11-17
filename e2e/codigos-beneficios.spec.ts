@@ -17,13 +17,16 @@ const generar = async (page: Page) => {
   await page.getByRole("button", { name: "Generar cupón" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Generar cupón" }).click();
 };
-const liberarCupon = (page: Page) =>
-  page.evaluate(() => {
+const liberarCupon = async (page: Page) => {
+  await page.waitForLoadState("networkidle"); // que no quede una escritura pendiente que vuelva a guardar el cupón
+  await page.waitForTimeout(600);
+  await page.evaluate(() => {
     const k = "confianza_mockdb_v1";
     const d = JSON.parse(localStorage.getItem(k)!);
     d.cupones = {};
     localStorage.setItem(k, JSON.stringify(d));
   });
+};
 
 test.describe("Carga de códigos de beneficios por lotes (FIFO)", () => {
   test("varios lotes de un beneficio se usan en orden de carga y, al agotarse todos, se informa", async ({ page }) => {

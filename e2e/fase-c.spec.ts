@@ -5,6 +5,8 @@ const K = "confianza_mockdb_v1";
 
 /** Cambia la base simulada del navegador (como si el panel ya lo hubiera guardado) y deja la página lista para recargar. */
 async function editarDb(page: Page, parches: { benef?: Record<string, Record<string, unknown>>; provincia?: string | null; liberarCupones?: boolean; canjesHaceDias?: number | null }) {
+  await page.waitForLoadState("networkidle"); // sin escrituras pendientes que vuelvan a guardar lo que se edita
+  await page.waitForTimeout(600);
   await page.evaluate(([k, p]) => {
     const d = JSON.parse(localStorage.getItem(k as string)!);
     const pa = p as any;
@@ -77,6 +79,8 @@ test.describe("Fase C: reglas de los beneficios", () => {
     await expect(page.getByAltText(/Código QR/)).toBeVisible();
 
     // El cupón vence: el beneficio queda bloqueado hasta 3 meses después del canje.
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(600); // sin escrituras pendientes que vuelvan a guardar el estado anterior
     await page.evaluate((k) => { const d = JSON.parse(localStorage.getItem(k)!); d.cupones.b1.expira = Date.now() - 1000; localStorage.setItem(k, JSON.stringify(d)); }, K);
     await abrirBeneficio(page);
     await expect(page.getByText(/Ya canjeaste este beneficio\. Podrás volver a canjearlo el \d{2}\/\d{2}\/\d{4}\./)).toBeVisible();
