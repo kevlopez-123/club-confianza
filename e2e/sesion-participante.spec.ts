@@ -41,11 +41,11 @@ test.describe("Sesión del participante: ingreso, rutas privadas y cierre", () =
     await page.goto("/mis-compras");
     await ingresar(page);
     await expect(page).toHaveURL(/\/mis-compras$/, { timeout: 15_000 });
-    await expect(page.getByRole("heading", { name: /Historial de compras/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Mis canjes/ })).toBeVisible();
     await expect(page.getByText(/Tienes .* puntos/).first()).toBeVisible();
     expect(await page.evaluate(() => localStorage.getItem("bs-token-participante"))).toMatch(/^mock\.participante\./);
     await page.reload(); // la sesión se recuerda
-    await expect(page.getByRole("heading", { name: /Historial de compras/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Mis canjes/ })).toBeVisible();
   });
 
   test("el parámetro volver solo acepta rutas internas (no otros dominios)", async ({ page }) => {

@@ -14,7 +14,7 @@ test.describe("Calendario propio en los campos de fecha", () => {
     await expect(cal).toHaveCount(0);
     await expect(desde).toHaveValue(/^\d{4}-\d{2}-15$/);
     // la lista se filtró: el cambio llegó a la pantalla
-    await expect(page.getByText("No encontramos compras con ese criterio.")).toBeVisible();
+    await expect(page.getByText("No encontramos canjes con ese criterio.")).toBeVisible();
   });
 
   test("resalta el rango entre Desde y Hasta y respeta el mínimo", async ({ page }) => {

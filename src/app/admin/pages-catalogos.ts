@@ -974,6 +974,24 @@ type Lote = {
                 (input)="setE({ precio: +$any($event.target).value })"
             /></a-field>
           </div>
+          <fieldset class="rounded-2xl border border-border p-4" data-testid="locales-beneficio">
+            <legend class="px-1 text-sm font-semibold">Locales donde se canjea</legend>
+            @if (!e.marca) {
+              <p class="text-xs text-muted-foreground">Elige primero el comercio.</p>
+            } @else if (!localesDeMarca().length) {
+              <p class="text-xs text-muted-foreground">{{ e.marca }} todavía no tiene locales. Agrégalos en Marcas → Locales para poder elegir dónde se canjea.</p>
+            } @else {
+              <p class="text-xs text-muted-foreground">Sin marcar ninguno, vale en todos los locales de {{ e.marca }}. Marca algunos si solo se canjea en ellos.</p>
+              <div class="mt-3 flex flex-wrap gap-2">
+                <button type="button" [attr.aria-pressed]="!(e.localesIds?.length)" (click)="setE({ localesIds: undefined })"
+                  [class]="'min-h-9 rounded-full border px-3 text-sm font-semibold ' + (!(e.localesIds?.length) ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-muted')">Todos los locales</button>
+                @for (l of localesDeMarca(); track l.id) {
+                  <button type="button" [attr.aria-pressed]="(e.localesIds ?? []).includes(l.id)" (click)="alternarLocal(l.id)"
+                    [class]="'min-h-9 rounded-full border px-3 text-sm font-semibold ' + ((e.localesIds ?? []).includes(l.id) ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-muted')">{{ l.nombre }}</button>
+                }
+              </div>
+            }
+          </fieldset>
           <a-field label="Pasos de uso (uno por línea)">
             <textarea
               [class]="input + ' h-28 py-2'"
@@ -1127,6 +1145,19 @@ type Lote = {
   `,
 })
 export class BeneficiosAdminPage {
+  /** Locales de todas las marcas (para elegir en cuáles se canjea cada beneficio). */
+  protected readonly localesTodos = signal<{ id: string; marca: string; nombre: string; activo: boolean }[]>([]);
+  protected readonly localesDeMarca = computed(() => {
+    const m = this.edit()?.marca;
+    return m ? this.localesTodos().filter((l) => l.marca === m && l.activo) : [];
+  });
+  protected alternarLocal(id: string) {
+    const e = this.edit();
+    if (!e) return;
+    const actual = e.localesIds ?? [];
+    const nuevo = actual.includes(id) ? actual.filter((x) => x !== id) : [...actual, id];
+    this.setE({ localesIds: nuevo.length ? nuevo : undefined });
+  }
   protected readonly toast = inject(ToastService);
   private readonly admin = inject(AdminApi);
   private readonly api = inject(ApiService);
@@ -1171,6 +1202,7 @@ export class BeneficiosAdminPage {
     this.pag.recargar();
     this.admin.lista<{ nombre: string }>('marcas').subscribe((m) => this.marcas.set(m.map((x) => x.nombre)));
     this.admin.lista<CategoriaEdit>('categoriasBeneficio').subscribe((c) => this.cats.set(c));
+    this.admin.lista<{ id: string; marca: string; nombre: string; activo: boolean }>('locales').subscribe((l) => this.localesTodos.set(l));
     this.admin.lista<Lote>('lotes').subscribe((l) => this.lotes.set(l));
     abrirDesdeUrl((id) => this.api.get<BeneficioRow>(`admin/c/beneficios/${id}`).subscribe((b) => this.edit.set(this.conRegla(b))));
   }

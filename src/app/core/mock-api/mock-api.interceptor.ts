@@ -238,6 +238,7 @@ const customerRoutes: Route[] = [
   ["GET", "catalogo/categorias-beneficio", () => db.catalogo.categoriasBeneficio],
   /** Marcas aliadas publicadas (nombre, logo y sitio web). */
   ["GET", "catalogo/marcas", () => db.admin.marcas.filter((m: any) => m.activo).map(({ nombre, logo, web, descripcion }: any) => ({ nombre, logo, web, descripcion }))],
+  ["GET", "catalogo/locales", () => (db.admin.locales as any[]).filter((l) => l.activo)],
   ["GET", "catalogo/banners/:seccion", ({ params }) => db.catalogo.banners[params["seccion"]!] ?? []],
   ["GET", "niveles", () => ({ niveles: db.niveles, ...db.nivelesTexto })],
 

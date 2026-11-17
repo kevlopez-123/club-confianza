@@ -124,7 +124,7 @@ const COLECCION_A_SECCION: Record<string, Seccion> = {
   participantes: "participantes", pedidos: "pedidos", mensajes: "atencion", usuarios: "usuarios", auditoria: "auditoria",
   productos: "productos", categoriasProducto: "productos", beneficios: "beneficios", categoriasBeneficio: "beneficios", lotes: "beneficios",
   destinos: "destinos", ciudades: "destinos", bannersVuelos: "destinos", banners: "contenido", onboarding: "contenido", seccionesHome: "contenido",
-  campos: "formulario", marcas: "marcas", comprasPuntos: "compras-puntos", plantillasCorreo: "correos", correosEnviados: "correos", campanas: "correos", importaciones: "importaciones",
+  campos: "formulario", marcas: "marcas", locales: "marcas", comprasPuntos: "compras-puntos", plantillasCorreo: "correos", correosEnviados: "correos", campanas: "correos", importaciones: "importaciones",
   cotizaciones: "cotizaciones", movimientos: "movimientos", popups: "popups", guias: "ayuda", solicitudesEliminacion: "participantes",
 };
 
@@ -144,7 +144,7 @@ export function requisitoApi(metodo: string, ruta: string, body?: any): { seccio
     if (!s) return null;
     // Las guías completas (con borradores y las de otros roles) solo las ve quien puede administrarlas; cada rol lee las suyas en admin/ayuda.
     if (p[2] === "guias" && m === "GET") return { secciones: ["ayuda"], accion: "editar" };
-    if (m === "GET" && ["marcas", "ciudades", "categoriasProducto", "categoriasBeneficio", "participantes", "usuarios", "lotes", "plantillasCorreo", "campos", "banners", "seccionesHome", "onboarding"].includes(p[2]!)) return null;
+    if (m === "GET" && ["marcas", "locales", "ciudades", "categoriasProducto", "categoriasBeneficio", "participantes", "usuarios", "lotes", "plantillasCorreo", "campos", "banners", "seccionesHome", "onboarding"].includes(p[2]!)) return null;
     return { secciones: [s], accion };
   }
   switch (q) {

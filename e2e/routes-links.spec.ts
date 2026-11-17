@@ -87,7 +87,7 @@ test.describe("Enlaces", () => {
     await page.goto("/");
     const nav = page.locator("header nav");
     const esperados: Record<string, string> = {
-      Inicio: "/", "Canjea tus puntos": "/canjea", "Mis compras": "/mis-compras", Contáctanos: "/contacto",
+      Inicio: "/", "Canjea tus puntos": "/canjea", "Mis canjes": "/mis-compras", Contáctanos: "/contacto",
     };
     for (const [texto, ruta] of Object.entries(esperados)) {
       await nav.getByRole("link", { name: texto, exact: true }).click();

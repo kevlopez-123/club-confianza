@@ -59,7 +59,7 @@ export const navItems: NavItem[] = [
       { label: "Mi nivel", to: "/mi-nivel" },
     ],
   },
-  { label: "Mis compras", to: "/mis-compras" },
+  { label: "Mis canjes", to: "/mis-compras" },
   { label: "Contáctanos", to: "/contacto" },
 ];
 
@@ -566,6 +566,8 @@ export type Beneficio = {
   precio?: number | undefined;
   /** true = no se puede canjear con puntos, solo pago con tarjeta */
   soloDinero?: boolean | undefined;
+  /** Locales de su marca donde se canjea (vacío o ausente = todos los locales de la marca). */
+  localesIds?: string[] | undefined;
   /** Promoción (se calcula en el servidor): valores originales, insignia y etiqueta propia opcional. */
   puntosOriginal?: number | undefined;
   precioOriginal?: number | undefined;

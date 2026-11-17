@@ -4,7 +4,7 @@ import { entrarAdmin, esperarCarga } from "./helpers";
 const K = "confianza_mockdb_v1";
 
 test.describe("El estado del pedido llega al participante", () => {
-  test("al marcarlo como entregado en el panel, Mis compras lo muestra entregado", async ({ page }) => {
+  test("al marcarlo como entregado en el panel, Mis canjes lo muestra entregado", async ({ page }) => {
     await entrarAdmin(page); // el ingreso es una escritura: deja la base simulada guardada
     await page.waitForFunction((k) => !!localStorage.getItem(k), K);
     // El pedido de la participante demo, tal como lo ve el panel: físico y en preparación.
@@ -43,9 +43,9 @@ test.describe("El estado del pedido llega al participante", () => {
     await page.getByRole("button", { name: "Sí, cancelar" }).click();
     await expect(page.getByText(/Pedido cancelado/)).toBeVisible();
     await expect.poll(() => page.evaluate((k) => JSON.parse(localStorage.getItem(k)!).admin.pedidos.find((c: any) => c.codigo === "BNB-31LOP9AA").estadoAdmin, K)).toBe("Cancelado");
-    // los puntos usados (7.000) vuelven al saldo, una sola vez, y quedan en el historial
+    // los puntos usados (10 360) vuelven al saldo, una sola vez, y quedan en el historial
     const db = () => page.evaluate((k) => { const d = JSON.parse(localStorage.getItem(k)!); return { saldo: d.usuario.puntos as number, devs: d.movimientos.filter((m: any) => m.detalle.includes("Devolución por pedido cancelado BNB-31LOP9AA")).map((m: any) => m.puntos) }; }, K);
-    expect((await db()).devs).toEqual([7000]);
+    expect((await db()).devs).toEqual([10360]);
 
     await page.goto("/mis-compras");
     await expect(page.locator("article").filter({ hasText: "BNB-31LOP9AA" }).getByText("Cancelado", { exact: true })).toBeVisible();

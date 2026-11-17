@@ -84,7 +84,7 @@ export function generarStress(db: Db, n: number) {
       estado: "Procesando",
       digital: rnd() < 0.3,
       puntosUsados: Math.floor(rnd() * 50000),
-      montoUSD: rnd() < 0.3 ? Math.round(rnd() * 300) : 0,
+      montoUSD: 0,
       guia: "",
       historial: [{ estado: "Confirmado", fecha: `${fecha(iso)} 09:00` }],
     };

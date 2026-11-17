@@ -284,12 +284,12 @@ export class MisBeneficiosPage {
   template: `
     <div class="bg-surface py-10 lg:py-14">
       <div class="page-container">
-        <h1 class="text-2xl font-extrabold text-ink lg:text-3xl">Historial de compras y canjes</h1>
+        <h1 class="text-2xl font-extrabold text-ink lg:text-3xl">Mis canjes</h1>
         <p class="mt-2 max-w-2xl text-base text-muted-foreground">Revisa el detalle de cada pedido, su estado y la forma de pago utilizada.</p>
 
         <div class="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_11rem_11rem_auto] lg:items-end">
           <div class="relative sm:col-span-2 lg:col-span-1">
-            <label for="buscar-compras" class="sr-only">Buscar compra</label>
+            <label for="buscar-compras" class="sr-only">Buscar canje</label>
             <input id="buscar-compras" type="search" [value]="q()" (input)="q.set($any($event.target).value)" placeholder="Buscar por código o producto"
               class="h-12 w-full rounded-full bg-card pl-5 pr-12 text-base text-ink shadow-[var(--shadow-card)] outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/50" />
             <app-icon name="Search" class="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink" />
@@ -335,7 +335,7 @@ export class MisBeneficiosPage {
             </article>
           }
           @if (lista().length === 0) {
-            <p class="rounded-2xl bg-card p-8 text-center text-base text-muted-foreground shadow-[var(--shadow-card)]">No encontramos compras con ese criterio.</p>
+            <p class="rounded-2xl bg-card p-8 text-center text-base text-muted-foreground shadow-[var(--shadow-card)]">No encontramos canjes con ese criterio.</p>
           }
         </div>
       </div>

@@ -12,6 +12,7 @@ import {
   user,
 } from "./seed/mock";
 import { niveles, nivelesTexto } from "./seed/niveles";
+import { LOCALES_POR_BENEFICIO, localesIniciales } from "./seed/locales";
 import { GUIAS_INICIALES } from "../ayuda";
 import { POPUPS_INICIALES } from "../popups";
 import { ciudades, cotizacionesIniciales, destinos, slidesVuelos } from "./seed/vuelos";
@@ -82,7 +83,7 @@ const semilla = () => {
   catalogo: {
     // El catálogo público parte de las filas del admin (así comparten sus datos).
     productos: clone(admin.productos) as typeof productos,
-    beneficios: clone(beneficios),
+    beneficios: clone(beneficios).map((b) => (LOCALES_POR_BENEFICIO[b.id] ? { ...b, localesIds: LOCALES_POR_BENEFICIO[b.id] } : b)),
     productosPorTab: Object.fromEntries(
       Object.entries(productosPorTab).map(([k, v]) => [k, v.map((p) => p.id)]),
     ) as Record<string, string[]>,
@@ -122,13 +123,14 @@ const semilla = () => {
       { id: "beneficios", label: "Beneficios", activo: true, children: [
         { label: "Catálogo de beneficios", to: "/beneficios", activo: true },
         { label: "Mis beneficios", to: "/mis-beneficios", activo: true },
+        { label: "Mapa de establecimientos", to: "/mapa", activo: true },
       ] },
       { id: "puntos", label: "Mis puntos", activo: true, children: [
         { label: "Historial de puntos", to: "/mis-puntos/historial", activo: true },
         { label: "Compra de puntos", to: "/mis-puntos/compra", activo: typeof sessionStorage !== "undefined" && sessionStorage.getItem("bs_compra_puntos") === "1" },
         { label: "Mi nivel", to: "/mi-nivel", activo: true },
       ] },
-      { id: "compras", label: "Mis compras", to: "/mis-compras", activo: true },
+      { id: "compras", label: "Mis canjes", to: "/mis-compras", activo: true },
       { id: "contacto", label: "Contáctanos", to: "/contacto", activo: true },
     ] as any[],
     contenido: { faq: clone(faqs), terminos: seccionesAMarkdown(terminos), privacidad: seccionesAMarkdown(privacidad) },
@@ -158,6 +160,7 @@ const cargar = (): Db => {
       // Plantillas de fábrica que se agregaron después de guardar la base (p. ej. la de eliminación de cuenta).
       for (const pb of PLANTILLAS_BASE) if (!(base.admin.plantillasCorreo as any[]).some((x) => x.id === pb.id)) (base.admin.plantillasCorreo as any[]).push(structuredClone(pb));
       (base.admin as any).solicitudesEliminacion ??= [];
+  (base.admin as any).locales ??= localesIniciales();
       base.admin.correosEnviados ??= correosEnviados;
       base.admin.disenoCorreo ??= disenoCorreo;
       (base.admin as any).ajustesCorreo ??= structuredClone(AJUSTES_BASE);

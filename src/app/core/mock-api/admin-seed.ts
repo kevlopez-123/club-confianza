@@ -16,6 +16,7 @@ import {
 } from "./seed/admin";
 import { PRECIO_POR_PUNTO, PUNTOS_POR_DOLAR } from "../format";
 import { AJUSTES_BASE, DISENO_BASE, PLANTILLAS_BASE } from "../correos";
+import { LOCALES_POR_BENEFICIO, localesIniciales } from "./seed/locales";
 
 const clone = <T>(v: T): T => structuredClone(v);
 /** Fecha AAAA-MM-DD dentro de n días: los lotes de ejemplo siempre están vigentes. */
@@ -139,7 +140,9 @@ export const adminSeed = () => {
       imagenes: [p.imagen],
       vigencia: "2026-12-31",
     })) as any[],
-    beneficios: beneficios.map((b) => ({ ...clone(b), activo: true, exclusivo: b.tipo === "compra", imagenes: [b.imagen] })) as any[],
+    beneficios: beneficios.map((b) => ({ ...clone(b), activo: true, exclusivo: b.tipo === "compra", imagenes: [b.imagen], ...(LOCALES_POR_BENEFICIO[b.id] ? { localesIds: LOCALES_POR_BENEFICIO[b.id] } : {}) })) as any[],
+    /** Establecimientos de las marcas (dirección, coordenadas, horario): alimentan el mapa y la ficha de cada beneficio. */
+    locales: localesIniciales() as any[],
     destinos: destinos.map((d, i) => ({ ...clone(d), destacado: i < 3, activo: true, galeria: [d.imagen] })) as any[],
     ciudades: ciudades.map((c) => ({ ...c, activo: true })) as any[],
     // Marcas aliadas: se administran con logo y sitio web; productos y beneficios eligen una por nombre.

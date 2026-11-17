@@ -35,6 +35,7 @@ const grupos = [
     { to: "/admin/productos", label: "Productos", icon: "Package" },
     { to: "/admin/beneficios", label: "Beneficios", icon: "Gift" },
     { to: "/admin/marcas", label: "Marcas", icon: "Tag" },
+    { to: "/admin/marcas/locales", label: "Locales", icon: "MapPin" },
   ] },
   { label: "Operación", items: [
     { to: "/admin/pedidos", label: "Pedidos", icon: "ShoppingBag" },

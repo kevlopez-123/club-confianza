@@ -62,6 +62,7 @@ export const routes: Routes = [
       { path: "productos", title: adminTitle("Productos"), loadComponent: () => catalogos().then((m) => m.ProductosAdminPage) },
       { path: "beneficios", title: adminTitle("Beneficios"), loadComponent: () => catalogos().then((m) => m.BeneficiosAdminPage) },
       { path: "marcas", title: adminTitle("Marcas aliadas"), loadComponent: () => import("./admin/pages-aliadas").then((m) => m.MarcasAdminPage) },
+      { path: "marcas/locales", title: adminTitle("Locales"), loadComponent: () => import("./admin/pages-locales").then((m) => m.LocalesAdminPage) },
       { path: "marcas/:id", title: adminTitle("Ficha de la marca"), loadComponent: () => import("./admin/pages-marca-ficha").then((m) => m.MarcaFichaPage) },
       { path: "contenido", title: adminTitle("Contenido"), loadComponent: () => contenido().then((m) => m.ContenidoPage) },
       { path: "formulario", title: adminTitle("Formulario de datos"), loadComponent: () => contenido().then((m) => m.FormularioPage) },
@@ -75,6 +76,7 @@ export const routes: Routes = [
     children: [
       { path: "", pathMatch: "full", title: "Banco Solidario Puntos | Canjea tus puntos y accede a descuentos", loadComponent: () => catalog().then((m) => m.HomePage) },
 
+      { path: "mapa", title: "Mapa de establecimientos | Banco Solidario Puntos", loadComponent: () => import("./pages/map-page").then((m) => m.MapaPage) },
       { path: "canjea", title: "Canjea tus puntos | Catálogo de productos Banco Solidario", loadComponent: () => catalog().then((m) => m.CanjeaPage) },
       { path: "canjea/:id", title: "Canjea tus puntos | Banco Solidario", loadComponent: () => catalog().then((m) => m.ProductoDetallePage) },
       { path: "beneficios", title: "Beneficios Banco Solidario | Descuentos exclusivos para tarjetahabientes", loadComponent: () => catalog().then((m) => m.BeneficiosPage) },
@@ -88,7 +90,7 @@ export const routes: Routes = [
       { path: "mi-nivel", canActivate: [participanteGuard], title: "Mi nivel | Banco Solidario Puntos", loadComponent: () => account().then((m) => m.MiNivelPage) },
       { path: "notificaciones", canActivate: [participanteGuard], title: "Notificaciones | Banco Solidario Puntos", loadComponent: () => account().then((m) => m.NotificacionesPage) },
       { path: "mis-beneficios", canActivate: [participanteGuard], title: "Mis beneficios | Banco Solidario Puntos", loadComponent: () => account().then((m) => m.MisBeneficiosPage) },
-      { path: "mis-compras", canActivate: [participanteGuard], title: "Historial de compras | Banco Solidario Puntos", loadComponent: () => account().then((m) => m.MisComprasPage) },
+      { path: "mis-compras", canActivate: [participanteGuard], title: "Mis canjes | Banco Solidario Puntos", loadComponent: () => account().then((m) => m.MisComprasPage) },
       { path: "mis-compras/:codigo", canActivate: [participanteGuard], title: "Detalle de compra | Banco Solidario Puntos", loadComponent: () => account().then((m) => m.DetalleCompraPage) },
       { path: "mis-puntos/historial", canActivate: [participanteGuard], title: "Historial de puntos | Banco Solidario Puntos", loadComponent: () => account().then((m) => m.HistorialPuntosPage) },
       { path: "mis-puntos/compra", canActivate: [participanteGuard], title: "Compra de puntos | Banco Solidario Puntos", loadComponent: () => points().then((m) => m.CompraPuntosPage) },

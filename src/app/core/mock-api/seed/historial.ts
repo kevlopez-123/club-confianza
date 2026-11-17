@@ -109,6 +109,8 @@ const it = (id: string, cantidad = 1): CompraItem => {
   return { nombre: p.nombre, marca: p.marca, imagen: p.imagen, cantidad, puntos: p.puntos };
 };
 
+const totalPuntos = (items: CompraItem[]) => items.reduce((n, i) => n + i.puntos * i.cantidad, 0);
+
 export const compras: Compra[] = [
   {
     codigo: "BNB-4F82KDL1",
@@ -116,7 +118,7 @@ export const compras: Compra[] = [
     fechaISO: "2026-07-28",
     estado: "Entregado",
     entrega: "Av. Javier Prado Este 1234, Dpto. 501 — Lima",
-    puntosUsados: 26000,
+    puntosUsados: totalPuntos([it("p4")]),
     montoUSD: 0,
     items: [it("p4")],
   },
@@ -125,9 +127,9 @@ export const compras: Compra[] = [
     fecha: "14/07/2026",
     fechaISO: "2026-07-14",
     estado: "En camino",
-    entrega: "Av. Francisco de Av. Ejército 236, Piso 8 — Arequipa",
-    puntosUsados: 48000,
-    montoUSD: 120,
+    entrega: "Av. Ejército 236, Piso 8 — Arequipa",
+    puntosUsados: totalPuntos([it("p2"), it("p6")]),
+    montoUSD: 0,
     items: [it("p2"), it("p6")],
   },
   {
@@ -136,7 +138,7 @@ export const compras: Compra[] = [
     fechaISO: "2026-06-02",
     estado: "Entregado",
     entrega: "Entrega digital a ana.torres@dominio.com",
-    puntosUsados: 11000,
+    puntosUsados: totalPuntos([it("p12")]),
     montoUSD: 0,
     items: [it("p12")],
   },
@@ -146,8 +148,8 @@ export const compras: Compra[] = [
     fechaISO: "2026-05-19",
     estado: "Procesando",
     entrega: "Entrega digital a atorres@empresa.com.pe",
-    puntosUsados: 7000,
-    montoUSD: 35,
+    puntosUsados: totalPuntos([it("p11", 2)]),
+    montoUSD: 0,
     items: [it("p11", 2)],
   },
 ];
@@ -186,9 +188,9 @@ export const movimientos: Movimiento[] = [
     id: "m2",
     fechaISO: "2026-07-28",
     fecha: "28/07/2026",
-    detalle: "Canje Audífonos Sony WH-CH720N",
+    detalle: "Canje Parlante Bluetooth portátil",
     tipo: "canje",
-    puntos: -26000,
+    puntos: -4380,
   },
   {
     id: "m3",
@@ -202,9 +204,9 @@ export const movimientos: Movimiento[] = [
     id: "m4",
     fechaISO: "2026-07-14",
     fecha: "14/07/2026",
-    detalle: "Canje Huawei Watch GT 5 Active",
+    detalle: "Canje Freidora de aire digital 5.5L y Cepillo dental eléctrico Sonicare",
     tipo: "canje",
-    puntos: -48000,
+    puntos: -15360,
   },
   {
     id: "m5",
@@ -234,9 +236,9 @@ export const movimientos: Movimiento[] = [
     id: "m8",
     fechaISO: "2026-06-02",
     fecha: "02/06/2026",
-    detalle: "Canje Gift Card Plaza Vea S/ 150",
+    detalle: "Canje Cafetera espresso Prima",
     tipo: "canje",
-    puntos: -11000,
+    puntos: -6580,
   },
   {
     id: "m9",
@@ -250,9 +252,9 @@ export const movimientos: Movimiento[] = [
     id: "m10",
     fechaISO: "2026-05-19",
     fecha: "19/05/2026",
-    detalle: "Canje Gift Card Cineplanet x2",
+    detalle: "Canje Licuadora Pro 1200W x2",
     tipo: "canje",
-    puntos: -7000,
+    puntos: -10360,
   },
   {
     id: "m11",

@@ -1,5 +1,7 @@
 import { Injectable, computed, inject, signal } from "@angular/core";
 import { limitesDe } from "./limites-programa";
+import { localesAplicables } from "./locales-beneficio";
+import type { Local } from "./mock-api/seed/locales";
 import { ApiService } from "./api.service";
 import { BrandService } from "./brand.service";
 import { PUNTOS_POR_DOLAR, PRECIO_POR_PUNTO } from "./format";
@@ -128,6 +130,15 @@ export class CatalogService {
   readonly categoriasBeneficio = signal<Categoria[]>([]);
   /** Marcas aliadas con logo y sitio web (se administran en Admin → Marcas). */
   readonly marcasAliadas = signal<MarcaAliada[]>([]);
+  /** Locales (establecimientos) de las marcas aliadas: dónde canjear cada beneficio y qué muestra el mapa. */
+  readonly locales = signal<Local[]>([]);
+  localesDe(marca: string): Local[] {
+    return this.locales().filter((l) => l.marca === marca);
+  }
+  /** Locales donde se canjea ese beneficio: los que eligió el panel o, si no eligió, todos los de la marca. */
+  localesDeBeneficio(b: Pick<Beneficio, "marca" | "localesIds">): Local[] {
+    return localesAplicables(b, this.locales());
+  }
   marcaPorNombre(nombre: string) {
     return this.marcasAliadas().find((m) => m.nombre === nombre);
   }
@@ -203,6 +214,7 @@ export class CatalogService {
     this.api.get<CategoriaProducto[]>("catalogo/categorias-producto").subscribe({ next: (r) => this.categoriasProducto.set(r), error: this.falla });
     this.api.get<Categoria[]>("catalogo/categorias-beneficio").subscribe({ next: (r) => this.categoriasBeneficio.set(r), error: this.falla });
     this.api.get<MarcaAliada[]>("catalogo/marcas").subscribe({ next: (r) => this.marcasAliadas.set(r), error: this.falla });
+    this.api.get<Local[]>("catalogo/locales").subscribe({ next: (r) => this.locales.set(r), error: () => undefined });
     this.api.get<Slide[]>("catalogo/banners/home").subscribe({ next: (r) => this.bannersHome.set(r), error: this.falla });
     this.api.get<Slide[]>("catalogo/banners/beneficios").subscribe({ next: (r) => this.bannersBeneficios.set(r), error: this.falla });
     this.api.get<Slide[]>("catalogo/banners/productos").subscribe({ next: (r) => this.bannersProductos.set(r), error: this.falla });

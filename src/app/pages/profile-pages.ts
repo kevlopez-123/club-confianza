@@ -524,7 +524,7 @@ export class ContactoPage {
   template: `
     <div class="grid min-h-screen bg-surface font-sans lg:grid-cols-2">
       <!-- Banner lateral -->
-      <aside class="relative hidden overflow-hidden bg-brand-dark lg:sticky lg:top-0 lg:block lg:h-[100dvh] lg:self-start">
+      <aside class="relative hidden overflow-hidden bg-brand-dark lg:fixed lg:inset-y-0 lg:left-0 lg:block lg:w-1/2">
         <img [src]="brand.imagenes().login" [alt]="'Clientes de ' + brand.marca().nombre + ' disfrutando sus beneficios'" width="900" height="1200" class="h-full w-full object-cover" />
         <div class="absolute inset-0 bg-header-gradient opacity-80"></div>
         <div class="absolute inset-x-0 bottom-0 p-10 text-white">
@@ -535,7 +535,7 @@ export class ContactoPage {
       </aside>
 
       <!-- Formulario -->
-      <main class="flex items-center justify-center px-4 py-10 sm:px-8">
+      <main class="flex items-center justify-center px-4 py-10 sm:px-8 lg:col-start-2">
         <div class="w-full max-w-md">
           <div class="flex justify-center px-6 py-4 lg:hidden"><app-logo variant="light" class="h-16" /></div>
           <div class="mt-6 hidden justify-center lg:flex"><app-logo variant="light" class="h-16" /></div>

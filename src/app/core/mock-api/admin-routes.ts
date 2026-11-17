@@ -24,7 +24,7 @@ import { estadoParaParticipante } from "../estados-pedido";
 const LISTAS = [
   "participantes", "pedidos", "mensajes", "usuarios", "auditoria", "productos", "beneficios", "destinos", "ciudades",
   "categoriasProducto", "categoriasBeneficio", "banners", "bannersVuelos", "onboarding", "campos", "lotes", "seccionesHome", "marcas", "comprasPuntos",
-  "plantillasCorreo", "correosEnviados", "campanas", "importaciones", "popups", "guias", "solicitudesEliminacion",
+  "plantillasCorreo", "correosEnviados", "campanas", "importaciones", "popups", "guias", "solicitudesEliminacion", "locales",
 ] as const;
 type Lista = (typeof LISTAS)[number];
 
@@ -173,7 +173,7 @@ const col = (name: string): Lista => {
 };
 
 /* ---------------- Consultas paginadas (para colecciones grandes) ---------------- */
-const CLAVES: Record<string, string> = { participantes: "id", pedidos: "codigo", productos: "id", beneficios: "id", destinos: "slug", mensajes: "id", usuarios: "id", ciudades: "codigo", marcas: "id", comprasPuntos: "codigo", plantillasCorreo: "id", correosEnviados: "id", campanas: "id", importaciones: "id" };
+const CLAVES: Record<string, string> = { participantes: "id", pedidos: "codigo", productos: "id", beneficios: "id", destinos: "slug", mensajes: "id", usuarios: "id", ciudades: "codigo", marcas: "id", locales: "id", comprasPuntos: "codigo", plantillasCorreo: "id", correosEnviados: "id", campanas: "id", importaciones: "id" };
 const BUSCABLES: Record<string, string[]> = {
   participantes: ["nombre", "cedula", "email"],
   pedidos: ["codigo", "cliente"],
@@ -186,6 +186,7 @@ const BUSCABLES: Record<string, string[]> = {
   ciudades: ["ciudad", "codigo", "pais"],
   cotizaciones: ["codigo", "cliente", "origen", "destino"],
   marcas: ["nombre", "web"],
+  locales: ["nombre", "marca", "direccion", "distrito", "provincia"],
   auditoria: ["accion", "usuario"],
   comprasPuntos: ["codigo", "cliente", "email"],
   correosEnviados: ["para", "destinatario", "asunto", "plantilla", "referencia"],
@@ -365,7 +366,7 @@ export const adminRoutes: Route[] = [
    */
   ["POST", "admin/c/:col/upsert", ({ params, body }) => {
     const c = col(params["col"]!);
-    if (!["productos", "beneficios", "marcas"].includes(c)) throw new ApiError(400, "Esta colección no admite carga masiva.");
+    if (!["productos", "beneficios", "marcas", "locales"].includes(c)) throw new ApiError(400, "Esta colección no admite carga masiva.");
     const items = body?.items as any[];
     if (!Array.isArray(items) || !items.length) throw new ApiError(422, "No hay filas para cargar.");
     if (items.length > 2000) throw new ApiError(422, "Una carga puede tener como máximo 2.000 filas: divide el archivo.");
